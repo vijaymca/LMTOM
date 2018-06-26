@@ -1,0 +1,15 @@
+/**
+ * All named queries in this file
+ **/
+
+ query AllClaims {
+   description: "Returns all Claim"
+   statement:  
+      SELECT  org.lloyds.market.Claim
+ }
+
+ query AllPolicy {
+   description: "Returns all Policy"
+   statement:  
+      SELECT  org.lloyds.market.Policy
+ }

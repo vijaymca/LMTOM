@@ -1,0 +1,40 @@
+namespace org.lloyds.market
+
+// ASSETS Policy Summary
+asset Policy identified by PolicyNo {
+o String PolicyNo
+o String InsuredCompanyName
+o String PolicyType
+o String PolicyDetails1
+o String LeadCarrier
+o String PlacingBroker
+o String ClaimsBroker
+o String OverseasBroker
+o String[] Followers
+o DateTime PolicyEffectiveDate
+o DateTime PolicyExpiryDate
+}
+
+
+// ASSETS
+asset Claim identified by ClaimNo {
+o String ClaimNo
+o String ClaimCreatedBy
+o String ClaimMode
+o String ClaimDetails1
+o String ClaimDetails2
+o String ClaimPremiumStatus
+o String ClaimActionRequired
+o DateTime ClaimCreateDate
+o DateTime ClaimDateofLoss
+o DateTime ClaimUpdateDate optional
+o String InsuredCompanyName
+o DateTime PolicyEffectiveDate
+o String ClaimNotes optional
+o Integer ClaimSettlementAmount optional
+o Boolean ClaimSettlement optional
+o String ClaimAdditionalInformation optional
+o String ClaimExpertOpinion optional 
+o String ClaimQuery optional
+--> Policy PolicyNo
+}
