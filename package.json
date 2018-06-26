@@ -4,11 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublish": "mkdirp ./dist && composer archive create --sourceType dir --sourceName . -a ./dist/lloyds@0.0.1.bna"
   },
   "dependencies": {
-		"connect": "~2.14.4",
-		"express": "^4.0.0",
+    "connect": "~2.14.4",
+    "express": "^4.0.0",
     "mysql": "^2.15.0",
     "composer-admin": "^0.19.6",
     "composer-cli": "^0.19.6",
@@ -22,8 +23,8 @@
     "eslint": "latest",
     "nyc": "latest",
     "mkdirp": "latest",
-    "mocha": "latest"    
-	},
+    "mocha": "latest"
+  },
   "author": "",
   "license": "ISC"
 }
