@@ -28,8 +28,6 @@ o String ClaimActionRequired
 o DateTime ClaimCreateDate
 o DateTime ClaimDateofLoss
 o DateTime ClaimUpdateDate optional
-o String InsuredCompanyName
-o DateTime PolicyEffectiveDate
 o String ClaimNotes optional
 o Integer ClaimSettlementAmount optional
 o Boolean ClaimSettlement optional
@@ -37,4 +35,9 @@ o String ClaimAdditionalInformation optional
 o String ClaimExpertOpinion optional 
 o String ClaimQuery optional
 --> Policy PolicyNo
+}
+
+
+transaction SetupDemo{
+
 }
