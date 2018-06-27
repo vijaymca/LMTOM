@@ -1,26 +1,42 @@
+/**
+/**
+ * Defines a data model for a Insurance claims
+ */
+
 namespace org.lloyds.market
 
 // ASSETS Policy Summary
 asset Policy identified by PolicyNo {
 o String PolicyNo
 o String InsuredCompanyName
-o String PolicyType
+o PolicyType policyType
 o String PolicyDetails1
 o String LeadCarrier
 o String PlacingBroker
-o String ClaimsBroker
+--> ClaimBroker ClaimsBroker
 o String OverseasBroker
 o String[] Followers
 o DateTime PolicyEffectiveDate
 o DateTime PolicyExpiryDate
 }
 
+enum ClaimType{
+  o Open
+  o Pending
+  o Approved
+  o Reject
+  o Closed
+}
+
+enum PolicyType{
+  o CommercialProp
+}
 
 // ASSETS
 asset Claim identified by ClaimNo {
 o String ClaimNo
 o String ClaimCreatedBy
-o String ClaimMode
+o ClaimType ClaimMode
 o String ClaimDetails1
 o String ClaimDetails2
 o String ClaimPremiumStatus
@@ -35,6 +51,26 @@ o String ClaimAdditionalInformation optional
 o String ClaimExpertOpinion optional 
 o String ClaimQuery optional
 --> Policy PolicyNo
+}
+
+
+//Participants
+abstract participant User identified by email {
+  o String email
+  o String firstName optional
+  o String lastName optional
+}
+
+participant ClaimTech identified by uid extends User {
+  o String uid
+}
+
+participant ClaimBroker extends User {
+  o String organisation
+}
+
+participant Accountant extends User {
+  o String organisation
 }
 
 
