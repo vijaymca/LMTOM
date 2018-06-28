@@ -35,9 +35,12 @@ o String ClaimAdditionalInformation optional
 o String ClaimExpertOpinion optional 
 o String ClaimQuery optional
 --> Policy PolicyNo
+--> Owner owner
 }
 
-
-transaction SetupDemo{
-
+participant Owner identified by OwnerId {
+    o String OwnerId
+    o String UserName
+    o String Password
+    o String Email
 }
