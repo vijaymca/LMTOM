@@ -4,26 +4,26 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "prepublish": "mkdirp ./dist && composer archive create --sourceType dir --sourceName . -a ./dist/lloyds@0.0.1.bna"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "connect": "~2.14.4",
-    "express": "^4.0.0",
-    "mysql": "^2.15.0",
+    "chai": "latest",
+    "chai-as-promised": "latest",
     "composer-admin": "^0.19.6",
     "composer-cli": "^0.19.6",
     "composer-client": "^0.19.6",
     "composer-common": "^0.19.6",
     "composer-connector-embedded": "^0.19.6",
     "composer-cucumber-steps": "^0.19.6",
-    "chai": "latest",
-    "chai-as-promised": "latest",
+    "connect": "~2.14.4",
     "cucumber": "^2.2.0",
     "eslint": "latest",
-    "nyc": "latest",
+    "express": "^4.0.0",
     "mkdirp": "latest",
-    "mocha": "latest"
+    "mocha": "latest",
+    "mysql": "^2.15.0",
+    "node-rest-client": "^3.1.0",
+    "nyc": "latest"
   },
   "author": "",
   "license": "ISC"

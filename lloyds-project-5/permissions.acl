@@ -12,6 +12,15 @@
  * limitations under the License.
  */
 
+rule CollectorAssets {
+  description: "Allow collectors to see the assets that they own"
+  participant(t): "org.lloyds.market.Owner"
+  operation: ALL
+  resource(v): "org.lloyds.market.Claim"
+  condition: (v.owner.getIdentifier() != t.getIdentifier()  )
+  action: DENY
+}
+
 rule NetworkAdminUser {
     description: "Grant business network administrators full access to user resources"
     participant: "org.hyperledger.composer.system.NetworkAdmin"
@@ -27,3 +36,36 @@ rule NetworkAdminSystem {
     resource: "org.hyperledger.composer.system.**"
     action: ALLOW
 }
+
+rule ClaimView {
+  description: "Make the penguins themselves visible"
+  participant: "org.lloyds.market.Owner"
+  operation: ALL
+  resource: "org.lloyds.market.Claim"
+  action: ALLOW
+}
+
+rule PolicyView {
+  description: "Make the penguins themselves visible"
+  participant: "org.lloyds.market.Owner"
+  operation: ALL
+  resource: "org.lloyds.market.Policy"
+  action: ALLOW
+}
+
+rule NetworkUpdate {
+  description:  "System ACL to permit all access"
+  participant: "org.lloyds.market.Owner"
+  operation: READ
+  resource: "org.hyperledger.composer.system.**"
+  action: ALLOW
+}
+
+rule SystemACL {
+  description:  "System ACL to permit all access"
+  participant: "org.hyperledger.composer.system.Participant"
+  operation: ALL
+  resource: "org.hyperledger.composer.system.**"
+  action: ALLOW
+}
+
