@@ -13,7 +13,7 @@ o PolicyType policyType
 o String PolicyDetails1
 o String LeadCarrier
 o String PlacingBroker
---> ClaimBroker ClaimsBroker
+o String ClaimsBroker
 o String OverseasBroker
 o String[] Followers
 o DateTime PolicyEffectiveDate
@@ -51,26 +51,14 @@ o String ClaimAdditionalInformation optional
 o String ClaimExpertOpinion optional 
 o String ClaimQuery optional
 --> Policy PolicyNo
+--> Owner owner
 }
 
-
-//Participants
-abstract participant User identified by email {
-  o String email
-  o String firstName optional
-  o String lastName optional
-}
-
-participant ClaimTech identified by uid extends User {
-  o String uid
-}
-
-participant ClaimBroker extends User {
-  o String organisation
-}
-
-participant Accountant extends User {
-  o String organisation
+participant Owner identified by OwnerId {
+    o String OwnerId
+    o String UserName
+    o String Password
+    o String Email
 }
 
 
