@@ -1,7 +1,7 @@
 'use strict';
 
 const bnc = require('composer-client').BusinessNetworkConnection;
-const cardName = 'Isabelle@lloyds-project-6';
+const cardName = 'admin@lloyds-project-5';
 const connection = new bnc();
 var Client = require('node-rest-client').Client;
 var restclient = new Client();
