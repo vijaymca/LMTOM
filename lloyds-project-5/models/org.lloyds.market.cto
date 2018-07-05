@@ -7,17 +7,17 @@ namespace org.lloyds.market
 
 // ASSETS Policy Summary
 asset Policy identified by PolicyNo {
-o String PolicyNo
-o String InsuredCompanyName
-o PolicyType PolicyType
-o String PolicyDetails1
-o String LeadCarrier
-o String PlacingBroker
-o String ClaimsBroker
-o String OverseasBroker
-o String[] Followers
-o DateTime PolicyEffectiveDate
-o DateTime PolicyExpiryDate
+  o String PolicyNo
+  o String InsuredCompanyName
+  o PolicyType PolicyType
+  o String PolicyDetails1
+  o String LeadCarrier
+  o String PlacingBroker
+  o String ClaimsBroker
+  o String OverseasBroker
+  o String[] Followers
+  o DateTime PolicyEffectiveDate
+  o DateTime PolicyExpiryDate
 }
 
 enum ClaimType{
@@ -34,24 +34,24 @@ enum PolicyType{
 
 // ASSETS
 asset Claim identified by ClaimNo {
-o String ClaimNo
-o String ClaimCreatedBy
-o ClaimType ClaimMode
-o String ClaimDetails1
-o String ClaimDetails2
-o String ClaimPremiumStatus
-o String ClaimActionRequired
-o DateTime ClaimCreateDate
-o DateTime ClaimDateofLoss
-o DateTime ClaimUpdateDate optional
-o String ClaimNotes optional
-o Integer ClaimSettlementAmount optional
-o Boolean ClaimSettlement optional
-o String ClaimAdditionalInformation optional
-o String ClaimExpertOpinion optional 
-o String ClaimQuery optional
---> Policy PolicyNo
---> Owner owner optional
+  o String ClaimNo
+  o String ClaimCreatedBy
+  o ClaimType ClaimMode
+  o String ClaimDetails1
+  o String ClaimDetails2
+  o String ClaimPremiumStatus
+  o String ClaimActionRequired
+  o DateTime ClaimCreateDate
+  o DateTime ClaimDateofLoss
+  o DateTime ClaimUpdateDate optional
+  o String ClaimNotes optional
+  o Integer ClaimSettlementAmount optional
+  o Boolean ClaimSettlement optional
+  o String ClaimAdditionalInformation optional
+  o String ClaimExpertOpinion optional 
+  o String ClaimQuery optional
+  --> Policy PolicyNo
+  --> Owner owner optional
 }
 
 participant Owner identified by OwnerId {
@@ -62,6 +62,16 @@ participant Owner identified by OwnerId {
 }
 
 
-transaction SetupDemo{
-
+transaction SetupDemo {
+  o String PolicyNo
+  o String InsuredCompanyName
+  o PolicyType PolicyType
+  o String PolicyDetails1
+  o String LeadCarrier
+  o String PlacingBroker
+  o String ClaimsBroker
+  o String OverseasBroker
+  o String[] Followers
+  o DateTime PolicyEffectiveDate
+  o DateTime PolicyExpiryDate
 }
