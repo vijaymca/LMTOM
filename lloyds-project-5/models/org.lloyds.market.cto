@@ -9,7 +9,7 @@ namespace org.lloyds.market
 asset Policy identified by PolicyNo {
 o String PolicyNo
 o String InsuredCompanyName
-o PolicyType policyType
+o PolicyType PolicyType
 o String PolicyDetails1
 o String LeadCarrier
 o String PlacingBroker
@@ -51,7 +51,7 @@ o String ClaimAdditionalInformation optional
 o String ClaimExpertOpinion optional 
 o String ClaimQuery optional
 --> Policy PolicyNo
---> Owner owner
+--> Owner owner optional
 }
 
 participant Owner identified by OwnerId {
