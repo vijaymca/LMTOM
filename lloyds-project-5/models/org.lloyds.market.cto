@@ -51,7 +51,7 @@ asset Claim identified by ClaimNo {
   o String ClaimExpertOpinion optional 
   o String ClaimQuery optional
   --> Policy PolicyNo
-  --> Owner owner optional
+  --> Owner owner
 }
 
 participant Owner identified by OwnerId {

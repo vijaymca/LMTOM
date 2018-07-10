@@ -55,7 +55,7 @@ function main(error) {
         includeOptionalFields: false
     }
 
-    let PolicyId = "CCR Y0001PR0027822";
+    let PolicyId = "CCR Y0001PR0027820";
     let transaction = factory.newTransaction(namespace, transactionType, PolicyId, options);
 
 
