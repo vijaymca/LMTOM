@@ -514,7 +514,9 @@ module.exports = function (app) {
                 }).then((claim) => {
                     if (!claim) console.log(req.params.ClaimNo + 'Not found');
 
-                    claim.ClaimMode = req.body.ClaimMode;
+                    if (req.body.ClaimMode === 'Approved')
+                        claim.ClaimMode = req.body.ClaimMode;
+
 
                     const bnDef = connection.getBusinessNetwork();
                     const factory = bnDef.getFactory();
