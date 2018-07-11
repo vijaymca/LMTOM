@@ -29,23 +29,23 @@ async function setupDemo(xData) {  // eslint-disable-line no-unused-vars
 
   //Create Policy
 
-  const policy = factory.newResource(NS,'Policy','CCR Y0001PR0027869');
+  const policy = factory.newResource(NS, 'Policy', xData.PolicyNo);
   policy.InsuredCompanyName = xData.InsuredCompanyName;
   policy.PolicyType = xData.PolicyType;
-  policy.PolicyDetails1= xData.PolicyDetails1;
+  policy.PolicyDetails1 = xData.PolicyDetails1;
   policy.LeadCarrier = xData.LeadCarrier;
   policy.PlacingBroker = xData.PlacingBroker;
   policy.ClaimsBroker = xData.ClaimsBroker;
   policy.OverseasBroker = xData.OverseasBroker;
   policy.Followers = xData.Followers;
-  
- // const effectiveDate = xData.timestamp;
+
+  // const effectiveDate = xData.timestamp;
   // effectiveDate.setDate(effectiveDate.getDate());
   policy.PolicyEffectiveDate = xData.PolicyEffectiveDate;
 
   //const expiryDate = new Date();
   //expiryDate.setDate(effectiveDate.getDate() + 10);
-  policy.PolicyExpiryDate= xData.PolicyExpiryDate;
+  policy.PolicyExpiryDate = xData.PolicyExpiryDate;
 
   // add the Policy
   const policyRegistry = await getAssetRegistry(NS + '.Policy');
@@ -53,26 +53,26 @@ async function setupDemo(xData) {  // eslint-disable-line no-unused-vars
 
 
   //Create Claim
-/*
-  const claim = factory.newResource(NS,'Claim','678XZ76502');
+
+  const claim = factory.newResource(NS, 'Claim', '678XZ76502');
   claim.ClaimCreatedBy = 'Fortitude (FRT 2100)';
   claim.ClaimMode = 'Pending';
   claim.ClaimDetails1 = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostru';
   claim.ClaimDetails2 = 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem ';
   claim.ClaimPremiumStatus = 'Paid';
   claim.ClaimActionRequired = 'Yes';
-  
+
   const today = setupDemo.timestamp;
   claim.ClaimCreateDate = today.setDate(today.getDate());
 
   const lossDate = new Date();
   lossDate.setDate(today.getDate() + 12);
-claim.ClaimDateofLoss =lossDate;
+  claim.ClaimDateofLoss = lossDate;
 
   claim.PolicyNo = factory.newRelationship(NS, 'Policy', 'CCR Y0001PR0027869');
+  claim.owner = factory.newRelationship(NS, 'Owner', 'Isabelle');
 
   const claimRegistry = await getAssetRegistry(NS + '.Claim');
   await claimRegistry.addAll([claim]);
-  */
- 
+
 }

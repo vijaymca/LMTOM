@@ -24,7 +24,7 @@ module.exports = {
     cardStore: require('composer-common').FileSystemCardStore,
     BusinessNetworkConnection: require('composer-client').BusinessNetworkConnection,
     // Used for connect()
-    cardName: "admin@lloyds-project-5",
+    cardName: "admin@lloyds-project-6",
 
     // Holds the Business Network Connection
     connection: {},
