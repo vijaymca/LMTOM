@@ -13,19 +13,12 @@ module.exports = {
     connect: function (req, callback) {
 
         // Create instance of file system card store
-
-        // Composer 0.19.0 Change
         //const cardStore = new this.cardStore();
         //this.connection = new this.BusinessNetworkConnection({ cardStore: cardStore });
         var cardType = { type: 'composer-wallet-filesystem' }
         this.connection = new this.BusinessNetworkConnection(cardType);
 
-        var jsonObj = [];
-        var results1;
-        var results2;
-        var claim_obj;
-        var policy_obj;
-       
+             
         const user = req.headers["user"];
         const password = req.headers["password"];
 

@@ -17,8 +17,8 @@ app.use(connect.urlencoded());
 
 // Routes
 
-//require('./routes.js')(app);
-require('./expressApi.js')(app);
+require('./routes.js')(app);
+//require('./expressApi.js')(app);
 
 app.listen(port);
 console.log('The App runs on port ' + port);

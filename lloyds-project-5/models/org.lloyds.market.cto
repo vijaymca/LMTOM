@@ -11,7 +11,7 @@ asset Policy identified by PolicyNo {
   o String InsuredCompanyName
   o PolicyType PolicyType
   o String PolicyDetails1
-  o String LeadCarrier
+  -->Owner LeadCarrier
   o String PlacingBroker
   o String ClaimsBroker
   o String OverseasBroker
@@ -62,16 +62,18 @@ participant Owner identified by OwnerId {
 }
 
 
+concept Segmentation {
+  o String Segmentation
+}
+
+concept houseKeepin {
+  o String houseKeeping
+}
+
+concept additionalInfo{
+o String addInfo
+}
+
 transaction SetupDemo {
-  o String PolicyNo
-  o String InsuredCompanyName
-  o PolicyType PolicyType
-  o String PolicyDetails1
-  o String LeadCarrier
-  o String PlacingBroker
-  o String ClaimsBroker
-  o String OverseasBroker
-  o String[] Followers
-  o DateTime PolicyEffectiveDate
-  o DateTime PolicyExpiryDate
+  
 }

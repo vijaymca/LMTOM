@@ -7,15 +7,7 @@ var Client = require('node-rest-client').Client;
 var restclient = new Client();
 const fs = require('fs');
 
-const bnUtil = require('./dlt-connection-util');
-
-var jsonObj = [];
-var results1;
-var results2;
-var claim_obj;
-var policy_obj;
-
-module.exports = (app) => {
+module.exports = function (app) {
 
     app.get('/', function (req, res) {
         res.end("Welcome to Lloyds Market DLT services");
@@ -39,6 +31,13 @@ module.exports = (app) => {
     });
 
     app.get('/Claims', function (req, res) {
+        var jsonObj = [];
+        var results1;
+        var results2;
+        var claim_obj;
+        var policy_obj;
+        console.log("********* Claims")
+
 
         const user = req.headers["user"];
         const password = req.headers["password"];
@@ -104,11 +103,17 @@ module.exports = (app) => {
 
             });
         }
-
     });
 
     app.get('/ClaimDetails/:ClaimNumber', function (req, res) {
         console.log("*********  ClaimDetails " + req.params.ClaimNumber);
+        var jsonObj = [];
+        var results1;
+        var results2;
+        var claim_obj;
+        var policy_obj;
+
+
         const user = req.headers["user"];
         const password = req.headers["password"];
 
@@ -163,7 +168,13 @@ module.exports = (app) => {
 
     app.get('/ClaimInvestigate/:ClaimNumber', function (req, res) {
         console.log("*********  ClaimInvestigate " + req.params.ClaimNumber);
-      
+        var jsonObj = [];
+        var results1;
+        var results2;
+        var claim_obj;
+        var policy_obj;
+
+
         const user = req.headers["user"];
         const password = req.headers["password"];
 
@@ -221,8 +232,13 @@ module.exports = (app) => {
         }
     });
 
+
     app.get('/ClaimHistory', function (req, res) {
-       
+        var jsonObj = [];
+        var results1;
+        var results2;
+        var claim_obj;
+        var policy_obj;
         console.log("********* getClaimHistory")
 
         const user = req.headers["user"];
@@ -283,9 +299,14 @@ module.exports = (app) => {
         }
     });
 
+
     app.get('/ClaimHistory/:ClaimNumber', function (req, res) {
         console.log("*********  ClaimInvestigate " + req.params.ClaimNumber);
-      
+        var jsonObj = [];
+        var results1;
+        var results2;
+        var claim_obj;
+        var policy_obj;
         console.log("********* getClaimHistory")
 
         const user = req.headers["user"];
@@ -342,114 +363,191 @@ module.exports = (app) => {
         }
     });
 
+
     app.post('/Policies', (req, res) => {
-        bnUtil.connect(req, () => {
-            return bnUtil.connection.getAssetRegistry('org.lloyds.market.Policy').then((registry) => {
-                console.log('1. Received Registry: ', registry.id);
+        var jsonObj = [];
+        var results1;
+        var results2;
+        var claim_obj;
+        var policy_obj;
+        console.log("********* Claims")
 
-                const bnDef = bnUtil.connection.getBusinessNetwork();
-                const factory = bnDef.getFactory();
+        const user = req.headers["user"];
+        const password = req.headers["password"];
 
-                // Utility method for adding the Policies
-                let policies = [];
-               
-                // Instance#2 
-                let policyResource = factory.newResource('org.lloyds.market', 'Policy', req.body.PolicyNo);
+        if (user === undefined || password === undefined || validateUser(user, password)) {
+            res.writeHead(401, 'Access invalid for user', { 'Content-Type': 'text/plain' });
+            res.end('Invalid credentials');
+        }
+        else {
+            console.log(res);
+            const cardName_new = getCardName(user);
+            connection.connect(cardName_new).then(function () {
 
-                //let followers = ["Dakota (DKT 7809)", "Bleachers Re (BRE 3290)", "Towers Inc (TWR 2244)"];
-                
-                policyResource.Followers = req.body.Followers;
+                return connection.getAssetRegistry('org.lloyds.market.Policy').then((registry) => {
+                    console.log('1. Received Registry: ', registry.id);
 
-                let relationship = factory.newRelationship('org.lloyds.market', 'Owner', req.body.LeadCarrier);
-                policyResource.LeadCarrier = relationship;
+                    // Utility method for adding the Policies
+                    let policies = [];
+                    const bnDef = connection.getBusinessNetwork();
+                    const factory = bnDef.getFactory();
 
-                policyResource.InsuredCompanyName = req.body.InsuredCompanyName;
-                policyResource.PolicyType = req.body.PolicyType;
-                policyResource.PolicyDetails1 = req.body.PolicyDetails1;
-                policyResource.PlacingBroker = req.body.PlacingBroker;
-                policyResource.ClaimsBroker = req.body.ClaimsBroker;
-                policyResource.OverseasBroker = req.body.OverseasBroker;
-                policyResource.PolicyStatus = req.body.PolicyStatus;
-                policyResource.PolicyEffectiveDate = new Date(req.body.PolicyEffectiveDate);
-                policyResource.PolicyExpiryDate = new Date(req.body.PolicyExpiryDate);
+                    // Instance#2 
+                    let policyResource = factory.newResource('org.lloyds.market', 'Policy', 'CCR Y0001PR0027888');
+                    // You may use direct assignment instead of using the setPropertyValue()
+                    let followers = ["Dakota (DKT 7809)", "Bleachers Re (BRE 3290)", "Towers Inc (TWR 2244)"];
+                    policyResource.InsuredCompanyName = 'James Bowling Estates2';
+                    policyResource.PolicyType = 'CommercialProp';
+                    policyResource.PolicyDetails1 = 'ATL...2222';
+                    policyResource.LeadCarrier = 'Fortitude (FRT 2100)2';
+                    policyResource.PlacingBroker = 'PlacingBroker', 'WideWorld Broking limited-222';
+                    policyResource.ClaimsBroker = 'Lloyds Claim Broker-22';
+                    policyResource.OverseasBroker = 'Lloyds Claim Broker-22';
+                    policyResource.Followers = followers;
+                    policyResource.PolicyStatus = "Approved2";
 
-                // Push instance to  the aircrafts array
-                policies.push(policyResource);
+                    policyResource.PolicyEffectiveDate = new Date('2018-11-15T21:44Z');
+                    policyResource.PolicyExpiryDate = new Date('2019-11-15T21:44Z');
 
-                // 4. Add the Aircraft resource to the registry
-                return registry.addAll(policies).then(() => {
-                    console.log('Added the Resources successfully!!!');
-                    res.end("Added Resource successfully");
-                    bnUtil.connection.disconnect();
+                    // Push instance to  the aircrafts array
+                    policies.push(policyResource);
+
+                    // 4. Add the Aircraft resource to the registry
+                    return registry.addAll(policies).then(() => {
+                        console.log('Added the Resources successfully!!!');
+                        res.end("Added Resource successfully");
+                        connection.disconnect();
+                    });
+                }).catch((error) => {
+                    console.log(error);
+                    connection.disconnect();
                 });
-            }).catch((error) => {
-                console.log(error);
-                bnUtil.connection.disconnect();
             });
-        });
+        }
+
+        // sample code.
+        /*
+
+        const course = {
+            id: courses.length + 1,
+            name: req.body.name
+        };
+
+        courses.push(course);
+        res.send(courses);
+        */
     });
+
 
     app.put('/Policies/:PolicyNo', (req, res) => {
 
-        bnUtil.connect(req, () => {
-            let policyRegistry = {}
-            return bnUtil.connection.getAssetRegistry('org.lloyds.market.Policy').then((registry) => {
-                console.log('1. Received Registry: ', registry.id);
-                policyRegistry = registry;
-                return policyRegistry.get(req.params.PolicyNo);
-            }).then((policy) => {
-                if (!policy) console.log(req.params.PolicyNo + 'Not found');
+        var jsonObj = [];
+        var results1;
+        var results2;
+        var claim_obj;
+        var policy_obj;
+        console.log("********* Claims");
 
-                policy.PolicyStatus = req.body.name;
-                return policyRegistry.update(policy).then(() => {
-                    console.log('Updated successfully!!!');
-                    res.end("Updated successfully");
-                    bnUtil.connection.disconnect();
-                });
-            }).catch((error) => {
-                console.log(error);
-                bnUtil.connection.disconnect();
-            });
-        });
-    });
+        const user = req.headers["user"];
+        const password = req.headers["password"];
 
-    app.put('/ClaimConflict/:ClaimNo', (req, res) => {
-        bnUtil.connect(req, () => {
-            let claimRegistry = {}
-            return bnUtil.connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
-                console.log('1. Received Registry: ', registry.id);
-                claimRegistry = registry;
-                return claimRegistry.get(req.params.ClaimNo);
-            }).then((claim) => {
-                if (!claim) console.log(req.params.ClaimNo + 'Not found');
-
-                // const policy = await getAssetRegistry('org.lloyds.market.Policy');
-
-                bnUtil.connection.getAssetRegistry('org.lloyds.market.Policy').then((policyReg) => {
-                    return policyReg.get(claim.PolicyNo.$identifier);
+        if (user === undefined || password === undefined || validateUser(user, password)) {
+            res.writeHead(401, 'Access invalid for user', { 'Content-Type': 'text/plain' });
+            res.end('Invalid credentials');
+        }
+        else {
+            // console.log(res);
+            console.log(req.body.name);
+            const cardName_new = getCardName(user);
+            connection.connect(cardName_new).then(function () {
+                let policyRegistry = {}
+                return connection.getAssetRegistry('org.lloyds.market.Policy').then((registry) => {
+                    console.log('1. Received Registry: ', registry.id);
+                    policyRegistry = registry;
+                    return policyRegistry.get(req.params.PolicyNo);
                 }).then((policy) => {
-                    console.log("Pol:" + policy.LeadCarrier);
+                    if (!policy) console.log(req.params.PolicyNo + 'Not found');
 
-                    console.log(JSON.stringify(claim.PolicyNo.$identifier));
-
-                    if (req.body.ClaimMode === 'Approved')
-                        claim.ClaimMode = req.body.ClaimMode;
-
-                    claim.owner = policy.LeadCarrier;
-
-                    return claimRegistry.update(claim).then(() => {
+                    policy.PolicyStatus = req.body.name;
+                    return policyRegistry.update(policy).then(() => {
                         console.log('Updated successfully!!!');
                         res.end("Updated successfully");
-                        bnUtil.connection.disconnect();
+                        connection.disconnect();
                     });
+                }).catch((error) => {
+                    console.log(error);
+                    connection.disconnect();
                 });
-            }).catch((error) => {
-                console.log(error);
-                connection.disconnect();
             });
-        });
+        }
     });
 
+
+    app.put('/ClaimConflict/:ClaimNo', (req, res) => {
+
+        var jsonObj = [];
+        var results1;
+        var results2;
+        var claim_obj;
+        var policy_obj;
+        console.log("********* Claims");
+
+        const user = req.headers["user"];
+        const password = req.headers["password"];
+
+        if (user === undefined || password === undefined || validateUser(user, password)) {
+            res.writeHead(401, 'Access invalid for user', { 'Content-Type': 'text/plain' });
+            res.end('Invalid credentials');
+        }
+        else {
+            // console.log(res);
+            console.log(req.body.ClaimMode);
+            const cardName_new = getCardName(user);
+            connection.connect(cardName_new).then(function () {
+
+                let claimRegistry = {}
+                return connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
+                    console.log('1. Received Registry: ', registry.id);
+                    claimRegistry = registry;
+                    return claimRegistry.get(req.params.ClaimNo);
+                }).then((claim) => {
+                    if (!claim) console.log(req.params.ClaimNo + 'Not found');
+
+                    // const policy = await getAssetRegistry('org.lloyds.market.Policy');
+
+                    connection.getAssetRegistry('org.lloyds.market.Policy').then((policyReg) => {
+                        return policyReg.get(claim.PolicyNo.$identifier);
+                    }).then((policy) => {
+                        console.log("Pol:" + policy.LeadCarrier);
+
+                        console.log(JSON.stringify(claim.PolicyNo.$identifier));
+
+                        if (req.body.ClaimMode === 'Approved')
+                            claim.ClaimMode = req.body.ClaimMode;
+
+                        /** To set the new relation below is the sample */
+                        //const bnDef = connection.getBusinessNetwork();
+                        //const factory = bnDef.getFactory();
+
+                        //let relationship = factory.newRelationship('org.lloyds.market', 'Owner', 'Isabelle');
+                        // claim.owner = relationship;
+
+                        claim.owner = policy.LeadCarrier;
+
+                        return claimRegistry.update(claim).then(() => {
+                            console.log('Updated successfully!!!');
+                            res.end("Updated successfully");
+                            connection.disconnect();
+                        });
+                    });
+                }).catch((error) => {
+                    console.log(error);
+                    connection.disconnect();
+                });
+
+            });
+        }
+    });
 };
 
 function validateUser(user, password) {
@@ -475,6 +573,7 @@ function validateUser(user, password) {
     }
 }
 
+
 function getCardName(user) {
     switch (user) {
         case "Isabelle":
@@ -487,6 +586,7 @@ function getCardName(user) {
             return ''
     }
 }
+
 
 function timeSince(date) {
 
