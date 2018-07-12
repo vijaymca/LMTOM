@@ -166,7 +166,6 @@ module.exports = function (app) {
         }
     });
 
-
     app.get('/ClaimInvestigate/:ClaimNumber', function (req, res) {
         console.log("*********  ClaimInvestigate " + req.params.ClaimNumber);
         var jsonObj = [];
@@ -514,20 +513,32 @@ module.exports = function (app) {
                 }).then((claim) => {
                     if (!claim) console.log(req.params.ClaimNo + 'Not found');
 
-                    if (req.body.ClaimMode === 'Approved')
-                        claim.ClaimMode = req.body.ClaimMode;
+                    // const policy = await getAssetRegistry('org.lloyds.market.Policy');
 
+                    connection.getAssetRegistry('org.lloyds.market.Policy').then((policyReg) => {
+                        return policyReg.get(claim.PolicyNo.$identifier);
+                    }).then((policy) => {
+                        console.log("Pol:" + policy.LeadCarrier);
 
-                    const bnDef = connection.getBusinessNetwork();
-                    const factory = bnDef.getFactory();
+                        console.log(JSON.stringify(claim.PolicyNo.$identifier));
 
-                    let relationship = factory.newRelationship('org.lloyds.market', 'Owner', 'GaingKim');
-                    claim.owner = relationship;
+                        if (req.body.ClaimMode === 'Approved')
+                            claim.ClaimMode = req.body.ClaimMode;
 
-                    return claimRegistry.update(claim).then(() => {
-                        console.log('Updated successfully!!!');
-                        res.end("Updated successfully");
-                        connection.disconnect();
+                        /** To set the new relation below is the sample */
+                        //const bnDef = connection.getBusinessNetwork();
+                        //const factory = bnDef.getFactory();
+
+                        //let relationship = factory.newRelationship('org.lloyds.market', 'Owner', 'Isabelle');
+                        // claim.owner = relationship;
+
+                        claim.owner = policy.LeadCarrier;
+
+                        return claimRegistry.update(claim).then(() => {
+                            console.log('Updated successfully!!!');
+                            res.end("Updated successfully");
+                            connection.disconnect();
+                        });
                     });
                 }).catch((error) => {
                     console.log(error);
@@ -536,7 +547,6 @@ module.exports = function (app) {
 
             });
         }
-
     });
 };
 
