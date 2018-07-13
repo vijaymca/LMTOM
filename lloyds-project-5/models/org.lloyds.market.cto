@@ -43,15 +43,19 @@ asset Claim identified by ClaimNo {
   o String ClaimActionRequired
   o DateTime ClaimCreateDate
   o DateTime ClaimDateofLoss
+  --> Policy PolicyNo
+  --> Owner owner
   o DateTime ClaimUpdateDate optional
   o String ClaimNotes optional
   o Integer ClaimSettlementAmount optional
   o Boolean ClaimSettlement optional
   o String ClaimAdditionalInformation optional
-  o String ClaimExpertOpinion optional 
+  o String ClaimExpertOpinion optional
   o String ClaimQuery optional
-  --> Policy PolicyNo
-  --> Owner owner
+  o Segmentation segmnt optional
+  o houseKeeping houseKeeping optional
+  o addInfo additionalInfo optional
+  o PremiumCheck checkPremium optional
 }
 
 participant Owner identified by OwnerId {
@@ -61,17 +65,27 @@ participant Owner identified by OwnerId {
     o String Email
 }
 
-
 concept Segmentation {
-  o String Segmentation
+  -->Owner name
+  o String role
+  o String office
+  o DateTime segDate
 }
 
-concept houseKeepin {
-  o String houseKeeping
+concept houseKeeping {
+  o Boolean premiumBeenPaidByPolHolder default=false
+  o Boolean reinstatementPremiumPaid default=false
+  o Boolean anyFraud default=false
 }
 
-concept additionalInfo{
+concept addInfo{
 o String addInfo
+}
+
+concept PremiumCheck {
+  o Boolean premiumBeenPaiByPolHolder default=false
+  o Boolean reinstatementApplicable default=false optional
+  o Boolean reinstatementPaidByPolHolder default=false optional
 }
 
 transaction SetupDemo {

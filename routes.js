@@ -143,7 +143,6 @@ module.exports = (app) => {
                         "PolicyNo": claim_obj.PolicyNo.$identifier,
                         "InsuredCompanyName": policy_obj.InsuredCompanyName,
 
-
                         "PolicyType": policy_obj.PolicyType,
                         "PolicyEffectiveDate": policy_obj.PolicyEffectiveDate,
                         "PolicyExpiryDate": policy_obj.PolicyExpiryDate,
@@ -163,7 +162,7 @@ module.exports = (app) => {
 
     app.get('/ClaimInvestigate/:ClaimNumber', function (req, res) {
         console.log("*********  ClaimInvestigate " + req.params.ClaimNumber);
-      
+
         const user = req.headers["user"];
         const password = req.headers["password"];
 
@@ -222,7 +221,7 @@ module.exports = (app) => {
     });
 
     app.get('/ClaimHistory', function (req, res) {
-       
+
         console.log("********* getClaimHistory")
 
         const user = req.headers["user"];
@@ -285,7 +284,7 @@ module.exports = (app) => {
 
     app.get('/ClaimHistory/:ClaimNumber', function (req, res) {
         console.log("*********  ClaimInvestigate " + req.params.ClaimNumber);
-      
+
         console.log("********* getClaimHistory")
 
         const user = req.headers["user"];
@@ -342,7 +341,7 @@ module.exports = (app) => {
         }
     });
 
-    app.post('/Policies', (req, res) => {
+    app.post('/Policies/new', (req, res) => {
         bnUtil.connect(req, () => {
             return bnUtil.connection.getAssetRegistry('org.lloyds.market.Policy').then((registry) => {
                 console.log('1. Received Registry: ', registry.id);
@@ -352,12 +351,12 @@ module.exports = (app) => {
 
                 // Utility method for adding the Policies
                 let policies = [];
-               
+
                 // Instance#2 
                 let policyResource = factory.newResource('org.lloyds.market', 'Policy', req.body.PolicyNo);
 
                 //let followers = ["Dakota (DKT 7809)", "Bleachers Re (BRE 3290)", "Towers Inc (TWR 2244)"];
-                
+
                 policyResource.Followers = req.body.Followers;
 
                 let relationship = factory.newRelationship('org.lloyds.market', 'Owner', req.body.LeadCarrier);
@@ -389,7 +388,7 @@ module.exports = (app) => {
         });
     });
 
-    app.put('/Policies/:PolicyNo', (req, res) => {
+    app.put('/Policies/update/:PolicyNo', (req, res) => {
 
         bnUtil.connect(req, () => {
             let policyRegistry = {}
@@ -423,8 +422,6 @@ module.exports = (app) => {
             }).then((claim) => {
                 if (!claim) console.log(req.params.ClaimNo + 'Not found');
 
-                // const policy = await getAssetRegistry('org.lloyds.market.Policy');
-
                 bnUtil.connection.getAssetRegistry('org.lloyds.market.Policy').then((policyReg) => {
                     return policyReg.get(claim.PolicyNo.$identifier);
                 }).then((policy) => {
@@ -450,6 +447,200 @@ module.exports = (app) => {
         });
     });
 
+    //Update the Claim Premium check
+    app.put('/ClaimPremiumCheck/update/:ClaimNo', (req, res) => {
+        bnUtil.connect(req, () => {
+            let claimRegistry = {}
+            return bnUtil.connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
+                console.log('1. Received Registry: ', registry.id);
+                claimRegistry = registry
+                return claimRegistry.get(req.params.ClaimNo);
+            }).then((claim) => {
+                if (!claim) console.log(req.params.ClaimNo + 'Not found');
+
+                const bnDef = bnUtil.connection.getBusinessNetwork();
+                const factory = bnDef.getFactory();
+
+                const PremiumCheck = factory.newConcept('org.lloyds.market', 'PremiumCheck');
+                PremiumCheck.premiumBeenPaiByPolHolder = req.body.premiumBeenPaiByPolHolder;
+                PremiumCheck.reinstatementApplicable = req.body.reinstatementApplicable;
+                PremiumCheck.reinstatementPaidByPolHolder = req.body.reinstatementPaidByPolHolder;
+                claim.checkPremium = PremiumCheck;
+
+                return claimRegistry.update(claim).then(() => {
+                    console.log('Updated successfully!!!');
+                    res.end("Updated successfully");
+                    bnUtil.connection.disconnect();
+                });
+            }).catch((error) => {
+                console.log(error);
+                bnUtil.connection.disconnect();
+            });
+        });
+    });
+
+    // Get the Premium check details
+    app.get('/ClaimPremiumCheck/:ClaimNo', (req, res) => {
+        bnUtil.connect(req, () => {
+            let claimRegistry = {}
+            return bnUtil.connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
+                console.log('1. Received Registry: ', registry.id);
+                claimRegistry = registry
+                return claimRegistry.get(req.params.ClaimNo);
+            }).then((claim) => {
+                if (!claim) console.log(req.params.ClaimNo + 'Not found');
+
+                console.log("*************************")
+                console.log(claim);
+
+                const bnDef = bnUtil.connection.getBusinessNetwork();
+
+                //to get the JSON object in get params
+                var serializer = bnDef.getSerializer();
+
+                jsonObj.push({
+                    "ClaimNo": claim.ClaimNo,
+                    "checkPremium": serializer.toJSON(claim.checkPremium)
+                });
+                console.log("*************************")
+                console.log(jsonObj)
+                res.json({ jsonObj });
+            });
+        });
+    });
+
+    // Update segment information
+    app.put('/ClaimSegment/update/:ClaimNo', (req, res) => {
+        bnUtil.connect(req, () => {
+            let claimRegistry = {}
+            return bnUtil.connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
+                console.log('ClaimSegment Started \n. Received Registry: ', registry.id);
+                claimRegistry = registry
+                return claimRegistry.get(req.params.ClaimNo);
+            }).then((claim) => {
+                if (!claim) console.log(req.params.ClaimNo + 'Not found');
+
+                const bnDef = bnUtil.connection.getBusinessNetwork();
+                const factory = bnDef.getFactory();
+
+                let Segmentation = factory.newConcept('org.lloyds.market', 'Segmentation');
+
+                let relationship = factory.newRelationship('org.lloyds.market', 'Owner', req.body.user);
+
+                Segmentation.name = relationship;
+                Segmentation.role = req.body.role;
+                Segmentation.office = req.body.office;
+                Segmentation.segDate = new Date();
+
+                claim.segmnt = Segmentation;
+
+                return claimRegistry.update(claim).then(() => {
+                    console.log('Updated successfully!!!');
+                    res.end("Updated successfully");
+                    bnUtil.connection.disconnect();
+                });
+            }).catch((error) => {
+                console.log(error);
+                bnUtil.connection.disconnect();
+            });
+        });
+    });
+
+    //Get segment details
+    app.get('/ClaimSegment/:ClaimNo', (req, res) => {
+        bnUtil.connect(req, () => {
+            let claimRegistry = {}
+            return bnUtil.connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
+                console.log('1. Received Registry: ', registry.id);
+                claimRegistry = registry
+                return claimRegistry.get(req.params.ClaimNo);
+            }).then((claim) => {
+                if (!claim) console.log(req.params.ClaimNo + 'Not found');
+
+                console.log("*************************")
+                console.log(claim);
+
+                const bnDef = bnUtil.connection.getBusinessNetwork();
+
+                //to get the JSON object in get params
+                var serializer = bnDef.getSerializer();
+
+                jsonObj.push({
+                    "ClaimNo": claim.ClaimNo,
+                    "checkPremium": serializer.toJSON(claim.segmnt)
+                });
+                console.log("*************************")
+                console.log(jsonObj)
+                res.json({ jsonObj });
+            });
+        });
+    });
+
+    // Get Housekeeping Check
+    app.get('/HouseKeepCheck/:ClaimNo', (req, res) => {
+        bnUtil.connect(req, () => {
+            let claimRegistry = {}
+            return bnUtil.connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
+                console.log('1. Received Registry: ', registry.id);
+                claimRegistry = registry
+                return claimRegistry.get(req.params.ClaimNo);
+            }).then((claim) => {
+                if (!claim) console.log(req.params.ClaimNo + 'Not found');
+
+                console.log("*************************")
+                console.log(claim);
+
+                const bnDef = bnUtil.connection.getBusinessNetwork();
+
+                //to get the JSON object in get params
+                var serializer = bnDef.getSerializer();
+
+                jsonObj.push({
+                    "ClaimNo": claim.ClaimNo,
+                    "checkPremium": serializer.toJSON(claim.houseKeeping)
+                });
+                console.log("*************************")
+                console.log(jsonObj)
+                res.json({ jsonObj });
+            });
+        });
+    });
+
+    // Update Housekeeping check
+    app.put('/HouseKeepCheck/update/:ClaimNo', (req, res) => {
+        bnUtil.connect(req, () => {
+            let claimRegistry = {}
+            return bnUtil.connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
+                console.log('ClaimSegment Started \n. Received Registry: ', registry.id);
+                claimRegistry = registry
+                return claimRegistry.get(req.params.ClaimNo);
+            }).then((claim) => {
+                if (!claim) console.log(req.params.ClaimNo + 'Not found');
+
+                console.log(req.body);
+                const bnDef = bnUtil.connection.getBusinessNetwork();
+                const factory = bnDef.getFactory();
+
+                let houseKeeping = factory.newConcept('org.lloyds.market', 'houseKeeping');
+
+
+                houseKeeping.premiumBeenPaidByPolHolder = req.body.premiumBeenPaidByPolHolder;
+                houseKeeping.reinstatementPremiumPaid = req.body.reinstatementPremiumPaid;
+                houseKeeping.anyFraud = req.body.anyFraud;
+
+                claim.houseKeeping = houseKeeping;
+
+                return claimRegistry.update(claim).then(() => {
+                    console.log('Updated successfully!!!');
+                    res.end("Updated successfully");
+                    bnUtil.connection.disconnect();
+                });
+            }).catch((error) => {
+                console.log(error);
+                bnUtil.connection.disconnect();
+            });
+        });
+    });
 };
 
 function validateUser(user, password) {
