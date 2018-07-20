@@ -2,11 +2,7 @@
   "engines": {
     "composer": "^0.19.6"
   },
-<<<<<<< HEAD
   "name": "lloyds-project-6",
-=======
-  "name": "lloyds-project-4",
->>>>>>> origin/AsifNew
   "version": "0.0.1",
   "description": "lloyds market place",
   "scripts": {
