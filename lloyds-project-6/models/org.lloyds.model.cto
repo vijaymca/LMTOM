@@ -3,6 +3,8 @@
  */
 
 namespace org.lloyds.model
+
+import org.lloyds.market.PolicyType
 import org.lloyds.market.Policy
 import org.lloyds.market._Party
 import org.lloyds.market.Claim
@@ -24,7 +26,13 @@ transaction CreateClaim {
 }
   
 transaction SetupDemo {
-  
+  o String PolicyNo
+  o String InsuredCompanyName
+  o PolicyType PolicyType
+  o String PolicyDetails1
+  o DateTime PolicyEffectiveDate
+  o DateTime PolicyExpiryDate
+  --> _Party LeadCarrier
 }
 
 

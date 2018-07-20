@@ -8,6 +8,9 @@ var restclient = new Client();
 const fs = require('fs');
 
 const bnUtil = require('./dlt-connection-util');
+const NS = "org.lloyds.market";
+const NS_model = "org.lloyds.model";
+const PRTCP_PARTY = '_Party';
 
 var jsonObj = [];
 var results1;
@@ -342,48 +345,57 @@ module.exports = (app) => {
     });
 
     app.post('/Policies/new', (req, res) => {
-        bnUtil.connect(req, () => {
-            return bnUtil.connection.getAssetRegistry('org.lloyds.market.Policy').then((registry) => {
-                console.log('1. Received Registry: ', registry.id);
 
-                const bnDef = bnUtil.connection.getBusinessNetwork();
-                const factory = bnDef.getFactory();
+        const setupdemoTrans = "SetupDemo";
+        bnUtil.connect(req, (error) => {
 
-                // Utility method for adding the Policies
-                let policies = [];
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
 
-                // Instance#2 
-                let policyResource = factory.newResource('org.lloyds.market', 'Policy', req.body.PolicyNo);
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
 
-                //let followers = ["Dakota (DKT 7809)", "Bleachers Re (BRE 3290)", "Towers Inc (TWR 2244)"];
+            console.log(req.body.data.PolicyNo);
 
-                policyResource.Followers = req.body.Followers;
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
 
-                let relationship = factory.newRelationship('org.lloyds.market', 'Owner', req.body.LeadCarrier);
-                policyResource.LeadCarrier = relationship;
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            }
 
-                policyResource.InsuredCompanyName = req.body.InsuredCompanyName;
-                policyResource.PolicyType = req.body.PolicyType;
-                policyResource.PolicyDetails1 = req.body.PolicyDetails1;
-                policyResource.PlacingBroker = req.body.PlacingBroker;
-                policyResource.ClaimsBroker = req.body.ClaimsBroker;
-                policyResource.OverseasBroker = req.body.OverseasBroker;
-                policyResource.PolicyStatus = req.body.PolicyStatus;
-                policyResource.PolicyEffectiveDate = new Date(req.body.PolicyEffectiveDate);
-                policyResource.PolicyExpiryDate = new Date(req.body.PolicyExpiryDate);
+            let PolicyId = req.body.data.PolicyNo;
+            let policyResource = factory.newTransaction(NS_model, setupdemoTrans, PolicyId, options);
 
-                // Push instance to  the aircrafts array
-                policies.push(policyResource);
+            // 5. Set up the properties of the transaction object
+            policyResource.PolicyNo = PolicyId;
+            policyResource.InsuredCompanyName = req.body.data.InsuredCompanyName;
+            policyResource.PolicyType = req.body.data.PolicyType;
+            policyResource.PolicyDetails1 = req.body.data.PolicyDetails1;
+            //policyResource.PlacingBroker = req.body.data.PlacingBroker;
+            //policyResource.ClaimsBroker = req.body.data.ClaimsBroker;
+            //policyResource.OverseasBroker = req.body.data.OverseasBroker;
+            //policyResource.PolicyStatus = req.body.data.PolicyStatus;
+            policyResource.PolicyEffectiveDate = new Date(req.body.data.PolicyEffectiveDate);
+            policyResource.PolicyExpiryDate = new Date(req.body.data.PolicyExpiryDate);
 
-                // 4. Add the Aircraft resource to the registry
-                return registry.addAll(policies).then(() => {
-                    console.log('Added the Resources successfully!!!');
-                    res.end("Added Resource successfully");
-                    bnUtil.connection.disconnect();
-                });
+            let relationship = factory.newRelationship(NS, PRTCP_PARTY, req.body.data.LeadCarrier);
+            policyResource.LeadCarrier = relationship;
+
+            // 6. Submit the transaction
+            return bnUtil.connection.submitTransaction(policyResource).then(() => {
+                console.log("6. Transaction Submitted/Processed Successfully!!")
+                bnUtil.disconnect();
+
             }).catch((error) => {
                 console.log(error);
-                bnUtil.connection.disconnect();
+                bnUtil.disconnect();
             });
         });
     });

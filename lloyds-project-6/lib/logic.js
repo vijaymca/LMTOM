@@ -33,24 +33,21 @@ const NS_POLICY = 'org.lloyds.market.Policy';
  * @transaction
  */
 
-async function setupDemo(setupDemo) {  // eslint-disable-line no-unused-vars
+async function setupDemo(xData) {  // eslint-disable-line no-unused-vars
 
   const factory = getFactory();
 
-
   //Create Policy
-  const policy = factory.newResource(NS, AST_POLICY, 'CCR K0001FR0020185');
-  policy.InsuredCompanyName = 'Southern Medical Centre';
-  policy.PolicyType = 'CommercialProp';
-  policy.PolicyDetails1 = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur';
-  policy.LeadCarrier = factory.newRelationship(NS, PRTCP_PARTY, 'Vijay');
-  policy.PlacingBroker = 'WideWorld Broking limited';
-  policy.ClaimsBroker = 'Lloyds Claim Broker';
-  policy.OverseasBroker = 'Cornish Coverage';
-  policy.Followers = ["Dakota (DKT 7809)", "Bleachers Re (BRE 3290)", "Towers Inc (TWR 2244)"];
-  policy.PolicyStatus = 'Appr';
+  const policy = factory.newResource(NS, AST_POLICY, xData.PolicyNo);
+  policy.InsuredCompanyName = xData.InsuredCompanyName;
+  policy.PolicyType = xData.PolicyType;
+  policy.PolicyDetails1 = xData.PolicyDetails1;
+  policy.LeadCarrier = xData.LeadCarrier;
 
-  const effectiveDate = setupDemo.timestamp;
+  //policy.Followers = xData;
+  //policy.PolicyStatus = xData;
+
+  const effectiveDate = xData.timestamp;
   effectiveDate.setDate(effectiveDate.getDate());
 
   policy.PolicyEffectiveDate = effectiveDate;
@@ -60,30 +57,30 @@ async function setupDemo(setupDemo) {  // eslint-disable-line no-unused-vars
   const policyRegistry = await getAssetRegistry(NS_POLICY);
   await policyRegistry.addAll([policy]);
 
-/*
-
-  // Crete claim
-  const claim = factory.newResource(NS, AST_CLAIM, '678XZ76522');
-  claim.ClaimCreatedBy = 'Fortitude (FRT 2100)';
-  claim.ClaimMode = 'Pending';
-  claim.ClaimDetails1 = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostru';
-  claim.ClaimDetails2 = 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem ';
-  claim.ClaimPremiumStatus = 'Paid';
-  claim.ClaimActionRequired = 'Yes';
-
-  const today = setupDemo.timestamp;
-  today.setDate(today.getDate());
-  claim.ClaimCreateDate = today;
-
-  const lossDate = new Date();
-  lossDate.setDate(today.getDate() + 12);
-  claim.ClaimDateofLoss = lossDate;
-
-  claim.PolicyNo = factory.newRelationship(NS, AST_POLICY, 'CCR K0001FR0020185');
-  claim.owner = factory.newRelationship(NS, PRTCP_PARTY, 'Isabelle');
-
-  //Add claim to registry
-  const claimRegistry = await getAssetRegistry(NS_CLAIM);
-  await claimRegistry.addAll([claim]);
-  */
+  /*
+  
+    // Crete claim
+    const claim = factory.newResource(NS, AST_CLAIM, '678XZ76522');
+    claim.ClaimCreatedBy = 'Fortitude (FRT 2100)';
+    claim.ClaimMode = 'Pending';
+    claim.ClaimDetails1 = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostru';
+    claim.ClaimDetails2 = 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem ';
+    claim.ClaimPremiumStatus = 'Paid';
+    claim.ClaimActionRequired = 'Yes';
+  
+    const today = setupDemo.timestamp;
+    today.setDate(today.getDate());
+    claim.ClaimCreateDate = today;
+  
+    const lossDate = new Date();
+    lossDate.setDate(today.getDate() + 12);
+    claim.ClaimDateofLoss = lossDate;
+  
+    claim.PolicyNo = factory.newRelationship(NS, AST_POLICY, 'CCR K0001FR0020185');
+    claim.owner = factory.newRelationship(NS, PRTCP_PARTY, 'Isabelle');
+  
+    //Add claim to registry
+    const claimRegistry = await getAssetRegistry(NS_CLAIM);
+    await claimRegistry.addAll([claim]);
+    */
 }
