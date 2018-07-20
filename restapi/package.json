@@ -1,5 +1,5 @@
 {
-  "name": "restapis",
+  "name": "restapi",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -23,6 +23,7 @@
     "mocha": "latest",
     "mysql": "^2.15.0",
     "node-rest-client": "^3.1.0",
+    "nodemailer": "^4.6.7",
     "nyc": "latest"
   },
   "author": "",
