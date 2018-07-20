@@ -1,0 +1,37 @@
+/**
+ * New model file
+ */
+
+namespace org.lloyds.model
+import org.lloyds.market.Policy
+import org.lloyds.market._Party
+import org.lloyds.market.Claim
+
+
+transaction CreateClaim {
+  o String ClaimNo
+  o String ClaimCreatedBy
+  o String ClaimMode default="Pending"
+  o String ClaimDetails1 default="Lorem ipsum dolor sit amet"
+  o String ClaimDetails2 default="consectetur adipiscing elit"
+  o String ClaimPremiumStatus default="Paid"
+  o String ClaimActionRequired default="Yes"
+  o DateTime ClaimCreateDate
+  o DateTime ClaimDateofLoss
+  
+  o String PolicyNo
+  o String owner
+}
+  
+transaction SetupDemo {
+  
+}
+
+
+transaction claimConflict {
+  o String detail
+}
+
+event CreateClaimCreated {
+  o String flightId
+}

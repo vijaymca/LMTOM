@@ -1,0 +1,71 @@
+[
+    {
+        "$class": "org.lloyds.market.Policy",
+        "PolicyNo": "CCR K0001FR0020184",
+        "InsuredCompanyName": "Southern Medical Centre",
+        "PolicyType": "Commercial Prop.",
+        "PolicyDetails1": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur",
+        "LeadCarrier": "Fortitude (FRT 2100)",
+        "PlacingBroker": "WideWorld Broking limited",
+        "ClaimsBroker": "Lloyds Claim Broker",
+        "OverseasBroker": "Cornish Coverage",
+        "Followers": [
+            "Dakota (DKT 7809)",
+            "Bleachers Re (BRE 3290)",
+            "Towers Inc (TWR 2244)"
+        ],
+        "PolicyEffectiveDate": "2018-01-11T06:47:00.105Z",
+        "PolicyExpiryDate": "2018-12-30T06:47:00.105Z"
+    },
+    {
+        "$class": "org.lloyds.market.Policy",
+        "PolicyNo": "CCR Y0001PR0027869",
+        "InsuredCompanyName": "James Bowling Estates",
+        "PolicyType": "Commercial Prop.",
+        "PolicyDetails1": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur",
+        "LeadCarrier": "Fortitude (FRT 2100)",
+        "PlacingBroker": "WideWorld Broking limited",
+        "ClaimsBroker": "Lloyds Claim Broker",
+        "OverseasBroker": "Local Insurance Broking Group",
+        "Followers": [
+            "Seismic (SIC 0010)",
+            "Eclipse (ECP 2108)",
+            "ABC Underwriting Ltd (ABC 8913)",
+            "Towers Independent Ltd (TIL 9009)",
+            "HL Partners (HLP 0067)",
+            "Island Insurance plc (IIP 1478)"
+        ],
+        "PolicyEffectiveDate": "2018-06-19T06:47:00.105Z",
+        "PolicyExpiryDate": "2018-08-08T06:47:00.105Z"
+    },
+    {
+        "$class": "org.lloyds.market.Claim",
+        "ClaimNo": "678XZ76502",
+        "ClaimCreatedBy": "Fortitude (FRT 2100)",
+        "ClaimMode": "Pending",
+        "ClaimDetails1": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
+        "ClaimDetails2": "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.",
+        "ClaimNotes": "",
+        "ClaimPremiumStatus": "Paid",
+        "ClaimCreateDate": "2018-06-14T06:46:38.247Z",
+        "ClaimUpdateDate": "2018-06-15T06:46:38.247Z",
+        "ClaimActionRequired": "2018-06-15T06:46:38.247Z",
+        "ClaimDateofLoss": "2018-05-01T06:46:38.247Z",
+        "PolicyNo": "resource:org.lloyds.market.Policy#CCR K0001FR0020184"
+    },
+    {
+        "$class": "org.lloyds.market.Claim",
+        "ClaimNo": "341XZ76502",
+        "ClaimCreatedBy": "Giant Insurers Ltd (GIL 1028)",
+        "ClaimMode": "Closed",
+        "ClaimDetails1": "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga",
+        "ClaimDetails2": "Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur",
+        "ClaimNotes": "",
+        "ClaimPremiumStatus": "Paid",
+        "ClaimCreateDate": "2018-06-12T06:46:38.247Z",
+        "ClaimUpdateDate": "2018-06-15T06:46:38.247Z",
+        "ClaimActionRequired": "2018-06-15T06:46:38.247Z",
+        "ClaimDateofLoss": "2018-06-01T06:46:38.247Z",
+        "PolicyNo": "resource:org.lloyds.market.Policy#CCR Y0001PR0027869"
+    }
+]

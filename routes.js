@@ -669,10 +669,10 @@ function validateUser(user, password) {
 function getCardName(user) {
     switch (user) {
         case "Isabelle":
-            return 'Isabelle@lloyds-project-6'
+            return 'Isabelle@lloyds-project-6';
             break;
         case "GaingKim":
-            return 'GaingKim@lloyds-project-6'
+            return 'GaingKim@lloyds-project-6';
             break;
         default:
             return ''
