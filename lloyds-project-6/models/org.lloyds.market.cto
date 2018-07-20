@@ -1,4 +1,7 @@
-
+/**
+/**
+ * Defines a data model for a Insurance claims
+ */
 
 namespace org.lloyds.market
 
@@ -236,8 +239,8 @@ asset Claim identified by ClaimNo {
   --> _Party Followers3 optional
   --> _Party Followers4 optional
 }
-  
-  
-concept ClaimPolicyDetails {
 
-}
+
+
+
+

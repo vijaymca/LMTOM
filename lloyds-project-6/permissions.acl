@@ -17,7 +17,11 @@ rule ClaimOwner {
   participant(t): "org.lloyds.market._Party"
   operation: ALL
   resource(v): "org.lloyds.market.Claim"
+<<<<<<< HEAD
   condition: (v.owner.getIdentifier() == t.getIdentifier())
+=======
+  condition: (v.owner.getIdentifier() == t.getIdentifier()  )
+>>>>>>> origin/AsifNew
   action: ALLOW
 }
 
@@ -62,7 +66,11 @@ rule PolicyOwner {
   participant(t): "org.lloyds.market._Party"
   operation: ALL
   resource(v): "org.lloyds.market.Claim"
+<<<<<<< HEAD
   condition: (v.PolicyNo.getIdentifier() == t.getIdentifier()  )
+=======
+  condition: (v.PolicyOwner.getIdentifier() == t.getIdentifier()  )
+>>>>>>> origin/AsifNew
   action: ALLOW
 }
 
@@ -111,6 +119,16 @@ rule CreateClaim {
   action: ALLOW
 }
 
+<<<<<<< HEAD
+=======
+rule PolicyView {
+  description: "Make the penguins themselves visible"
+  participant: "org.lloyds.market._Party"
+  operation: ALL
+  resource: "org.lloyds.market.Policy"
+  action: ALLOW
+}
+>>>>>>> origin/AsifNew
 
 rule NetworkUpdate {
   description:  "System ACL to permit all access"
@@ -136,6 +154,7 @@ rule NetworkAdminUser {
     action: ALLOW
 }
 
+<<<<<<< HEAD
 rule setupDemo {
     description: "Grant business network administrators full access to user resources"
     participant: "org.lloyds.market._Party"
@@ -152,6 +171,8 @@ rule AllowAlltransaction {
     action: ALLOW
 }
 
+=======
+>>>>>>> origin/AsifNew
 rule NetworkAdminSystem {
     description: "Grant business network administrators full access to system resources"
     participant: "org.hyperledger.composer.system.NetworkAdmin"
