@@ -21,14 +21,16 @@ const bnUtil = require('./dlt-connection-util');
 
 
 bnUtil.connect("admin", () => {
+    console.log("get registeries");
     return bnUtil.connection.getParticipantRegistry('org.lloyds.market._Party')
     .then(function (participantRegistry) {
+      console.log(participantRegistry);
       // Get the specific driver from the driver participant registry.
-      return participantRegistry.get('admin');
+      return participantRegistry.get('3');
     })
     .then(function (driver) {
       // Process the the driver object.
-      console.log(driver.Email);
+      console.log(driver.password);
       bnUtil.connection.disconnect();
     })
     .catch(function (error) {

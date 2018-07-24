@@ -4,7 +4,7 @@
 var express = require('express');
 var connect = require('connect');
 var app = express();
-var port = process.env.PORT || 3002;
+var port = process.env.PORT || 3001;
 
 // Configuration
 app.use(express.static(__dirname + '/public'));
@@ -17,7 +17,7 @@ app.use(connect.urlencoded());
 
 // Routes
 
-require('./routes.js')(app);
+require('./routes2.js')(app);
 //require('./expressApi.js')(app);
 
 app.listen(port);
