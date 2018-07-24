@@ -220,7 +220,7 @@ app.get('/ClaimDetails/:ClaimMode', function(req, res) {
                             "ClaimPremiumStatus" : obj.ClaimPremiumStatus,
                             "PolicyStatus" : policy_obj.PolicyStatus,
                             "ClaimActionRequired" : obj.ClaimActionRequired,
-			    "ClaimDateofLoss" : obj.ClaimDateofLoss
+			                "ClaimDateofLoss" : obj.ClaimDateofLoss
                             
 							                           
                         });                

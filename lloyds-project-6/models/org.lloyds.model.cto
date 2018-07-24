@@ -19,6 +19,7 @@ transaction CreateClaim{
   o   String    ClaimActionRequired default="Yes"
   o   DateTime  ClaimCreateDate
   o   DateTime  ClaimDateofLoss
+  o   DateTime  ClaimTargetDate
   
   o   String    PolicyNo
   o   String    owner default="admin"
