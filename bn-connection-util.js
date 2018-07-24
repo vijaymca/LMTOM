@@ -33,8 +33,7 @@ module.exports = {
     connect: function (callback) {
 
         // Create instance of file system card store
-
-        // Composer 0.19.0 Change
+    
         //const cardStore = new this.cardStore();
         //this.connection = new this.BusinessNetworkConnection({ cardStore: cardStore });
         var cardType = { type: 'composer-wallet-filesystem' }
