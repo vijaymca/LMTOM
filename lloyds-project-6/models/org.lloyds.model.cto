@@ -8,6 +8,8 @@ import org.lloyds.market.PolicyType
 import org.lloyds.market.Policy
 import org.lloyds.market._Party
 import org.lloyds.market.Claim
+import org.lloyds.market.ClaimType
+import org.lloyds.market._Premium
 
   
 transaction SetupDemo {
@@ -20,9 +22,17 @@ transaction SetupDemo {
   --> _Party LeadCarrier
 }
 
-
 transaction claimConflict {
-  o String detail
+  o ClaimType ClaimMode
+  o String claimId
+  --> _Party owner
+  --> _Party Followers1 optional
+}
+
+// To check premium paid
+transaction claimPremCheck {
+  o String claimId
+  o _Premium premium
 }
 
 transaction CreateClaim {

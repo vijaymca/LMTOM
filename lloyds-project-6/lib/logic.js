@@ -1,19 +1,3 @@
-/*
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/* global getParticipantRegistry getAssetRegistry getFactory */
-
 
 /*jshint esversion: 6 */
 /*jshint node: true */
@@ -46,45 +30,15 @@ async function setupDemo(xData) { // eslint-disable-line no-unused-vars
       policy.PolicyDetails1 = xData.PolicyDetails1;
       policy.LeadCarrier = xData.LeadCarrier;
 
-      //policy.Followers = xData;
-      //policy.PolicyStatus = xData;
-
       const effectiveDate = xData.timestamp;
       effectiveDate.setDate(effectiveDate.getDate());
 
       policy.PolicyEffectiveDate = effectiveDate;
-      policy.PolicyExpiryDate = effectiveDate;
+      policy.PolicyExpiryDate = PolicyExpiryDate;
 
       // add Policy to registry
       const policyRegistry = await getAssetRegistry(NS_POLICY);
       await policyRegistry.addAll([policy]);
-
-      /*
-  
-        // Crete claim
-        const claim = factory.newResource(NS, AST_CLAIM, '678XZ76522');
-        claim.ClaimCreatedBy = 'Fortitude (FRT 2100)';
-        claim.ClaimMode = 'Pending';
-        claim.ClaimDetails1 = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostru';
-        claim.ClaimDetails2 = 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem ';
-        claim.ClaimPremiumStatus = 'Paid';
-        claim.ClaimActionRequired = 'Yes';
-  
-        const today = setupDemo.timestamp;
-        today.setDate(today.getDate());
-        claim.ClaimCreateDate = today;
-  
-        const lossDate = new Date();
-        lossDate.setDate(today.getDate() + 12);
-        claim.ClaimDateofLoss = lossDate;
-  
-        claim.PolicyNo = factory.newRelationship(NS, AST_POLICY, 'CCR K0001FR0020185');
-        claim.owner = factory.newRelationship(NS, PRTCP_PARTY, 'Isabelle');
-  
-        //Add claim to registry
-        const claimRegistry = await getAssetRegistry(NS_CLAIM);
-        await claimRegistry.addAll([claim]);
-        */
 }
 
 
@@ -162,7 +116,6 @@ function createclaim(claimData) {
                         claim.Followers4 = _Party;
                   }
 
-
                   // 3 Emit the event claimCreated
                   var event = factory.newEvent('org.lloyds.model', 'CreateClaimCreated');
                   event.ClaimNo = claimData.ClaimNo;
@@ -178,11 +131,34 @@ function createclaim(claimData) {
                   event.Followers3 = claimData.Followers3;
                   event.Followers4 = claimData.Followers4;
 
-
-
                   emit(event);
 
                   // 4. Add to registry
                   return ClaimRegistry.add(claim);
             });
+}
+
+/** * claimConflict Transaction
+ * @param {org.lloyds.model.claimConflict} claimConflict
+ * @transaction
+ */
+async function claimConflict(xData) {
+      // Update claim
+      const claimRegistry = await getAssetRegistry(NS_CLAIM);
+      const claim = await claimRegistry.get(xData.claimId);
+      claim.ClaimMode = xData.ClaimMode;
+      claim.owner = xData.owner;
+      claim.LeadCarrier = xData.LeadCarrier;
+      await claimRegistry.update(claim);
+}
+
+/** claimPremCheck Transaction
+ * @param {org.lloyds.model.claimPremCheck} claimPremCheck
+ * @transaction
+ */
+async function claimPremCheck(xData) {
+      const claimRegistry = await getAssetRegistry(NS_CLAIM);
+      const claim = await claimRegistry.get(xData.claimId);
+      claim.checkPremium = xData.premium;
+      await claimRegistry.update(claim);
 }

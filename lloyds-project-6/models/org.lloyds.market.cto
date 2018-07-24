@@ -47,32 +47,31 @@ concept _Address{
 	o String Country optional
 }
 
-concept _Contract{
+concept _Contract {
 	o String ContractType  optional
 	o String BrokerReference optional
 }
 
-concept _ContractSection{
+concept _ContractSection {
 	o String HighLevelReference  optional
-    
-    o String InsuredRiskOrInterestDescription  optional
+  o String InsuredRiskOrInterestDescription  optional
 	o _ContractPeriod ContractPeriod
-    o _ContractSectionClass ContractSectionClass
-    o _Location RiskLocation
-    o String LocationJurisdictionLocation  optional
+  o _ContractSectionClass ContractSectionClass
+  o _Location RiskLocation
+  o String LocationJurisdictionLocation  optional
     
-    o String USARiskClassification optional
+  o String USARiskClassification optional
 	o String FSAClientClassification optional
 	o String ConditionsDescription optional
 	o String CedentSharePercentage optional
 	o String BrokerSharePercentage optional
 	o String OrderPercentage optional
 	o String LinePercentageBasis optional
-    o _ContractCoverage ContractCoverage optional
-    o _ContractDeductible ContractDeductible optional
-    o _Premium Premium optional
-    o _Brokerage Brokerage optional
-    o _OtherDeductions OtherDeductions optional
+  o _ContractCoverage ContractCoverage optional
+  o _ContractDeductible ContractDeductible optional
+  o _Premium Premium optional
+  o _Brokerage Brokerage optional
+  o _OtherDeductions OtherDeductions optional
     
 	o String FeePayableByClientIndicator
 	o String ClauseType
@@ -87,16 +86,16 @@ concept _ContractSection{
 	o String RecordingTransmittingStoringInformationProvisionsDescription
 	o String BureauxArrangementsDescription
 	o String SigningProvisionsDescription   
-    o _TaxProvisions TaxProvisions
-    o String SettlementDue
-    o _ContractMarket ContractMarket
+  o _TaxProvisions TaxProvisions
+  o String SettlementDue
+  o _ContractMarket ContractMarket
 }
 
-concept _ContractMarket{
+concept _ContractMarket {
 	o String Type optional
 }
 
-concept _TaxProvisions{
+concept _TaxProvisions {
 	--> _Party Insurer optional
     o String ParticipantFunction optional
     o String InsurerSharePercentage optional
@@ -107,59 +106,58 @@ concept _TaxProvisions{
     o String AllocationReference optional
     o DateTime WrittenDateTime optional
     o String LineToStandIndicator optional
-
 }
 
-concept _ContractPeriod{
+concept _ContractPeriod {
 	o DateTime StartDateTime optional
 	o DateTime EndDateTime optional
 }
 
-concept _ContractSectionClass{
+concept _ContractSectionClass {
 	o String ClassOfBusinessDescription  optional
-
 }
 
-concept _Location{
+concept _Location {
 	o String Country  optional
     o String Description  optional
     o String Subentity  optional
 }
 
-concept _ContractCoverage{
+concept _ContractCoverage {
 	o String CoverageAmount  optional
     o String CoverageBasis  optional
     o String CoverageBasisDescription  optional
 }
 
-concept _ContractDeductible{
+concept _ContractDeductible {
 	o String DeductibleAmount  optional
     o String DeductibleBasis  optional
     o String DeductibleBasisDescription  optional
 }
 
-concept _Premium{
-	o String PremiumType  optional
+concept _Premium {
+	  o String PremiumType  optional
     o String PremiumAmount  optional
     o String PaymentDate  optional
     o String TermsOfTradePeriod  optional
     o String PaymentsDescription  optional
 
+    o Boolean premiumBeenPaiByPolHolder default=false optional
+    o Boolean reinstatementApplicable default=false optional
+    o Boolean reinstatementPaidByPolHolder default=false optional
 }
 
-concept _Brokerage{
+concept _Brokerage {
 	o String Description  optional
     o String BrokeragePercentage  optional
     o String BrokerageBasis  optional
 }
 
-concept _OtherDeductions{
+concept _OtherDeductions {
 	o String Description  optional
     o String OtherDeductionsPercentage  optional
     o String OtherDeductionsBasis  optional
 }
-
-
 
 participant _Party identified by OwnerId {
     o String OwnerId
@@ -171,8 +169,7 @@ participant _Party identified by OwnerId {
     o _Address Address optional    
 }
 
-
-enum ClaimType{
+enum ClaimType {
   o Open
   o Pending
   o Approved
@@ -197,13 +194,6 @@ concept addInfo{
 o String addInfo
 }
 
-concept PremiumCheck {
-  o Boolean premiumBeenPaiByPolHolder default=false
-  o Boolean reinstatementApplicable default=false optional
-  o Boolean reinstatementPaidByPolHolder default=false optional
-}
-
-
   // ASSETS
 asset Claim identified by ClaimNo {
   o String ClaimNo
@@ -227,7 +217,7 @@ asset Claim identified by ClaimNo {
   o Segmentation segmnt optional
   o houseKeeping houseKeeping optional
   o addInfo additionalInfo optional
-  o PremiumCheck checkPremium optional
+  o _Premium checkPremium optional
  
   --> _Party LeadCarrier optional
   --> _Party PlacingBroker optional
@@ -239,8 +229,3 @@ asset Claim identified by ClaimNo {
   --> _Party Followers3 optional
   --> _Party Followers4 optional
 }
-
-
-
-
-
