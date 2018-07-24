@@ -156,7 +156,7 @@ concept _Premium {
     o Boolean reinstatementPaidByPolHolder default=false optional
 }
 
-concept _Brokerage {
+conc  --> _Party LeadCarrierept _Brokerage {
 	o String Description  optional
     o String BrokeragePercentage  optional
     o String BrokerageBasis  optional
