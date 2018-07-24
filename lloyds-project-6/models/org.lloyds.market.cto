@@ -13,7 +13,6 @@ asset Policy identified by PolicyNo {
   o String PolicyDetails1
   o DateTime PolicyEffectiveDate
   o DateTime PolicyExpiryDate
-  --> _Party LeadCarrier
   o String UUId optional
   o String ServiceProviderReference optional
   o DateTime CreationDate optional
@@ -31,6 +30,15 @@ asset Policy identified by PolicyNo {
   --> _Party ServiceProvider optional
   --> _Party Insured optional
   --> _Party ProducingBroker optional
+  
+  --> _Party LeadCarrier optional
+  --> _Party PlacingBroker optional
+  --> _Party ClaimsBroker optional
+  --> _Party OverseasBroker optional
+  --> _Party Followers1 optional
+  --> _Party Followers2 optional
+  --> _Party Followers3 optional
+  --> _Party Followers4 optional
 
   o _Contract Contract optional
   o _ContractSection ContractSection optional
@@ -38,6 +46,7 @@ asset Policy identified by PolicyNo {
 
 enum PolicyType{
   o CommercialProp
+  o Terrorism
 }
 
 concept _Address{
@@ -205,6 +214,7 @@ asset Claim identified by ClaimNo {
   o String ClaimActionRequired
   o DateTime ClaimCreateDate
   o DateTime ClaimDateofLoss
+  o DateTime ClaimTargetDate
   --> Policy PolicyNo
   --> _Party owner
   o DateTime ClaimUpdateDate optional
