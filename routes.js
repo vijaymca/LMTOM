@@ -1,4 +1,3 @@
-
 /*jshint esversion: 6 */
 /*jshint node: true */
 
@@ -12,15 +11,23 @@ var restclient = new Client();
 const fs = require('fs');
 
 const bnUtil = require('./dlt-connection-util');
+
+const PRTCP_PARTY = '_Party';
+const AST_POLICY = 'Policy';
+const AST_CLAIM = 'Claim';
+
 const NS = "org.lloyds.market";
 const NS_model = "org.lloyds.model";
-const PRTCP_PARTY = '_Party';
+const NS_PARTY = 'org.lloyds.market._Party';
+const NS_CLAIM = 'org.lloyds.market.Claim';
+const NS_POLICY = 'org.lloyds.market.Policy';
 
 var jsonObj = [];
 var results1;
 var results2;
 var claim_obj;
 var policy_obj;
+
 
 module.exports = (app) => {
 
@@ -407,10 +414,6 @@ module.exports = (app) => {
             policyResource.InsuredCompanyName = req.body.data.InsuredCompanyName;
             policyResource.PolicyType = req.body.data.PolicyType;
             policyResource.PolicyDetails1 = req.body.data.PolicyDetails1;
-            //policyResource.PlacingBroker = req.body.data.PlacingBroker;
-            //policyResource.ClaimsBroker = req.body.data.ClaimsBroker;
-            //policyResource.OverseasBroker = req.body.data.OverseasBroker;
-            //policyResource.PolicyStatus = req.body.data.PolicyStatus;
             policyResource.PolicyEffectiveDate = new Date(req.body.data.PolicyEffectiveDate);
             policyResource.PolicyExpiryDate = new Date(req.body.data.PolicyExpiryDate);
 
@@ -453,32 +456,67 @@ module.exports = (app) => {
         });
     });
 
+    // Claim conflict
     app.put('/ClaimConflict/:ClaimNo', (req, res) => {
-        bnUtil.connect(req, () => {
+        const claimConflictTrans = "claimConflict";
+        bnUtil.connect(req, (error) => {
+
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
+
+            console.log(req.params.ClaimNo);
+
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
+
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            };
+
+            const transaction = factory.newTransaction(NS_model, claimConflictTrans, req.params.ClaimNo, options);
+            transaction.claimId = req.params.ClaimNo;
+            console.log('mode:' + req.body.data.ClaimMode);
+
             let claimRegistry = {};
-            return bnUtil.connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
-                console.log('1. Received Registry: ', registry.id);
+            return bnUtil.connection.getAssetRegistry(NS_CLAIM).then((registry) => {
+                console.log('Received Registry: ', registry.id);
                 claimRegistry = registry;
                 return claimRegistry.get(req.params.ClaimNo);
             }).then((claim) => {
+                console.log("claim:" + claim);
+
                 if (!claim) console.log(req.params.ClaimNo + 'Not found');
 
-                bnUtil.connection.getAssetRegistry('org.lloyds.market.Policy').then((policyReg) => {
+                bnUtil.connection.getAssetRegistry(NS_POLICY).then((policyReg) => {
+                    console.log('Received Registry: ', policyReg.id);
                     return policyReg.get(claim.PolicyNo.$identifier);
                 }).then((policy) => {
                     console.log("Pol:" + policy.LeadCarrier);
 
-                    console.log(JSON.stringify(claim.PolicyNo.$identifier));
+                    console.log("Policy num: " + JSON.stringify(claim.PolicyNo.$identifier));
 
-                    if (req.body.ClaimMode === 'Approved')
-                        claim.ClaimMode = req.body.ClaimMode;
+                    if (req.body.data.ClaimMode === 'Approved') {
+                        transaction.ClaimMode = "Approved";
+                        transaction.owner = policy.LeadCarrier;
+                    } else {
+                        transaction.owner = claim.Followers1;
+                    }
 
-                    claim.owner = policy.LeadCarrier;
-
-                    return claimRegistry.update(claim).then(() => {
-                        console.log('Updated successfully!!!');
-                        res.end("Updated successfully");
-                        bnUtil.connection.disconnect();
+                    return transaction;
+                }).then((transaction) => {
+                    console.log('TR: ' + transaction);
+                    // 6. Submit the transaction
+                    return bnUtil.connection.submitTransaction(transaction).then(() => {
+                        console.log("6. Transaction Submitted/Processed Successfully!!");
+                        bnUtil.disconnect();
                     });
                 });
             }).catch((error) => {
@@ -488,31 +526,48 @@ module.exports = (app) => {
         });
     });
 
+
     //Update the Claim Premium check
     app.put('/ClaimPremiumCheck/update/:ClaimNo', (req, res) => {
-        bnUtil.connect(req, () => {
-            let claimRegistry = {};
-            return bnUtil.connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
-                console.log('1. Received Registry: ', registry.id);
-                claimRegistry = registry;
-                return claimRegistry.get(req.params.ClaimNo);
-            }).then((claim) => {
-                if (!claim) console.log(req.params.ClaimNo + 'Not found');
 
-                const bnDef = bnUtil.connection.getBusinessNetwork();
-                const factory = bnDef.getFactory();
+        const claimPremCheck = "claimPremCheck";
+        bnUtil.connect(req, (error) => {
 
-                const PremiumCheck = factory.newConcept('org.lloyds.market', 'PremiumCheck');
-                PremiumCheck.premiumBeenPaiByPolHolder = req.body.premiumBeenPaiByPolHolder;
-                PremiumCheck.reinstatementApplicable = req.body.reinstatementApplicable;
-                PremiumCheck.reinstatementPaidByPolHolder = req.body.reinstatementPaidByPolHolder;
-                claim.checkPremium = PremiumCheck;
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
 
-                return claimRegistry.update(claim).then(() => {
-                    console.log('Updated successfully!!!');
-                    res.end("Updated successfully");
-                    bnUtil.connection.disconnect();
-                });
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
+
+            console.log(req.params.ClaimNo);
+
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
+
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            };
+
+            const transaction = factory.newTransaction(NS_model, claimPremCheck, req.params.ClaimNo, options);
+            transaction.claimId = req.params.ClaimNo;
+
+            console.log('premiumBeenPaiByPolHolder:' + req.body.data.premiumBeenPaiByPolHolder);
+            const PremiumCheck = factory.newConcept(NS, '_Premium');
+            PremiumCheck.premiumBeenPaiByPolHolder = req.body.data.premiumBeenPaiByPolHolder;
+            PremiumCheck.reinstatementApplicable = req.body.data.reinstatementApplicable;
+            PremiumCheck.reinstatementPaidByPolHolder = req.body.data.reinstatementPaidByPolHolder;
+            transaction.premium = PremiumCheck;
+
+            // 6. Submit the transaction
+            return bnUtil.connection.submitTransaction(transaction).then(() => {
+                console.log("6. Transaction Submitted/Processed Successfully!!");
+                bnUtil.disconnect();
             }).catch((error) => {
                 console.log(error);
                 bnUtil.connection.disconnect();
