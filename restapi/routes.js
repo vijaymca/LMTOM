@@ -112,6 +112,16 @@ app.get('/Claims', function(req, res) {
 app.post('/Claim/new', (req, res) => {
     bnUtil.connect(req, () => {
         console.log("1. Claim/new")
+        let PolicyRegistry = {}
+        return bnUtil.connection.getAssetRegistry('org.lloyds.market.Policy').then((registry) => {
+            console.log('1. Received Registry: ', registry.id);
+            PolicyRegistry = registry
+            return PolicyRegistry.get(req.body.PolicyNo);
+        }).then((Policy) => {
+            if (!Policy) console.log(req.body.PolicyNo + 'Not found');
+
+
+
         let bnDef = bnUtil.connection.getBusinessNetwork();
         console.log("2. Received Definition from Runtime: ", bnDef.getName(), "  ", bnDef.getVersion());
         let factory = bnDef.getFactory();
@@ -120,32 +130,29 @@ app.post('/Claim/new', (req, res) => {
         transaction.setPropertyValue('ClaimNo', req.body.ClaimNo);
         transaction.setPropertyValue('ClaimCreatedBy', req.body.ClaimCreatedBy);
     
-        transaction.setPropertyValue('ClaimMode', req.body.ClaimMode);
         transaction.setPropertyValue('ClaimDetails1', req.body.ClaimDetails1);
         transaction.setPropertyValue('ClaimDetails2', req.body.ClaimDetails2);
-        transaction.setPropertyValue('ClaimPremiumStatus', req.body.ClaimPremiumStatus);
-        transaction.setPropertyValue('ClaimActionRequired', req.body.ClaimActionRequired);
-    
+   
         transaction.setPropertyValue('ClaimCreateDate', new Date(req.body.ClaimCreateDate));
         transaction.setPropertyValue('ClaimDateofLoss', new Date(req.body.ClaimDateofLoss));
         transaction.setPropertyValue('ClaimTargetDate', new Date(req.body.ClaimTargetDate)); 
         transaction.setPropertyValue('PolicyNo', req.body.PolicyNo);
-        transaction.setPropertyValue('owner', req.body.owner);
-        transaction.setPropertyValue('LeadCarrier', req.body.LeadCarrier);
+        transaction.setPropertyValue('owner', Policy.LeadCarrier.$identifier.toString());
+        transaction.setPropertyValue('LeadCarrier', Policy.LeadCarrier.$identifier.toString());
     
-        transaction.setPropertyValue('PlacingBroker', req.body.PlacingBroker);
-        transaction.setPropertyValue('ClaimsBroker', req.body.ClaimsBroker);
-        transaction.setPropertyValue('OverseasBroker', req.body.OverseasBroker);
-        transaction.setPropertyValue('PolicyOwner', req.body.PolicyOwner);
-        transaction.setPropertyValue('Followers1', req.body.Followers1);
-        transaction.setPropertyValue('Followers2', req.body.Followers2);
-        transaction.setPropertyValue('Followers3', req.body.Followers3);
-        transaction.setPropertyValue('Followers4', req.body.Followers4);
+        transaction.setPropertyValue('PlacingBroker', Policy.PlacingBroker.$identifier.toString());
+        transaction.setPropertyValue('ClaimsBroker', Policy.ClaimsBroker.$identifier.toString());
+        transaction.setPropertyValue('OverseasBroker', Policy.OverseasBroker.$identifier.toString());
+        transaction.setPropertyValue('PolicyOwner', Policy.Insured.$identifier.toString());
+        transaction.setPropertyValue('Followers1', Policy.Followers1.$identifier.toString());
+        transaction.setPropertyValue('Followers2', Policy.Followers2.$identifier.toString());
+        transaction.setPropertyValue('Followers3', Policy.Followers3.$identifier.toString());
+        transaction.setPropertyValue('Followers4', Policy.Followers4.$identifier.toString());
 
 
         // 6. Submit the transaction
         return bnUtil.connection.submitTransaction(transaction).then(() => {
-            console.log("6. Transaction Submitted/Processed Successfully!!")
+            console.log("3. Transaction Submitted/Processed Successfully!!")
             res.end("Transaction Submitted Successfully");
             bnUtil.disconnect();
 
@@ -154,6 +161,7 @@ app.post('/Claim/new', (req, res) => {
 
             bnUtil.disconnect();
         });
+    })
     })
 });
 

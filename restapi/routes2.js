@@ -49,8 +49,8 @@ module.exports = (app) => {
                                 "ClaimNo": obj.ClaimNo,
                                 "PolicyNo": policy_obj.PolicyNo,
                                 "ClaimCreateDate ": obj.ClaimCreateDate,
-                                "ClaimUrgency ": timeUrgency(obj.ClaimCreateDate),
-                                "ClaimTargetDate ": obj.ClaimCreateDate,
+                                "ClaimUrgency ": timeDifference(obj.ClaimTargetDate),
+                                "ClaimTargetDate ": obj.ClaimTargetDate,
                                 "ClaimMode": obj.ClaimMode,
 
                             });

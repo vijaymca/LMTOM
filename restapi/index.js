@@ -17,7 +17,7 @@ app.use(connect.urlencoded());
 
 // Routes
 
-require('./routes2.js')(app);
+require('./routes.js')(app);
 //require('./expressApi.js')(app);
 
 app.listen(port);

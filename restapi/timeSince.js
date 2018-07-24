@@ -1,7 +1,7 @@
 
 console.log(timeSince(new Date("2018-07-24T09:03:42.115Z")))
 
-function timeSince(date) {
+function timeUrgency(date) {
 
     var seconds = Math.floor((date - new Date()) / 1000);
 

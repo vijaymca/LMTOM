@@ -50,13 +50,13 @@ module.exports = {
 function getCardName(user) {
     switch (user) {
         case "ABCUW":
-            return 'ABCUW@lloyds-project-1'
+            return 'ABCUW@lloyds-project-2'
             break;
         case "GaingKim":
-            return 'GaingKim@lloyds-project-1'
+            return 'GaingKim@lloyds-project-2'
             break;
         default:
-            return 'admin@lloyds-project-1'
+            return 'admin@lloyds-project-2'
     }
 }
 
