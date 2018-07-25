@@ -162,3 +162,27 @@ async function claimPremCheck(xData) {
       claim.checkPremium = xData.premium;
       await claimRegistry.update(claim);
 }
+
+
+/** claimSegment Transaction
+ * @param {org.lloyds.model.claimSegment} claimSegment
+ * @transaction
+ */
+async function claimSegment(xData) {
+      const claimRegistry = await getAssetRegistry(NS_CLAIM);
+      const claim = await claimRegistry.get(xData.claimId);
+      claim.segmnt = xData.segmnt;
+      await claimRegistry.update(claim);
+}
+
+
+/** housekeep Transaction
+ * @param {org.lloyds.model.housekeep} housekeep
+ * @transaction
+ */
+async function housekeep(xData) {
+      const claimRegistry = await getAssetRegistry(NS_CLAIM);
+      const claim = await claimRegistry.get(xData.claimId);
+      claim.houseKeeping = xData.housekeep;
+      await claimRegistry.update(claim);
+}

@@ -3,7 +3,7 @@
     "composer": "^0.19.12"
   },
   "name": "lloyds-project-6",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "lloyds market place",
   "scripts": {
     "prepublish": "mkdirp ./dist && composer archive create --sourceType dir --sourceName . -a ./dist/lloyds-project-4.bna",

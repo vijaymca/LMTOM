@@ -613,7 +613,6 @@ module.exports = (app) => {
         });
     });
 
-
     //Update the Claim Premium check
     app.put('/ClaimPremiumCheck/update/:ClaimNo', (req, res) => {
 
@@ -696,34 +695,47 @@ module.exports = (app) => {
 
     // Update segment information
     app.put('/ClaimSegment/update/:ClaimNo', (req, res) => {
-        bnUtil.connect(req, () => {
-            let claimRegistry = {};
-            return bnUtil.connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
-                console.log('ClaimSegment Started \n. Received Registry: ', registry.id);
-                claimRegistry = registry;
-                return claimRegistry.get(req.params.ClaimNo);
-            }).then((claim) => {
-                if (!claim) console.log(req.params.ClaimNo + 'Not found');
+        const claimSegment = "claimSegment";
+        bnUtil.connect(req, (error) => {
 
-                const bnDef = bnUtil.connection.getBusinessNetwork();
-                const factory = bnDef.getFactory();
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
 
-                let Segmentation = factory.newConcept('org.lloyds.market', 'Segmentation');
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
 
-                let relationship = factory.newRelationship('org.lloyds.market', 'Owner', req.body.user);
+            console.log(req.params.ClaimNo);
 
-                Segmentation.name = relationship;
-                Segmentation.role = req.body.role;
-                Segmentation.office = req.body.office;
-                Segmentation.segDate = new Date();
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
 
-                claim.segmnt = Segmentation;
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            };
 
-                return claimRegistry.update(claim).then(() => {
-                    console.log('Updated successfully!!!');
-                    res.end("Updated successfully");
-                    bnUtil.connection.disconnect();
-                });
+            const transaction = factory.newTransaction(NS_model, claimSegment, req.params.ClaimNo, options);
+            transaction.claimId = req.params.ClaimNo;
+            
+            const segmentation = factory.newConcept(NS, 'Segmentation');
+            let relationship = factory.newRelationship(NS, PRTCP_PARTY, req.body.data.user);
+
+            segmentation.name = relationship;
+            segmentation.role = req.body.data.role;
+            segmentation.office = req.body.data.office;
+            segmentation.segDate = new Date(req.body.data.segDate);
+
+            transaction.segmnt = segmentation;
+
+            // 6. Submit the transaction
+            return bnUtil.connection.submitTransaction(transaction).then(() => {
+                console.log("6. Transaction Submitted/Processed Successfully!!");
+                bnUtil.disconnect();
             }).catch((error) => {
                 console.log(error);
                 bnUtil.connection.disconnect();
@@ -797,41 +809,49 @@ module.exports = (app) => {
 
     // Update Housekeeping check
     app.put('/HouseKeepCheck/update/:ClaimNo', (req, res) => {
-        bnUtil.connect(req, () => {
-            let claimRegistry = {};
-            return bnUtil.connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
-                console.log('ClaimSegment Started \n. Received Registry: ', registry.id);
-                claimRegistry = registry;
-                return claimRegistry.get(req.params.ClaimNo);
-            }).then((claim) => {
-                if (!claim) console.log(req.params.ClaimNo + 'Not found');
+      const housekeep = "housekeep";
+        bnUtil.connect(req, (error) => {
 
-                console.log(req.body);
-                const bnDef = bnUtil.connection.getBusinessNetwork();
-                const factory = bnDef.getFactory();
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
 
-                let houseKeeping = factory.newConcept('org.lloyds.market', 'houseKeeping');
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
 
+            console.log(req.params.ClaimNo);
 
-                houseKeeping.premiumBeenPaidByPolHolder = req.body.premiumBeenPaidByPolHolder;
-                houseKeeping.reinstatementPremiumPaid = req.body.reinstatementPremiumPaid;
-                houseKeeping.anyFraud = req.body.anyFraud;
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
 
-                claim.houseKeeping = houseKeeping;
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            };
 
-                return claimRegistry.update(claim).then(() => {
-                    console.log('Updated successfully!!!');
-                    res.end("Updated successfully");
-                    bnUtil.connection.disconnect();
-                });
+            const transaction = factory.newTransaction(NS_model, housekeep, req.params.ClaimNo, options);
+            transaction.claimId = req.params.ClaimNo;
+
+            const houseKeeping = factory.newConcept(NS, 'houseKeeping');
+            houseKeeping.premiumBeenPaidByPolHolder = req.body.data.premiumBeenPaidByPolHolder;
+            houseKeeping.reinstatementPremiumPaid = req.body.data.reinstatementPremiumPaid;
+            houseKeeping.anyFraud = req.body.data.anyFraud;
+            transaction.housekeep = houseKeeping;
+
+            // 6. Submit the transaction
+            return bnUtil.connection.submitTransaction(transaction).then(() => {
+                console.log("6. Transaction Submitted/Processed Successfully!!");
+                bnUtil.disconnect();
             }).catch((error) => {
                 console.log(error);
                 bnUtil.connection.disconnect();
             });
         });
     });
-
-
 
     app.put('/UpdateSettlementAmt/:ClaimNo', (req, res) => {
 
@@ -866,7 +886,7 @@ module.exports = (app) => {
                     const bnDef = connection.getBusinessNetwork();
                     const factory = bnDef.getFactory();
 
-                    const claimAmt = Math.floor(Math.random() * 100000) + 100000
+                    const claimAmt = Math.floor(Math.random() * 100000) + 100000;
                     claim.setPropertyValue('ClaimSettlementAmount', claimAmt);
 
                     return claimRegistry.update(claim).then(() => {
@@ -990,7 +1010,6 @@ module.exports = (app) => {
 
     });
 
-
     app.get('/MyCases', (req, res) => {
 
         var jsonObj = [];
@@ -1012,8 +1031,6 @@ module.exports = (app) => {
 
                 return bnUtil.connection.query(qry).then((results2) => {
                     console.log('2. Received results2: ', results2);
-
-
                     for (var i = 0; i < results1.length; i++) {
                         var obj = results1[i];
                         console.log("*********");
@@ -1044,106 +1061,103 @@ module.exports = (app) => {
     });
 };
 
-
-
 function validateUser(user, password) {
     switch (user) {
         case "Isabelle":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "GaingKim":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "DavidCoker":
             if (password === "2345") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "JamesAtkins":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "JohnWhite":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "SIC10":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "ABCUW":
             if (password === "2345") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "Bleachers":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "ECP":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "JamesEstates":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "Towers":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "Dakota":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "SouthernCentre":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         default:
-            return true
+            return true;
     }
 }
-
 
 function getCardName(user) {
     switch (user) {

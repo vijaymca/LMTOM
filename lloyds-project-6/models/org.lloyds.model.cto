@@ -10,6 +10,8 @@ import org.lloyds.market._Party
 import org.lloyds.market.Claim
 import org.lloyds.market.ClaimType
 import org.lloyds.market._Premium
+import org.lloyds.market.Segmentation
+import org.lloyds.market.houseKeeping
 
   
 transaction SetupDemo {
@@ -73,4 +75,14 @@ event CreateClaimCreated {
   o   String    Followers2
   o   String    Followers3
   o   String    Followers4
+}
+
+transaction claimSegment {
+   o String claimId
+  o Segmentation segmnt
+}
+
+transaction housekeep {
+  o String claimId
+  o houseKeeping housekeep
 }
