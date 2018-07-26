@@ -439,7 +439,7 @@ module.exports = function (app) {
     });
 
 
-    app.put('/Policies/:PolicyNo', (req, res) => {
+app.put('/Policies/:PolicyNo', (req, res) => {
 
         var jsonObj = [];
         var results1;
@@ -483,7 +483,7 @@ module.exports = function (app) {
     });
 
 
-    app.put('/ClaimConflict/:ClaimNo', (req, res) => {
+app.put('/ClaimConflict/:ClaimNo', (req, res) => {
 
         var jsonObj = [];
         var results1;

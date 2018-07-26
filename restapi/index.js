@@ -4,7 +4,7 @@
 var express = require('express');
 var connect = require('connect');
 var app = express();
-var port = process.env.PORT || 3001;
+var port = process.env.PORT || 3002;
 
 // Configuration
 app.use(express.static(__dirname + '/public'));
