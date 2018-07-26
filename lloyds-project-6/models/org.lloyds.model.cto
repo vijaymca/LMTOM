@@ -12,6 +12,7 @@ import org.lloyds.market.ClaimType
 import org.lloyds.market._Premium
 import org.lloyds.market.Segmentation
 import org.lloyds.market.houseKeeping
+import org.lloyds.market.addInfo
 
   
 transaction SetupDemo {

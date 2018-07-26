@@ -199,8 +199,12 @@ concept houseKeeping {
   o Boolean anyFraud default=false
 }
 
-concept addInfo{
-o String addInfo
+concept addInfo {
+  o String PartyName
+  o String PartyType
+  o String Details
+  o String Status
+  o DateTime receivedOn
 }
 
   // ASSETS
@@ -221,12 +225,11 @@ asset Claim identified by ClaimNo {
   o String ClaimNotes optional
   o Integer ClaimSettlementAmount optional
   o Boolean ClaimSettlement optional
-  o String ClaimAdditionalInformation optional
   o String ClaimExpertOpinion optional
   o String ClaimQuery optional
   o Segmentation segmnt optional
   o houseKeeping houseKeeping optional
-  o addInfo additionalInfo optional
+  o claimAddtionalInfo[] additionalInfo optional
   o _Premium checkPremium optional
  
   --> _Party LeadCarrier optional
@@ -238,4 +241,13 @@ asset Claim identified by ClaimNo {
   --> _Party Followers2 optional
   --> _Party Followers3 optional
   --> _Party Followers4 optional
+}
+
+transaction claimAddtionalInfo {
+  o String PartyName
+  o String PartyType
+  o String Details
+  o String Status
+  o DateTime receivedOn
+  --> Claim claim
 }

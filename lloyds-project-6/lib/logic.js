@@ -1,7 +1,5 @@
-
 /*jshint esversion: 6 */
 /*jshint node: true */
-
 
 const AST_POLICY = 'Policy';
 const AST_CLAIM = 'Claim';
@@ -11,7 +9,6 @@ const NS = 'org.lloyds.market';
 const NS_PARTY = 'org.lloyds.market._Party';
 const NS_CLAIM = 'org.lloyds.market.Claim';
 const NS_POLICY = 'org.lloyds.market.Policy';
-
 
 /**
  * Initialize some test assets and participants useful for running a demo.
@@ -41,12 +38,10 @@ async function setupDemo(xData) { // eslint-disable-line no-unused-vars
       await policyRegistry.addAll([policy]);
 }
 
-
 /**
  * CreateClaim Transaction
  * @param {org.lloyds.model.CreateClaim} CreateClaim
  * @transaction
- * 
  */
 function createclaim(claimData) {
       return getAssetRegistry('org.lloyds.market.Claim')
@@ -184,5 +179,23 @@ async function housekeep(xData) {
       const claimRegistry = await getAssetRegistry(NS_CLAIM);
       const claim = await claimRegistry.get(xData.claimId);
       claim.houseKeeping = xData.housekeep;
+      await claimRegistry.update(claim);
+}
+
+
+/** AdditionalInfo Transaction
+ * @param {org.lloyds.market.claimAddtionalInfo} claimAddtionalInfo
+ * @transaction
+ */
+async function claimAddtionalInfo(xData) {
+      let claim = xData.claim;
+
+      const claimRegistry = await getAssetRegistry(NS_CLAIM);
+           
+      if (!claim.additionalInfo) {
+            claim.additionalInfo = [];
+      }
+
+      claim.additionalInfo.push(xData);
       await claimRegistry.update(claim);
 }

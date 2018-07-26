@@ -1,3 +1,4 @@
 node_modules
 /dist
 /lloyds-project-5
+*.card
