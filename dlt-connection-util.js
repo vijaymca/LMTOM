@@ -15,10 +15,9 @@ module.exports = {
         // Create instance of file system card store
         //const cardStore = new this.cardStore();
         //this.connection = new this.BusinessNetworkConnection({ cardStore: cardStore });
-        var cardType = { type: 'composer-wallet-filesystem' }
+        var cardType = { type: 'composer-wallet-filesystem' };
         this.connection = new this.BusinessNetworkConnection(cardType);
-
-             
+ 
         const user = req.headers["user"];
         const password = req.headers["password"];
 
@@ -52,19 +51,19 @@ module.exports = {
             callback({}, error);
         });
     }
-}
+};
 
 
 function getCardName(user) {
     switch (user) {
         case "Isabelle":
-            return 'Isabelle@lloyds-project-6'
+            return 'Isabelle@lloyds-project-6';
             break;
         case "GaingKim":
-            return 'GaingKim@lloyds-project-6'
+            return 'GaingKim@lloyds-project-6';
             break;
         default:
-            return ''
+            return '';
     }
 }
 
@@ -72,21 +71,21 @@ function validateUser(user, password) {
     switch (user) {
         case "Isabelle":
             if (password === "1234") {
-                return false
+                return false;
             }
             else {
-                return true
+                return true;
             }
             break;
         case "GaingKim":
             if (password === "1234") {
-                return false
+                return false;
             }
             else {
-                return true
+                return true;
             }
             break;
         default:
-            return true
+            return true;
     }
 }
