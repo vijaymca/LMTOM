@@ -1,2 +1,0 @@
-# LMTOM
-Hyperledger project.
