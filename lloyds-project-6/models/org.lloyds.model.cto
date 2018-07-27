@@ -47,7 +47,7 @@ transaction CreateClaim {
   o   String    ClaimActionRequired default="Yes"
   o   DateTime  ClaimCreateDate
   o   DateTime  ClaimDateofLoss
-  o DateTime  ClaimTargetDate
+  o   DateTime  ClaimTargetDate
   o   String    PolicyNo
   o   String    owner default="admin"
   
@@ -60,7 +60,6 @@ transaction CreateClaim {
   o   String    Followers2 default="admin"
   o   String    Followers3 default="admin"
   o   String    Followers4 default="admin"
-
 }
 
 event CreateClaimCreated {
@@ -108,7 +107,6 @@ transaction ClaimSettlementAmount {
 }
   
 event ClaimSettlementAmountUpdated {
-
   o   String    ClaimNo
   o   DateTime  ClaimDateofLoss
   o   String    LeadCarrier
@@ -122,3 +120,7 @@ event ClaimSettlementAmountUpdated {
   o   String    Followers4
   o _ClaimSettlementAmount ClaimSettlementAmount  
 }  
+
+event eventclaimAddtionalInfo {
+  o claimAddtionalInfo claimAddtionalInfo
+}

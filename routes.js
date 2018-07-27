@@ -575,7 +575,11 @@ module.exports = (app) => {
             });
         });
     });
-
+    
+    /**
+     * 
+     * 
+     */
     app.put('/Policies/update/:PolicyNo', (req, res) => {
 
         bnUtil.connect(req, () => {
@@ -959,7 +963,7 @@ module.exports = (app) => {
             var serializer = bnDef.getSerializer();
 
             const transaction = factory.newTransaction(NS_model, addInfo, req.params.ClaimNo, options);
-         
+
             transaction.PartyName = req.body.data.PartyName;
             transaction.PartyType = req.body.data.PartyType;
             transaction.Details = req.body.data.Details;

@@ -197,6 +197,10 @@ async function claimAddtionalInfo(xData) {
       claim.additionalInfo.push(xData);
       const claimRegistry = await getAssetRegistry(NS_CLAIM);
       await claimRegistry.update(claim);
+
+      var event = factory.newEvent('org.lloyds.model', 'eventclaimAddtionalInfo');
+      event.ClaimNo = xData;
+      emit(event);
 }
 
 
