@@ -48,12 +48,69 @@ module.exports = (app) => {
             res.end('Invalid credentials');
         } else {
             console.log(res);
+            fetchDetails(user);
             res.json({
                 "status": "Login successfull"
             });
             res.status(200);
         }
     });
+
+    async function fetchDetails() {
+        const email = await getUserDetails("Isabelle")
+        console.log("After await --> ", email);
+        connection.disconnect();
+    }
+
+    async function getUserDetails(party) {
+        var jsonObj = [];
+        return new Promise((resolve, reject) => {
+            connection.connect(cardName).then(function () {
+                console.log("Fetching uset details for user ", party);
+
+                connection.getParticipantRegistry('org.lloyds.market._Party')
+                    .then(function (playerRegistry) {
+                        return playerRegistry.exists(party)
+                    })
+                    .then(function (exists) {
+                        if (exists) {
+                            console.log("user exists");
+                            resolve(connection.getParticipantRegistry('org.lloyds.market._Party')
+                                .then(function (assetRegistry) {
+                                    return assetRegistry.get(party);
+                                })
+                                .then(function (user) {
+                                    jsonObj.push({
+                                        "UserName": user.UserName,
+                                        "Name": user.Name,
+                                        "Role": user.Role,
+                                        "CompanyName": user.CompanyName,
+                                        "Email": user.Email,
+
+                                    });
+                                    return jsonObj;
+
+                                })
+                            );
+                        } else {
+                            console.log("user does not exists");
+                            jsonObj.push({
+                                "Error": "Invalid USer",
+
+                            });
+                            return jsonObj;
+                        }
+
+                    });
+
+            });
+
+
+        });
+
+    }
+
+
 
     app.get('/Claims', function (req, res) {
 
