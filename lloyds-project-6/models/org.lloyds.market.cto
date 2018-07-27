@@ -5,6 +5,8 @@
 
 namespace org.lloyds.market
 
+import org.lloyds.model.claimAddtionalInfo
+
 // ASSETS Policy Summary
 asset Policy identified by PolicyNo {
   o String PolicyNo
@@ -13,6 +15,7 @@ asset Policy identified by PolicyNo {
   o String PolicyDetails1
   o DateTime PolicyEffectiveDate
   o DateTime PolicyExpiryDate
+  o String PolicyStatus optional
   o String UUId optional
   o String ServiceProviderReference optional
   o DateTime CreationDate optional
@@ -163,7 +166,7 @@ concept _Brokerage {
 }
 
 concept _OtherDeductions {
-	o String Description  optional
+	  o String Description  optional
     o String OtherDeductionsPercentage  optional
     o String OtherDeductionsBasis  optional
 }
@@ -173,8 +176,10 @@ participant _Party identified by OwnerId {
     o String UserName
     o String Password
     o String Email
-	o String AgencyId optional
-	o String Name optional
+	  o String AgencyId optional
+    o String Role optional
+    o String CompanyName optional
+	  o String Name optional
     o _Address Address optional    
 }
 
@@ -199,10 +204,6 @@ concept houseKeeping {
   o Boolean anyFraud default=false
 }
 
-concept addInfo{
-o String addInfo
-}
-
   // ASSETS
 asset Claim identified by ClaimNo {
   o String ClaimNo
@@ -219,14 +220,15 @@ asset Claim identified by ClaimNo {
   --> _Party owner
   o DateTime ClaimUpdateDate optional
   o String ClaimNotes optional
-  o Integer ClaimSettlementAmount optional
-  o Boolean ClaimSettlement optional
-  o String ClaimAdditionalInformation optional
-  o String ClaimExpertOpinion optional
-  o String ClaimQuery optional
+
+  o _ClaimSettlementAmount ClaimSettlementAmount optional
+  o _ClaimAdditionalInformation ClaimAdditionalInformation optional
+  o _ClaimExpertOpinion ClaimExpertOpinion optional
+  o _ClaimQuery ClaimQuery optional
+  
   o Segmentation segmnt optional
   o houseKeeping houseKeeping optional
-  o addInfo additionalInfo optional
+  o claimAddtionalInfo[] additionalInfo optional
   o _Premium checkPremium optional
  
   --> _Party LeadCarrier optional
@@ -238,4 +240,26 @@ asset Claim identified by ClaimNo {
   --> _Party Followers2 optional
   --> _Party Followers3 optional
   --> _Party Followers4 optional
+}
+
+
+concept _ClaimSettlementAmount {
+  o String ClaimSettlementAmount
+  o DateTime ClaimSettlementAmountDate
+  o Boolean ClaimSettlementStatus optional
+}
+  
+concept _ClaimAdditionalInformation {
+  o String ClaimAdditionalInformation
+  o DateTime ClaimAdditionalInformationDate
+}
+  
+concept _ClaimExpertOpinion {
+  o String ClaimExpertOpinion
+  o DateTime ClaimExpertOpinionDate
+}
+  
+concept _ClaimQuery {
+  o String ClaimQuery
+  o DateTime ClaimQueryDate
 }

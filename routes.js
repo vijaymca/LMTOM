@@ -48,12 +48,69 @@ module.exports = (app) => {
             res.end('Invalid credentials');
         } else {
             console.log(res);
+            fetchDetails(user);
             res.json({
                 "status": "Login successfull"
             });
             res.status(200);
         }
     });
+
+    async function fetchDetails() {
+        const email = await getUserDetails("Isabelle")
+        console.log("After await --> ", email);
+        connection.disconnect();
+    }
+
+    async function getUserDetails(party) {
+        var jsonObj = [];
+        return new Promise((resolve, reject) => {
+            connection.connect(cardName).then(function () {
+                console.log("Fetching uset details for user ", party);
+
+                connection.getParticipantRegistry('org.lloyds.market._Party')
+                    .then(function (playerRegistry) {
+                        return playerRegistry.exists(party)
+                    })
+                    .then(function (exists) {
+                        if (exists) {
+                            console.log("user exists");
+                            resolve(connection.getParticipantRegistry('org.lloyds.market._Party')
+                                .then(function (assetRegistry) {
+                                    return assetRegistry.get(party);
+                                })
+                                .then(function (user) {
+                                    jsonObj.push({
+                                        "UserName": user.UserName,
+                                        "Name": user.Name,
+                                        "Role": user.Role,
+                                        "CompanyName": user.CompanyName,
+                                        "Email": user.Email,
+
+                                    });
+                                    return jsonObj;
+
+                                })
+                            );
+                        } else {
+                            console.log("user does not exists");
+                            jsonObj.push({
+                                "Error": "Invalid USer",
+
+                            });
+                            return jsonObj;
+                        }
+
+                    });
+
+            });
+
+
+        });
+
+    }
+
+
 
     app.get('/Claims', function (req, res) {
 
@@ -469,7 +526,7 @@ module.exports = (app) => {
 
     app.post('/Policies/new', (req, res) => {
 
-        const setupdemoTrans = "SetupDemo";
+        const policyNew = "policyNew";
         bnUtil.connect(req, (error) => {
 
             // Check for error
@@ -494,7 +551,7 @@ module.exports = (app) => {
             };
 
             let PolicyId = req.body.data.PolicyNo;
-            let policyResource = factory.newTransaction(NS_model, setupdemoTrans, PolicyId, options);
+            let policyResource = factory.newTransaction(NS_model, policyNew, PolicyId, options);
 
             // 5. Set up the properties of the transaction object
             policyResource.PolicyNo = PolicyId;
@@ -543,7 +600,9 @@ module.exports = (app) => {
         });
     });
 
-    // Claim conflict
+    /** PUT -> CLAIM CONFLICT
+     * 
+     */
     app.put('/ClaimConflict/:ClaimNo', (req, res) => {
         const claimConflictTrans = "claimConflict";
         bnUtil.connect(req, (error) => {
@@ -613,7 +672,9 @@ module.exports = (app) => {
         });
     });
 
-    //Update the Claim Premium check
+    /** PUT -> UPDATE CLAIM PREMIUM CHECK
+     * 
+     */
     app.put('/ClaimPremiumCheck/update/:ClaimNo', (req, res) => {
 
         const claimPremCheck = "claimPremCheck";
@@ -661,7 +722,9 @@ module.exports = (app) => {
         });
     });
 
-    // Get the Premium check details
+    /** GET -> PREMIUMCHECK DETAILS
+     * 
+     */
     app.get('/ClaimPremiumCheck/:ClaimNo', (req, res) => {
         bnUtil.connect(req, () => {
             let claimRegistry = {};
@@ -693,7 +756,9 @@ module.exports = (app) => {
         });
     });
 
-    // Update segment information
+    /** PUT -> UPDATE SEGMENTATION INFORMATION
+     * 
+     */
     app.put('/ClaimSegment/update/:ClaimNo', (req, res) => {
         const claimSegment = "claimSegment";
         bnUtil.connect(req, (error) => {
@@ -721,7 +786,7 @@ module.exports = (app) => {
 
             const transaction = factory.newTransaction(NS_model, claimSegment, req.params.ClaimNo, options);
             transaction.claimId = req.params.ClaimNo;
-            
+
             const segmentation = factory.newConcept(NS, 'Segmentation');
             let relationship = factory.newRelationship(NS, PRTCP_PARTY, req.body.data.user);
 
@@ -743,7 +808,10 @@ module.exports = (app) => {
         });
     });
 
-    //Get segment details
+
+    /** GET -> SEGMENTATION DETAILS
+     * 
+     */
     app.get('/ClaimSegment/:ClaimNo', (req, res) => {
         bnUtil.connect(req, () => {
             let claimRegistry = {};
@@ -775,7 +843,10 @@ module.exports = (app) => {
         });
     });
 
-    // Get Housekeeping Check
+
+    /** GET -> HOUSE KEEPING CHECK
+     * 
+     */
     app.get('/HouseKeepCheck/:ClaimNo', (req, res) => {
         bnUtil.connect(req, () => {
             let claimRegistry = {};
@@ -807,9 +878,12 @@ module.exports = (app) => {
         });
     });
 
-    // Update Housekeeping check
+    /** PUT-> UPDATE HOUSEKEEPING CHECK
+     * 
+     * 
+     */
     app.put('/HouseKeepCheck/update/:ClaimNo', (req, res) => {
-      const housekeep = "housekeep";
+        const housekeep = "housekeep";
         bnUtil.connect(req, (error) => {
 
             // Check for error
@@ -841,6 +915,61 @@ module.exports = (app) => {
             houseKeeping.reinstatementPremiumPaid = req.body.data.reinstatementPremiumPaid;
             houseKeeping.anyFraud = req.body.data.anyFraud;
             transaction.housekeep = houseKeeping;
+
+            // 6. Submit the transaction
+            return bnUtil.connection.submitTransaction(transaction).then(() => {
+                console.log("6. Transaction Submitted/Processed Successfully!!");
+                bnUtil.disconnect();
+            }).catch((error) => {
+                console.log(error);
+                bnUtil.connection.disconnect();
+            });
+        });
+    });
+
+    /**
+     * 
+     * 
+     */
+    app.put('/claimAdditionalInfo/update/:ClaimNo', (req, res) => {
+        const addInfo = "claimAddtionalInfo";
+        bnUtil.connect(req, async (error) => {
+
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
+
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
+
+            console.log(req.params.ClaimNo);
+
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
+
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            };
+
+            var serializer = bnDef.getSerializer();
+
+            const transaction = factory.newTransaction(NS_model, addInfo, req.params.ClaimNo, options);
+         
+            transaction.PartyName = req.body.data.PartyName;
+            transaction.PartyType = req.body.data.PartyType;
+            transaction.Details = req.body.data.Details;
+            transaction.Status = req.body.data.Status;
+            transaction.receivedOn = new Date(req.body.data.receivedOn);
+
+            let relationship = factory.newRelationship(NS, AST_CLAIM, req.params.ClaimNo);
+            transaction.claim = relationship;
+
+            console.log(serializer.toJSON(transaction));
 
             // 6. Submit the transaction
             return bnUtil.connection.submitTransaction(transaction).then(() => {
