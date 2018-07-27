@@ -469,7 +469,7 @@ module.exports = (app) => {
 
     app.post('/Policies/new', (req, res) => {
 
-        const setupdemoTrans = "SetupDemo";
+        const policyNew = "policyNew";
         bnUtil.connect(req, (error) => {
 
             // Check for error
@@ -494,7 +494,7 @@ module.exports = (app) => {
             };
 
             let PolicyId = req.body.data.PolicyNo;
-            let policyResource = factory.newTransaction(NS_model, setupdemoTrans, PolicyId, options);
+            let policyResource = factory.newTransaction(NS_model, policyNew, PolicyId, options);
 
             // 5. Set up the properties of the transaction object
             policyResource.PolicyNo = PolicyId;
@@ -901,7 +901,7 @@ module.exports = (app) => {
 
             var serializer = bnDef.getSerializer();
 
-            const transaction = factory.newTransaction(NS, addInfo, req.params.ClaimNo, options);
+            const transaction = factory.newTransaction(NS_model, addInfo, req.params.ClaimNo, options);
          
             transaction.PartyName = req.body.data.PartyName;
             transaction.PartyType = req.body.data.PartyType;

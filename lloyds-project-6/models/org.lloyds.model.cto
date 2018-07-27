@@ -12,10 +12,8 @@ import org.lloyds.market.ClaimType
 import org.lloyds.market._Premium
 import org.lloyds.market.Segmentation
 import org.lloyds.market.houseKeeping
-import org.lloyds.market.addInfo
-
   
-transaction SetupDemo {
+transaction policyNew {
   o String PolicyNo
   o String InsuredCompanyName
   o PolicyType PolicyType
@@ -86,4 +84,14 @@ transaction claimSegment {
 transaction housekeep {
   o String claimId
   o houseKeeping housekeep
+}
+
+
+transaction claimAddtionalInfo {
+  o String PartyName
+  o String PartyType
+  o String Details
+  o String Status
+  o DateTime receivedOn
+  --> Claim claim
 }

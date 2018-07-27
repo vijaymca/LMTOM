@@ -5,6 +5,8 @@
 
 namespace org.lloyds.market
 
+import org.lloyds.model.claimAddtionalInfo
+
 // ASSETS Policy Summary
 asset Policy identified by PolicyNo {
   o String PolicyNo
@@ -199,14 +201,6 @@ concept houseKeeping {
   o Boolean anyFraud default=false
 }
 
-concept addInfo {
-  o String PartyName
-  o String PartyType
-  o String Details
-  o String Status
-  o DateTime receivedOn
-}
-
   // ASSETS
 asset Claim identified by ClaimNo {
   o String ClaimNo
@@ -241,13 +235,4 @@ asset Claim identified by ClaimNo {
   --> _Party Followers2 optional
   --> _Party Followers3 optional
   --> _Party Followers4 optional
-}
-
-transaction claimAddtionalInfo {
-  o String PartyName
-  o String PartyType
-  o String Details
-  o String Status
-  o DateTime receivedOn
-  --> Claim claim
 }

@@ -12,11 +12,11 @@ const NS_POLICY = 'org.lloyds.market.Policy';
 
 /**
  * Initialize some test assets and participants useful for running a demo.
- * @param {org.lloyds.model.SetupDemo} setupDemo - the SetupDemo transaction
+ * @param {org.lloyds.model.policyNew} policyNew 
  * @transaction
  */
 
-async function setupDemo(xData) { // eslint-disable-line no-unused-vars
+async function policyNew(xData) { // eslint-disable-line no-unused-vars
 
       const factory = getFactory();
 
@@ -184,18 +184,17 @@ async function housekeep(xData) {
 
 
 /** AdditionalInfo Transaction
- * @param {org.lloyds.market.claimAddtionalInfo} claimAddtionalInfo
+ * @param {org.lloyds.model.claimAddtionalInfo} claimAddtionalInfo
  * @transaction
  */
 async function claimAddtionalInfo(xData) {
       let claim = xData.claim;
-
-      const claimRegistry = await getAssetRegistry(NS_CLAIM);
            
       if (!claim.additionalInfo) {
             claim.additionalInfo = [];
       }
 
       claim.additionalInfo.push(xData);
+      const claimRegistry = await getAssetRegistry(NS_CLAIM);
       await claimRegistry.update(claim);
 }
