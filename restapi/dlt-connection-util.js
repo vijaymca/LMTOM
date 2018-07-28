@@ -17,7 +17,8 @@ module.exports = {
         var cardType = { type: 'composer-wallet-filesystem' }
         this.connection = new this.BusinessNetworkConnection(cardType);
         const cardName_new = getCardName(user);
-        console.log("Card name is : ",cardName_new);
+       // console.log("user name is : ",user);
+        console.log("Card name is : ", cardName_new);
         
 
             // Invoke connect
@@ -50,13 +51,16 @@ module.exports = {
 function getCardName(user) {
     switch (user) {
         case "ABCUW":
-            return 'ABCUW@lloyds-project-2'
+            return 'ABCUW@lloyds-project-3'
             break;
+        case "Isabelle":
+            return 'Isabelle@lloyds-project-3'
+            break;            
         case "GaingKim":
-            return 'GaingKim@lloyds-project-2'
+            return 'GaingKim@lloyds-project-3'
             break;
         default:
-            return 'admin@lloyds-project-2'
+            return 'admin@lloyds-project-3'
     }
 }
 

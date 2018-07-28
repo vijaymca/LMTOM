@@ -4,7 +4,7 @@
 "use strict";
 
 const bnc = require('composer-client').BusinessNetworkConnection;
-const cardName = 'admin@lloyds-project-2';
+const cardName = 'admin@lloyds-project-3';
 const connection = new bnc();
 const fs = require('fs');
 
@@ -39,28 +39,29 @@ module.exports = (app) => {
         const user = req.headers["user"];
         const password = req.headers["password"];
         console.log("2. ********* login1", user)
-        if (user === undefined || password === undefined || validateUser(user, password)) {
+        if (user === undefined || password === undefined) { // || validateUser(user, password)) {
             res.writeHead(401, 'Access invalid for user', { 'Content-Type': 'text/plain' });
-            
+
             res.end('Invalid credentials');
         }
         else {
             console.log("3. ********* login2")
-            const party = await fetchDetails(user,password)
+            const party = await fetchDetails(user, password)
+            console.log("3. ********* login2")
             res.json(party);
-            
+
         }
     });
 
-    async function fetchDetails(user,password ) {
-        const details = await getUserDetails(user,password )
+    async function fetchDetails(user, password) {
+        const details = await getUserDetails(user, password)
         console.log("After await --> ", details);
         connection.disconnect();
         return details;
     }
 
-    
-    async function getUserDetails(party,password) {
+
+    async function getUserDetails(party, password) {
         var jsonObj = [];
         return new Promise((resolve, reject) => {
             connection.connect(cardName).then(function () {
@@ -73,7 +74,7 @@ module.exports = (app) => {
                     .then(function (exists) {
                         if (exists) {
                             console.log("user exists");
-                            resolve(connection.getParticipantRegistry('org.lloyds.market._Party')
+                            return connection.getParticipantRegistry('org.lloyds.market._Party')
                                 .then(function (assetRegistry) {
                                     return assetRegistry.get(party);
                                 })
@@ -86,16 +87,16 @@ module.exports = (app) => {
                                             "CompanyName": user.CompanyName,
                                             "Email": user.Email,
                                         });
-                                        return jsonObj;
+                                        resolve(jsonObj);
                                     }
                                     else {
                                         jsonObj.push({
                                             "Error": "Incorrect Password",
                                         });
-                                        return jsonObj;
+                                        resolve(jsonObj);
                                     }
                                 })
-                            );
+
                         }
                         else {
                             //console.log("User does not exists");
@@ -103,8 +104,8 @@ module.exports = (app) => {
                                 "Error": "Invalid User",
 
                             });
-                            console.log("User does not exists",jsonObj);
-                            return jsonObj;
+                            console.log("User does not exists", jsonObj);
+                            resolve(jsonObj);
                         }
 
                     });
@@ -232,15 +233,31 @@ module.exports = (app) => {
 
                 return bnUtil.connection.submitTransaction(transaction).then(() => {
                     console.log("3. Transaction Submitted/Processed Successfully!!");
-                    res.end("Transaction Submitted Successfully");
                     bnUtil.disconnect();
+                    jsonObj.push({
+                        "status": "Transaction Submitted",
+
+                    });
+                    res.json({
+                        jsonObj
+                    });
+
                 }).catch((error) => {
                     console.log(error);
+                    jsonObj.push({
+                        "error": error.toString(),
+
+                    });
+                    res.json({
+                        jsonObj
+                    });
                     bnUtil.disconnect();
                 });
             });
         });
     });
+
+
 
     app.get('/ClaimDetails/:ClaimMode', function (req, res) {
         var jsonObj = [];
@@ -331,72 +348,52 @@ module.exports = (app) => {
         }
     });
 
-    app.get('/ClaimInvestigate/:ClaimNumber', function (req, res) {
-        console.log("*********  ClaimInvestigate " + req.params.ClaimNumber);
+    app.get('/ClaimInvestigate/:ClaimNumber', (req, res) => {
 
-        const user = req.headers["user"];
-        const password = req.headers["password"];
+        var jsonObj = [];
+        var results1;
+        var results2;
+        var claim_obj;
+        var policy_obj;
+        bnUtil.connect(req, () => {
+            let policyRegistry = {}
+            var statement1 = 'SELECT  org.lloyds.market.Claim WHERE (ClaimNo == _$id)';
+            var qry = bnUtil.connection.buildQuery(statement1)
+            //console.log(qry);
+            console.log("*************ClaimInvestigate************")
+            return bnUtil.connection.query(qry, { id: req.params.ClaimNumber }).then((results1) => {
 
-        if (user === undefined || password === undefined || validateUser(user, password)) {
-            res.writeHead(401, 'Access invalid for user', {
-                'Content-Type': 'text/plain'
-            });
-            res.end('Invalid credentials');
-        } else {
-            console.log(res);
-            const cardName_new = getCardName(user);
-            return connection.connect(cardName).then(function () {
-                var statement = 'SELECT  org.lloyds.market.Claim WHERE (ClaimNo == _$id)';
-                return connection.buildQuery(statement);
-            }).then((qry) => {
-                return connection.query(qry, {
-                    id: req.params.ClaimNumber
-                });
-            }).then((results1) => {
-                claim_obj = results1[0];
-                console.log(claim_obj.PolicyNo.$identifier);
-                connection.disconnect();
-
-                return connection.connect(cardName).then(function () {
-                    var statement = 'SELECT  org.lloyds.market.Policy WHERE (PolicyNo == _$id)';
-                    return connection.buildQuery(statement);
-                }).then((qry) => {
-                    return connection.query(qry, {
-                        id: claim_obj.PolicyNo.$identifier
-                    });
-                }).then((results2) => {
-                    policy_obj = results2[0];
-                    connection.disconnect();
-
+                let bnDef = bnUtil.connection.getBusinessNetwork();
+                console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
+                var statement2 = 'SELECT  org.lloyds.market.Policy WHERE (PolicyNo == _$id)';
+                var qry = bnUtil.connection.buildQuery(statement2)
+                console.log(qry);
+                var obj = results1[0];
+                return bnUtil.connection.query(qry, { id: obj.PolicyNo.$identifier }).then((results2) => {
+                    console.log('2. Received results2: ', results2[0]);
+                    var policy_obj = results2[0];
+                    console.log(policy_obj.PolicyNo);
                     jsonObj.push({
-                        "ClaimNo": claim_obj.ClaimNo,
-                        "PolicyNo": claim_obj.PolicyNo.$identifier,
                         "InsuredCompanyName": policy_obj.InsuredCompanyName,
-
-
-                        "PolicyType": policy_obj.PolicyType,
+                        "ClaimNo": obj.ClaimNo,
+                        "PolicyNo": policy_obj.PolicyNo,
                         "PolicyEffectiveDate": policy_obj.PolicyEffectiveDate,
                         "PolicyExpiryDate": policy_obj.PolicyExpiryDate,
-                        "ClaimDateofLoss": claim_obj.ClaimDateofLoss,
-                        "ClaimActionRequired": claim_obj.ClaimActionRequired,
-
-                        "ClaimDetails1": claim_obj.ClaimDetails1,
-                        "ClaimDetails2": claim_obj.ClaimDetails2,
-                        "ClaimNotes": claim_obj.ClaimNotes,
-                        "PolicyDetails1": policy_obj.PolicyDetails1,
-
+                        "ClaimDateofLoss": obj.ClaimDateofLoss
                     });
-                    console.log("*************************");
-                    console.log(jsonObj);
+
+                    console.log("*************************")
                     res.json({
                         jsonObj
                     });
 
                 });
 
+
             });
-        }
+        });
     });
+
 
     app.get('/ClaimHistory', function (req, res) {
 
@@ -891,163 +888,483 @@ module.exports = (app) => {
         });
     });
 
+    //Update the Claim SettlementAmt
+    app.put('/UpdateSettlementAmtStatus/:ClaimNo', (req, res) => {
+
+        const transactionName = "TransactionClaimSettlementAmountStatus";
+        bnUtil.connect(req, (error) => {
+
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
+
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
+
+            console.log(req.params.ClaimNo);
+
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
+
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            };
+
+            console.log("before transaction", req.body.Status);
+            const transaction = factory.newTransaction(NS_model, transactionName, req.params.ClaimNo, options);
+            transaction.claimId = req.params.ClaimNo;
+
+            transaction.Status = req.body.Status;
+
+            // 6. Submit the transaction
+            return bnUtil.connection.submitTransaction(transaction).then(() => {
+                console.log("6. Transaction Submitted/Processed Successfully!!");
+                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
+                res.json({
+                    jsonObj
+                });
+            }).catch((error) => {
+                jsonObj.push({
+                    "error": error.toString(),
+
+                });
+                console.log(error);
+                bnUtil.connection.disconnect();
+                res.json({
+                    jsonObj
+                });
+            });
+        });
+    });
 
 
+
+    //Update the Claim SettlementAmt
     app.put('/UpdateSettlementAmt/:ClaimNo', (req, res) => {
 
-        var jsonObj = [];
-        var results1;
-        var results2;
-        var claim_obj;
-        var policy_obj;
-        console.log("********* Claims");
+        const transactionName = "TransactionClaimSettlementAmount";
+        bnUtil.connect(req, (error) => {
 
-        const user = req.headers["user"];
-        const password = req.headers["password"];
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
 
-        if (user === undefined || password === undefined || validateUser(user, password)) {
-            res.writeHead(401, 'Access invalid for user', {
-                'Content-Type': 'text/plain'
-            });
-            res.end('Invalid credentials');
-        } else {
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
 
-            const cardName_new = getCardName(user);
-            connection.connect(cardName_new).then(function () {
+            console.log(req.params.ClaimNo);
 
-                let claimRegistry = {}
-                return connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
-                    console.log('1. Received Registry: ', registry.id);
-                    claimRegistry = registry;
-                    return claimRegistry.get(req.params.ClaimNo);
-                }).then((claim) => {
-                    if (!claim) console.log(req.params.ClaimNo + 'Not found');
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
 
-                    const bnDef = connection.getBusinessNetwork();
-                    const factory = bnDef.getFactory();
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            };
 
-                    const claimAmt = Math.floor(Math.random() * 100000) + 100000
-                    claim.setPropertyValue('ClaimSettlementAmount', claimAmt);
+            const transaction = factory.newTransaction(NS_model, transactionName, req.params.ClaimNo, options);
+            transaction.claimId = req.params.ClaimNo;
 
-                    return claimRegistry.update(claim).then(() => {
-                        console.log('Updated successfully!!!');
-                        res.end("UpdateSettlementAmt Updated successfully");
-                        // 3 Emit the event Claim
-                        var NS = 'org.lloyds.market';
-                        var event = factory.newEvent(NS, 'ClaimAlterEvent');
-                        event.ClaimNo = req.params.ClaimNo;
-                        emit(event);
-                        connection.disconnect();
-                    });
-                }).catch((error) => {
-                    console.log(error);
-                    connection.disconnect();
+            const claimAmt = Math.floor(Math.random() * 100000) + 100000
+
+
+            console.log("before transaction");
+            transaction.Amount = claimAmt.toString();
+            transaction.CreateDate = new Date();
+            transaction.TargetDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+
+
+
+            // 6. Submit the transaction
+            return bnUtil.connection.submitTransaction(transaction).then(() => {
+                console.log("6. Transaction Submitted/Processed Successfully!!");
+                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
                 });
-
+                res.json({
+                    jsonObj
+                });
+            }).catch((error) => {
+                jsonObj.push({
+                    "error": error.toString(),
+                });
+                console.log(error);
+                bnUtil.connection.disconnect();
+                res.json({
+                    jsonObj
+                });
             });
-        }
-
+        });
     });
 
+    //Update the Claim SettlementAmt
+    app.put('/UpdateClaimQuery/:ClaimNo', (req, res) => {
+
+        const transactionName = "TransactionClaimQuery";
+        bnUtil.connect(req, (error) => {
+
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
+
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
+
+            console.log(req.params.ClaimNo);
+
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
+
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            };
+
+            const transaction = factory.newTransaction(NS_model, transactionName, req.params.ClaimNo, options);
+            transaction.claimId = req.params.ClaimNo;
+
+            const claimAmt = Math.floor(Math.random() * 100000) + 100000
+
+
+            console.log("before transaction");
+            transaction.ClaimQuery = req.body.ClaimQuery;
+            transaction.CreateDate = new Date();
+            transaction.TargetDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+
+
+
+            // 6. Submit the transaction
+            return bnUtil.connection.submitTransaction(transaction).then(() => {
+                console.log("6. Transaction Submitted/Processed Successfully!!");
+                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
+                res.json({
+                    jsonObj
+                });
+            }).catch((error) => {
+                jsonObj.push({
+                    "error": error.toString(),
+                });
+                console.log(error);
+                bnUtil.connection.disconnect();
+                res.json({
+                    jsonObj
+                });
+            });
+        });
+    });
+
+    //Update the Claim SettlementAmt
+    app.put('/UpdateClaimQueryStatus/:ClaimNo', (req, res) => {
+
+        const transactionName = "TransactionClaimSettlementAmountStatus";
+        bnUtil.connect(req, (error) => {
+
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
+
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
+
+            console.log(req.params.ClaimNo);
+
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
+
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            };
+
+            console.log("before transaction", req.body.Status);
+            const transaction = factory.newTransaction(NS_model, transactionName, req.params.ClaimNo, options);
+            transaction.claimId = req.params.ClaimNo;
+
+            transaction.Status = req.body.Status;
+
+            // 6. Submit the transaction
+            return bnUtil.connection.submitTransaction(transaction).then(() => {
+                console.log("6. Transaction Submitted/Processed Successfully!!");
+                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
+                res.json({
+                    jsonObj
+                });
+            }).catch((error) => {
+                jsonObj.push({
+                    "error": error.toString(),
+
+                });
+                console.log(error);
+                bnUtil.connection.disconnect();
+                res.json({
+                    jsonObj
+                });
+            });
+        });
+    });
+
+    //Update the Claim SettlementAmt
+    app.put('/UpdateClaimExpertOpinion/:ClaimNo', (req, res) => {
+
+        const transactionName = "TransactionClaimExpertOpinion";
+        bnUtil.connect(req, (error) => {
+
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
+
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
+
+            console.log(req.params.ClaimNo);
+
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
+
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            };
+
+            const transaction = factory.newTransaction(NS_model, transactionName, req.params.ClaimNo, options);
+            transaction.claimId = req.params.ClaimNo;
+
+            const claimAmt = Math.floor(Math.random() * 100000) + 100000
+
+
+            console.log("before transaction");
+            transaction.ClaimExpertOpinion = req.body.ClaimExpertOpinion;
+            transaction.CreateDate = new Date();
+            transaction.TargetDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+
+
+
+            // 6. Submit the transaction
+            return bnUtil.connection.submitTransaction(transaction).then(() => {
+                console.log("6. Transaction Submitted/Processed Successfully!!");
+                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
+                res.json({
+                    jsonObj
+                });
+            }).catch((error) => {
+                jsonObj.push({
+                    "error": error.toString(),
+                });
+                console.log(error);
+                bnUtil.connection.disconnect();
+                res.json({
+                    jsonObj
+                });
+            });
+        });
+    });
+
+    //Update the Claim SettlementAmt
+    app.put('/UpdateClaimExpertOpinionStatus/:ClaimNo', (req, res) => {
+
+        const transactionName = "TransactionClaimExpertOpinionStatus";
+        bnUtil.connect(req, (error) => {
+
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
+
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
+
+            console.log(req.params.ClaimNo);
+
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
+
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            };
+
+            console.log("before transaction", req.body.Status);
+            const transaction = factory.newTransaction(NS_model, transactionName, req.params.ClaimNo, options);
+            transaction.claimId = req.params.ClaimNo;
+
+            transaction.Status = req.body.Status;
+
+            // 6. Submit the transaction
+            return bnUtil.connection.submitTransaction(transaction).then(() => {
+                console.log("6. Transaction Submitted/Processed Successfully!!");
+                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
+                res.json({
+                    jsonObj
+                });
+            }).catch((error) => {
+                jsonObj.push({
+                    "error": error.toString(),
+
+                });
+                console.log(error);
+                bnUtil.connection.disconnect();
+                res.json({
+                    jsonObj
+                });
+            });
+        });
+    });
+
+
+
+    //Update the Claim SettlementAmt
     app.put('/PolicyholderApproval/:ClaimNo', (req, res) => {
 
-        var jsonObj = [];
-        var results1;
-        var results2;
-        var claim_obj;
-        var policy_obj;
-        console.log("********* Claims");
+        const transactionName = "TransactionUpdateClaimMode";
+        bnUtil.connect(req, (error) => {
 
-        const user = req.headers["user"];
-        const password = req.headers["password"];
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
 
-        if (user === undefined || password === undefined || validateUser(user, password)) {
-            res.writeHead(401, 'Access invalid for user', {
-                'Content-Type': 'text/plain'
-            });
-            res.end('Invalid credentials');
-        } else {
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
 
-            const cardName_new = getCardName(user);
-            connection.connect(cardName_new).then(function () {
+            console.log(req.params.ClaimNo);
+            const user = req.headers["user"];
 
-                let claimRegistry = {}
-                return connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
-                    console.log('1. Received Registry: ', registry.id);
-                    claimRegistry = registry;
-                    return claimRegistry.get(req.params.ClaimNo);
-                }).then((claim) => {
-                    if (!claim) console.log(req.params.ClaimNo + 'Not found');
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
 
-                    const bnDef = connection.getBusinessNetwork();
-                    const factory = bnDef.getFactory();
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            };
 
-                    claim.setPropertyValue('ClaimMode', 'Policy_holder_approved');
+            const transaction = factory.newTransaction(NS_model, transactionName, req.params.ClaimNo, options);
+            transaction.claimId = req.params.ClaimNo;
 
-                    return claimRegistry.update(claim).then(() => {
-                        console.log('Updated successfully!!!');
-                        res.end("Claim is POLICY_HOLDER_APPROVED");
-                        connection.disconnect();
-                    });
-                }).catch((error) => {
-                    console.log(error);
-                    connection.disconnect();
+            console.log("before transaction", transactionName);
+            transaction.ClaimMode = 'PH_Approved';
+            // 6. Submit the transaction
+            return bnUtil.connection.submitTransaction(transaction).then(() => {
+                console.log("6. Transaction Submitted/Processed Successfully!!");
+                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+
                 });
+                res.json({
+                    jsonObj
+                });
+            }).catch((error) => {
+                jsonObj.push({
+                    "error": error.toString(),
 
+                });
+                console.log(error);
+                bnUtil.connection.disconnect();
+                res.json({
+                    jsonObj
+                });
             });
-        }
-
+        });
     });
 
+    //Update the Claim SettlementAmt
     app.put('/ClaimAcknowledge/:ClaimNo', (req, res) => {
 
-        var jsonObj = [];
-        var results1;
-        var results2;
-        var claim_obj;
-        var policy_obj;
-        console.log("********* Claims");
+        const transactionName = "TransactionUpdateClaimMode";
+        bnUtil.connect(req, (error) => {
 
-        const user = req.headers["user"];
-        const password = req.headers["password"];
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
 
-        if (user === undefined || password === undefined || validateUser(user, password)) {
-            res.writeHead(401, 'Access invalid for user', {
-                'Content-Type': 'text/plain'
-            });
-            res.end('Invalid credentials');
-        } else {
-            // console.log(res);
-            console.log(req.body.ClaimMode);
-            const cardName_new = getCardName(user);
-            connection.connect(cardName_new).then(function () {
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
 
-                let claimRegistry = {}
-                return connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
-                    console.log('1. Received Registry: ', registry.id);
-                    claimRegistry = registry;
-                    return claimRegistry.get(req.params.ClaimNo);
-                }).then((claim) => {
-                    if (!claim) console.log(req.params.ClaimNo + 'Not found');
+            console.log(req.params.ClaimNo);
 
-                    const bnDef = connection.getBusinessNetwork();
-                    const factory = bnDef.getFactory();
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
 
-                    claim.setPropertyValue('ClaimMode', 'Acknowledge');
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            };
 
-                    return claimRegistry.update(claim).then(() => {
-                        console.log('Updated successfully!!!');
-                        res.end("Updated successfully");
-                        connection.disconnect();
-                    });
-                }).catch((error) => {
-                    console.log(error);
-                    connection.disconnect();
+            const transaction = factory.newTransaction(NS_model, transactionName, req.params.ClaimNo, options);
+            transaction.claimId = req.params.ClaimNo;
+
+            console.log("before transaction", transactionName);
+            transaction.ClaimMode = 'Acknowledge';
+            // 6. Submit the transaction
+            return bnUtil.connection.submitTransaction(transaction).then(() => {
+                console.log("6. Transaction Submitted/Processed Successfully!!");
+                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+
                 });
+                res.json({
+                    jsonObj
+                });
+            }).catch((error) => {
+                jsonObj.push({
+                    "error": error.toString(),
 
+                });
+                console.log(error);
+                bnUtil.connection.disconnect();
+                res.json({
+                    jsonObj
+                });
             });
-        }
-
+        });
     });
 
     app.get('/MyPolicy', (req, res) => {
@@ -1060,38 +1377,38 @@ module.exports = (app) => {
         bnUtil.connect(req, () => {
             let policyRegistry = {}
 
-                var statement2 = 'SELECT org.lloyds.market.Policy';
-                var qry = bnUtil.connection.buildQuery(statement2)
-                console.log(qry);
+            var statement2 = 'SELECT org.lloyds.market.Policy';
+            var qry = bnUtil.connection.buildQuery(statement2)
+            console.log(qry);
 
-                return bnUtil.connection.query(qry).then((results2) => {
-                    console.log('2. Received results2: ', results2);
+            return bnUtil.connection.query(qry).then((results2) => {
+                console.log('2. Received results2: ', results2);
 
 
-                    for (var i = 0; i < results2.length; i++) {
-                        var obj = results2[i];
-                        console.log("*********");
-                        jsonObj.push({
-                            "PolicyHolder": obj.InsuredCompanyName,
-                            
-                            "PolicyNo": obj.PolicyNo,
-                            "PolicyEffectiveDate": obj.PolicyEffectiveDate,
-                            "PolicyExpiryDate": obj.PolicyExpiryDate,
-                            "PolicyLOB": obj.PolicyType,
-                            "PolicyStatus": obj.PolicyStatus,
-                        });
-                    }
-                    console.log("*************************")
-                    res.json({
-                        jsonObj
+                for (var i = 0; i < results2.length; i++) {
+                    var obj = results2[i];
+                    console.log("*********");
+                    jsonObj.push({
+                        "PolicyHolder": obj.InsuredCompanyName,
+
+                        "PolicyNo": obj.PolicyNo,
+                        "PolicyEffectiveDate": obj.PolicyEffectiveDate,
+                        "PolicyExpiryDate": obj.PolicyExpiryDate,
+                        "PolicyLOB": obj.PolicyType,
+                        "PolicyStatus": obj.PolicyStatus,
                     });
-
+                }
+                console.log("*************************")
+                res.json({
+                    jsonObj
                 });
 
+            });
 
-           // });
+
+            // });
         });
-    });    
+    });
 
     app.get('/MyCases', (req, res) => {
 
@@ -1101,13 +1418,18 @@ module.exports = (app) => {
         var claim_obj;
         var policy_obj;
         bnUtil.connect(req, () => {
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
             let policyRegistry = {}
+            var serializer = bnDef.getSerializer();
             var statement1 = 'SELECT org.lloyds.market.Claim';
             var qry = bnUtil.connection.buildQuery(statement1)
             //console.log(qry);
             console.log("*************************")
             return bnUtil.connection.query(qry).then((results1) => {
                 //console.log('1. Received results1: ', results1[0]);
+                // 2. Get the Business Network Definition
+
 
                 var statement2 = 'SELECT org.lloyds.market.Policy';
                 var qry = bnUtil.connection.buildQuery(statement2)
@@ -1118,12 +1440,28 @@ module.exports = (app) => {
 
 
                     for (var i = 0; i < results1.length; i++) {
+                        let settlementAmount;
+                        let claimExpertOpinion;
+                        let claimQuery;
+
                         var obj = results1[i];
                         console.log("*********");
                         console.log(obj.PolicyNo.$identifier)
                         var policyResult = (results2.filter(item => item.PolicyNo === obj.PolicyNo.$identifier.toString()));
                         var policy_obj = policyResult[0]
                         console.log(policy_obj.PolicyNo);
+                        if (obj.ClaimSettlementAmount != null) {
+                            settlementAmount = serializer.toJSON(obj.ClaimSettlementAmount)
+                        }
+
+                        if (obj.ClaimExpertOpinion != null) {
+                            claimExpertOpinion = serializer.toJSON(obj.ClaimExpertOpinion)
+                        }
+
+                        if (obj.ClaimQuery != null) {
+                            claimQuery = serializer.toJSON(obj.ClaimQuery)
+                        }
+
                         jsonObj.push({
                             "InsuredCompanyName": policy_obj.InsuredCompanyName,
                             "ClaimNo": obj.ClaimNo,
@@ -1132,19 +1470,22 @@ module.exports = (app) => {
                             "ClaimUrgency ": timeDifference(obj.ClaimTargetDate),
                             "ClaimTargetDate ": obj.ClaimTargetDate,
                             "ClaimMode": obj.ClaimMode,
+
+                            "ClaimSettlementAmount": settlementAmount,
+                            "ClaimExpertOpinion": claimExpertOpinion,
+                            "ClaimQuery": claimQuery,
+
                         });
                     }
                     console.log("*************************")
                     res.json({
                         jsonObj
                     });
-
                 });
-
-
             });
         });
     });
+
 };
 
 

@@ -113,8 +113,8 @@ function    createclaim(claimData) {
     
             var factory = getFactory();
             let SettlementAmount = await factory.newConcept('org.lloyds.market', '_ClaimSettlementAmount');
-        SettlementAmount.ClaimSettlementAmount =xData.ClaimSettlementAmount;
-        SettlementAmount.ClaimSettlementAmountDate = new Date();
+        SettlementAmount.Amount =xData.Amount;
+        SettlementAmount.Date = new Date();
             
         const claimRegistry = await getAssetRegistry('org.lloyds.market.Claim');
         const claim = await claimRegistry.get(xData.claimId);
@@ -136,8 +136,6 @@ function    createclaim(claimData) {
                     event.Followers3 = claim.Followers3.$identifier.toString();
                     event.Followers4 = claim.Followers4.$identifier.toString();
                      event.ClaimSettlementAmount = claim.ClaimSettlementAmount
-  
-                    
                     
               emit(event);
   
@@ -145,4 +143,74 @@ function    createclaim(claimData) {
   }
   
   
+  /** ClaimSettlementAmountStatus Transaction
+   * @param {org.lloyds.model.ClaimSettlementAmountStatus} ClaimSetClaimSettlementAmountStatustlementAmount
+   * @transaction
+   */
+  async function ClaimSettlementAmountStatus(xData) {
+        var  NS =  'org.lloyds.model.ClaimSettlementAmount';
+    
+            var factory = getFactory();
+            
+        const claimRegistry = await getAssetRegistry('org.lloyds.market.Claim');
+        const claim = await claimRegistry.get(xData.claimId);
+        claim.ClaimSettlementAmount.Status = xData.Status;
+        await claimRegistry.update(claim);
+    
+                // 3 Emit the event ClaimSettlementAmountUpdated
+              var event = factory.newEvent('org.lloyds.model', 'ClaimSettlementAmountUpdated');
+              event.ClaimNo = xData.claimId;
+                    
+                    event.ClaimDateofLoss = claim.ClaimDateofLoss;
+                    event.LeadCarrier = claim.LeadCarrier.$identifier.toString();
+                    event.PlacingBroker = claim.PlacingBroker.$identifier.toString();
+                    event.ClaimsBroker = claim.ClaimsBroker.$identifier.toString();
+                    event.OverseasBroker = claim.OverseasBroker.$identifier.toString();
+                    event.PolicyOwner = claim.PolicyOwner.$identifier.toString();
+                    event.Followers1 = claim.Followers1.$identifier.toString();
+                    event.Followers2 = claim.Followers2.$identifier.toString();
+                    event.Followers3 = claim.Followers3.$identifier.toString();
+                    event.Followers4 = claim.Followers4.$identifier.toString();
+                     event.ClaimSettlementAmount = claim.ClaimSettlementAmount
+                    
+              emit(event);
+  
+    
+  }
+  
+  
+  /** TransactionUpdateClaimMode Transaction
+   * @param {org.lloyds.model.TransactionUpdateClaimMode} TransactionUpdateClaimMode
+   * @transaction
+   */
+  async function TransactionUpdateClaimMode(xData) {
+      var  NS =  'org.lloyds.model.TransactionUpdateClaimMode';
+    
+          var factory = getFactory();
+            
+      const claimRegistry = await getAssetRegistry('org.lloyds.market.Claim');
+      const claim = await claimRegistry.get(xData.claimId);
+      claim.ClaimMode = xData.ClaimMode;
+      await claimRegistry.update(claim);
+    
+        // 3 Emit the event EventUpdateClaimMode
+      var event = factory.newEvent('org.lloyds.model', 'EventUpdateClaimMode');
+      event.ClaimNo = xData.claimId;
+                    
+        event.ClaimDateofLoss = claim.ClaimDateofLoss;
+        event.LeadCarrier = claim.LeadCarrier.$identifier.toString();
+        event.PlacingBroker = claim.PlacingBroker.$identifier.toString();
+        event.ClaimsBroker = claim.ClaimsBroker.$identifier.toString();
+        event.OverseasBroker = claim.OverseasBroker.$identifier.toString();
+        event.PolicyOwner = claim.PolicyOwner.$identifier.toString();
+        event.Followers1 = claim.Followers1.$identifier.toString();
+        event.Followers2 = claim.Followers2.$identifier.toString();
+        event.Followers3 = claim.Followers3.$identifier.toString();
+        event.Followers4 = claim.Followers4.$identifier.toString();
+         event.ClaimMode = claim.ClaimMode
+                    
+      emit(event);
+  
+    
+  }
   
