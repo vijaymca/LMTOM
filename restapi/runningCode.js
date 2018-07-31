@@ -1,9 +1,25 @@
 'use strict';
 
 const bnc = require('composer-client').BusinessNetworkConnection;
-const cardName = 'admin@eventnetwork';
+const cardName = 'admin@lloyds-project-3';
 const connection = new bnc();
-main2();
+main4();
+
+
+
+function main4(){
+    var jsonObj = [];
+    var results1;
+    var results2;
+    var claim_obj;
+    var policy_obj;
+        console.log("********* SampleAsset")
+        return connection.connect(cardName).then(function(){
+            let registry = connection.getHistorian();
+            console.log(registry);
+
+        });       
+    };
 
 
 function main(){

@@ -20,23 +20,50 @@ const bnUtil = require('./dlt-connection-util');
 // 'main' with error
 
 
-bnUtil.connect("admin", () => {
-    console.log("get registeries");
-    return bnUtil.connection.getParticipantRegistry('org.lloyds.market._Party')
-    .then(function (participantRegistry) {
-      console.log(participantRegistry);
-      // Get the specific driver from the driver participant registry.
-      return participantRegistry.get('3');
-    })
-    .then(function (driver) {
-      // Process the the driver object.
-      console.log(driver.password);
-      bnUtil.connection.disconnect();
-    })
-    .catch(function (error) {
-      // Add optional error handling here.
-    }); 
-});
+
+// bnUtil.connect("admin", () => {
+//   console.log("get registeries");
+//   return bnUtil.connection.getParticipantRegistry('org.lloyds.market._Party')
+//   .then(function (participantRegistry) {
+//     console.log(participantRegistry);
+//     // Get the specific driver from the driver participant registry.
+//     return participantRegistry.get('3');
+//   })
+//   .then(function (driver) {
+//     // Process the the driver object.
+//     console.log(driver.password);
+//     bnUtil.connection.disconnect();
+//   })
+//   .catch(function (error) {
+//     // Add optional error handling here.
+//   }); 
+// });
+
+
+// bnUtil.connect("Isabelle", () => {
+//     console.log("get registeries1");
+//     return bnUtil.connection.getHistorian()
+//     .then(function (registry) {
+//       console.log("Historian Registry: ", registry.registryType, "   ", registry.id);
+//       console.log("get registeries2");
+
+
+
+//       // Get the specific driver from the driver participant registry.
+//       return registry.getAll();
+//     })
+//     .then(function (historianRecords) {
+//       const bnDef = bnUtil.connection.getBusinessNetwork();
+//       var serializer = bnDef.getSerializer();
+//       // Process the the driver object.
+//       console.log(( serializer.toJSON(historianRecords)));
+     
+//       bnUtil.connection.disconnect();
+//     })
+//     .catch(function (error) {
+//       // Add optional error handling here.
+//     }); 
+// });
 
 
 
