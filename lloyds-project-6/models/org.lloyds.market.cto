@@ -34,7 +34,7 @@ asset Policy identified by PolicyNo {
   --> _Party Insured optional
   --> _Party ProducingBroker optional
   
-  --> _Party LeadCarrier optional
+  --> _Party LeadCarrier 
   --> _Party PlacingBroker optional
   --> _Party ClaimsBroker optional
   --> _Party OverseasBroker optional
@@ -43,8 +43,13 @@ asset Policy identified by PolicyNo {
   --> _Party Followers3 optional
   --> _Party Followers4 optional
 
+  o _ContractPeriod ContractPeriod
   o _Contract Contract optional
   o _ContractSection ContractSection optional
+  o _sublimits sublimits optional
+  o _insuredAmount insuranceAmount
+  o _Premium premium optional
+  o _follower[] followers
 }
 
 enum PolicyType{
@@ -64,6 +69,23 @@ concept _Contract {
 	o String BrokerReference optional
 }
 
+concept _insuredAmount {
+  o Double property_damage
+  o Double busi_interupt
+  o Double total_insured_amt
+}
+
+concept _sublimits {
+  o Double construction default = 50000000.0
+  o Double debris_removal default = 35000000.0
+  o Double named_strom default = 100000000.0
+  o Double earth_movement default = 100000000.0
+  o Double exp_costs_and_ext_expense default=50000000.0
+  o Double flood default = 100000000.0
+  o Double neighbous_recourse_tenants_liablt default = 50000000.0
+  o Double professional_fees default=2000000.0
+}
+
 concept _ContractSection {
 	o String HighLevelReference  optional
   o String InsuredRiskOrInterestDescription  optional
@@ -71,7 +93,6 @@ concept _ContractSection {
   o _ContractSectionClass ContractSectionClass
   o _Location RiskLocation
   o String LocationJurisdictionLocation  optional
-    
   o String USARiskClassification optional
 	o String FSAClientClassification optional
 	o String ConditionsDescription optional
@@ -84,7 +105,6 @@ concept _ContractSection {
   o _Premium Premium optional
   o _Brokerage Brokerage optional
   o _OtherDeductions OtherDeductions optional
-    
 	o String FeePayableByClientIndicator
 	o String ClauseType
 	o String Description
@@ -108,7 +128,7 @@ concept _ContractMarket {
 }
 
 concept _TaxProvisions {
-	--> _Party Insurer optional
+	  --> _Party Insurer optional
     o String ParticipantFunction optional
     o String InsurerSharePercentage optional
     o String EndorsementParticipantFunction optional
@@ -130,19 +150,19 @@ concept _ContractSectionClass {
 }
 
 concept _Location {
-	o String Country  optional
+	  o String Country  optional
     o String Description  optional
     o String Subentity  optional
 }
 
 concept _ContractCoverage {
-	o String CoverageAmount  optional
+	  o String CoverageAmount  optional
     o String CoverageBasis  optional
     o String CoverageBasisDescription  optional
 }
 
 concept _ContractDeductible {
-	o String DeductibleAmount  optional
+	  o String DeductibleAmount  optional
     o String DeductibleBasis  optional
     o String DeductibleBasisDescription  optional
 }
@@ -160,7 +180,7 @@ concept _Premium {
 }
 
 concept _Brokerage {
-	o String Description  optional
+	  o String Description  optional
     o String BrokeragePercentage  optional
     o String BrokerageBasis  optional
 }
@@ -176,11 +196,17 @@ participant _Party identified by OwnerId {
     o String UserName
     o String Password
     o String Email
-	  o String AgencyId optional
-    o String Role optional
-    o String CompanyName optional
+	  o String AgencyId 
+    o String Role 
+    o String CompanyName 
 	  o String Name optional
     o _Address Address optional    
+}
+
+concept _follower {
+  --> _Party party
+  o Integer written
+  o Integer signed
 }
 
 enum ClaimType {
@@ -189,6 +215,8 @@ enum ClaimType {
   o Approved
   o Reject
   o Closed
+  o PH_Approved
+  o Acknowledge
 }
 
 concept Segmentation {
@@ -196,13 +224,23 @@ concept Segmentation {
   o String role
   o String office
   o DateTime segDate
+   o DateTime CreateDate optional
+    o DateTime TargetDate optional
+    o String Status optional
 }
 
 concept houseKeeping {
   o Boolean premiumBeenPaidByPolHolder default=false
   o Boolean reinstatementPremiumPaid default=false
   o Boolean anyFraud default=false
+   o DateTime CreateDate optional
+    o DateTime TargetDate optional
+    o String Status optional
 }
+
+
+// Asif i have removed addInfo concept, and why PremiumCheck require here. I have added _premium already
+
 
   // ASSETS
 asset Claim identified by ClaimNo {
@@ -230,6 +268,7 @@ asset Claim identified by ClaimNo {
   o houseKeeping houseKeeping optional
   o claimAddtionalInfo[] additionalInfo optional
   o _Premium checkPremium optional
+  o String[] comments optional
  
   --> _Party LeadCarrier optional
   --> _Party PlacingBroker optional
@@ -242,7 +281,6 @@ asset Claim identified by ClaimNo {
   --> _Party Followers4 optional
 }
 
-
 concept _ClaimSettlementAmount {
   o String ClaimSettlementAmount
   o DateTime ClaimSettlementAmountDate
@@ -253,13 +291,19 @@ concept _ClaimAdditionalInformation {
   o String ClaimAdditionalInformation
   o DateTime ClaimAdditionalInformationDate
 }
-  
+
+// Asif: This is already created as transaction. Does this required
 concept _ClaimExpertOpinion {
-  o String ClaimExpertOpinion
-  o DateTime ClaimExpertOpinionDate
+    o String ClaimExpertOpinion
+    o DateTime CreateDate optional
+    o DateTime TargetDate optional
+    o String Status optional
 }
   
 concept _ClaimQuery {
   o String ClaimQuery
   o DateTime ClaimQueryDate
+    o DateTime CreateDate optional
+    o DateTime TargetDate optional
+    o String Status optional
 }

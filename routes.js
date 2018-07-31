@@ -110,8 +110,6 @@ module.exports = (app) => {
 
     }
 
-
-
     app.get('/Claims', function (req, res) {
 
         const user = req.headers["user"];
@@ -575,14 +573,17 @@ module.exports = (app) => {
             });
         });
     });
-    
+
     /**
      * 
      * 
      */
     app.put('/Policies/update/:PolicyNo', (req, res) => {
 
-        bnUtil.connect(req, () => {
+        const trPolicy = "updatePolicy";
+        bnUtil.connect(req, (error) => {
+
+            /*
             let policyRegistry = {};
             return bnUtil.connection.getAssetRegistry('org.lloyds.market.Policy').then((registry) => {
                 console.log('1. Received Registry: ', registry.id);
@@ -600,6 +601,54 @@ module.exports = (app) => {
             }).catch((error) => {
                 console.log(error);
                 bnUtil.connection.disconnect();
+            });
+*/
+
+
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
+
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
+
+            console.log(req.body.data.PolicyNo);
+
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
+
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            };
+            
+            let policyResource = factory.newTransaction(NS_model, trPolicy, PolicyId, options);
+
+            // 5. Set up the properties of the transaction object
+            policyResource.PolicyNo = req.body.data.PolicyNo;
+
+
+            policyResource.InsuredCompanyName = req.body.data.InsuredCompanyName;
+            policyResource.PolicyType = req.body.data.PolicyType;
+            policyResource.PolicyDetails1 = req.body.data.PolicyDetails1;
+            policyResource.PolicyEffectiveDate = new Date(req.body.data.PolicyEffectiveDate);
+            policyResource.PolicyExpiryDate = new Date(req.body.data.PolicyExpiryDate);
+
+            let relationship = factory.newRelationship(NS, PRTCP_PARTY, req.body.data.LeadCarrier);
+            policyResource.LeadCarrier = relationship;
+
+            // 6. Submit the transaction
+            return bnUtil.connection.submitTransaction(policyResource).then(() => {
+                console.log("6. Transaction Submitted/Processed Successfully!!");
+                bnUtil.disconnect();
+
+            }).catch((error) => {
+                console.log(error);
+                bnUtil.disconnect();
             });
         });
     });
@@ -656,8 +705,10 @@ module.exports = (app) => {
                     if (req.body.data.ClaimMode === 'Approved') {
                         transaction.ClaimMode = "Approved";
                         transaction.owner = policy.LeadCarrier;
+                        
                     } else {
                         transaction.owner = claim.Followers1;
+                        transaction.comment = req.body.data.comment;
                     }
 
                     return transaction;
@@ -666,12 +717,12 @@ module.exports = (app) => {
                     // 6. Submit the transaction
                     return bnUtil.connection.submitTransaction(transaction).then(() => {
                         console.log("6. Transaction Submitted/Processed Successfully!!");
-                        bnUtil.disconnect();
+                        bnUtil.connection.disconnect();
                     });
                 });
             }).catch((error) => {
                 console.log(error);
-                connection.disconnect();
+                bnUtil.connection.disconnect();
             });
         });
     });
@@ -718,7 +769,7 @@ module.exports = (app) => {
             // 6. Submit the transaction
             return bnUtil.connection.submitTransaction(transaction).then(() => {
                 console.log("6. Transaction Submitted/Processed Successfully!!");
-                bnUtil.disconnect();
+                bnUtil.connection.disconnect();
             }).catch((error) => {
                 console.log(error);
                 bnUtil.connection.disconnect();
@@ -804,7 +855,7 @@ module.exports = (app) => {
             // 6. Submit the transaction
             return bnUtil.connection.submitTransaction(transaction).then(() => {
                 console.log("6. Transaction Submitted/Processed Successfully!!");
-                bnUtil.disconnect();
+                bnUtil.connection.disconnect();
             }).catch((error) => {
                 console.log(error);
                 bnUtil.connection.disconnect();
@@ -923,7 +974,7 @@ module.exports = (app) => {
             // 6. Submit the transaction
             return bnUtil.connection.submitTransaction(transaction).then(() => {
                 console.log("6. Transaction Submitted/Processed Successfully!!");
-                bnUtil.disconnect();
+                bnUtil.connection.disconnect();
             }).catch((error) => {
                 console.log(error);
                 bnUtil.connection.disconnect();
@@ -978,7 +1029,7 @@ module.exports = (app) => {
             // 6. Submit the transaction
             return bnUtil.connection.submitTransaction(transaction).then(() => {
                 console.log("6. Transaction Submitted/Processed Successfully!!");
-                bnUtil.disconnect();
+                bnUtil.connection.disconnect();
             }).catch((error) => {
                 console.log(error);
                 bnUtil.connection.disconnect();
@@ -1167,7 +1218,7 @@ module.exports = (app) => {
                     for (var i = 0; i < results1.length; i++) {
                         var obj = results1[i];
                         console.log("*********");
-                        console.log(obj.PolicyNo.$identifier)
+                        console.log(obj.PolicyNo.$identifier);
                         var policyResult = (results2.filter(item => item.PolicyNo === obj.PolicyNo.$identifier.toString()));
                         var policy_obj = policyResult[0]
                         console.log(policy_obj.PolicyNo);
