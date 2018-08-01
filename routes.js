@@ -526,6 +526,7 @@ module.exports = (app) => {
      * 
      */
     app.get('/getPolicy/:PolicyNo', (req, res) => {
+        let jsonObj = [];
         bnUtil.connect(req, () => {
             let policyRegistry = {};
             return bnUtil.connection.getAssetRegistry(NS_POLICY).then((registry) => {
@@ -876,6 +877,7 @@ module.exports = (app) => {
      * 
      */
     app.get('/ClaimPremiumCheck/:ClaimNo', (req, res) => {
+        let jsonObj = [];
         bnUtil.connect(req, () => {
             let claimRegistry = {};
             return bnUtil.connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
@@ -1005,6 +1007,7 @@ module.exports = (app) => {
      * 
      */
     app.get('/HouseKeepCheck/:ClaimNo', (req, res) => {
+        let jsonObj = [];
         bnUtil.connect(req, () => {
             let claimRegistry = {};
             return bnUtil.connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
@@ -1024,7 +1027,7 @@ module.exports = (app) => {
 
                 jsonObj.push({
                     "ClaimNo": claim.ClaimNo,
-                    "checkPremium": serializer.toJSON(claim.houseKeeping)
+                    "houseKeeping": serializer.toJSON(claim.houseKeeping)
                 });
                 console.log("*************************");
                 console.log(jsonObj);
