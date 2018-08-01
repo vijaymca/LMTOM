@@ -1,3 +1,13 @@
+const AST_POLICY = 'Policy';
+const AST_CLAIM = 'Claim';
+const PRTCP_PARTY = '_Party';
+
+const NS = 'org.lloyds.market';
+const NS_PARTY = 'org.lloyds.market._Party';
+const NS_CLAIM = 'org.lloyds.market.Claim';
+const NS_POLICY = 'org.lloyds.market.Policy';
+
+
 /**
  * CreateClaim Transaction
  * @param {org.lloyds.model.CreateClaim} CreateClaim
@@ -388,5 +398,95 @@ async function TransactionClaimQueryStatus(xData) {
 
 
 }
+
+
+async function policyNew(xData) { // eslint-disable-line no-unused-vars
+
+      const factory = getFactory();
+
+      //Create Policy
+      const policy = factory.newResource(NS, AST_POLICY, xData.PolicyNo);
+      policy.InsuredCompanyName = xData.InsuredCompanyName;
+      policy.PolicyType = xData.PolicyType;
+      policy.PolicyDetails1 = xData.PolicyDetails1;
+      policy.LeadCarrier = xData.LeadCarrier;
+
+      const effectiveDate = xData.timestamp;
+      effectiveDate.setDate(effectiveDate.getDate());
+
+      policy.PolicyEffectiveDate = effectiveDate;
+      policy.PolicyExpiryDate = PolicyExpiryDate;
+
+      // add Policy to registry
+      const policyRegistry = await getAssetRegistry(NS_POLICY);
+      await policyRegistry.addAll([policy]);
+}
+
+/** * claimConflict Transaction
+ * @param {org.lloyds.model.claimConflict} claimConflict
+ * @transaction
+ */
+async function claimConflict(xData) {
+      // Update claim
+      const claimRegistry = await getAssetRegistry(NS_CLAIM);
+      const claim = await claimRegistry.get(xData.claimId);
+      claim.ClaimMode = xData.ClaimMode;
+      claim.owner = xData.owner;
+      claim.LeadCarrier = xData.LeadCarrier;
+      await claimRegistry.update(claim);
+}
+
+/** claimPremCheck Transaction
+ * @param {org.lloyds.model.claimPremCheck} claimPremCheck
+ * @transaction
+ */
+async function claimPremCheck(xData) {
+      const claimRegistry = await getAssetRegistry(NS_CLAIM);
+      const claim = await claimRegistry.get(xData.claimId);
+      claim.checkPremium = xData.premium;
+      await claimRegistry.update(claim);
+}
+
+
+/** claimSegment Transaction
+ * @param {org.lloyds.model.claimSegment} claimSegment
+ * @transaction
+ */
+async function claimSegment(xData) {
+      const claimRegistry = await getAssetRegistry(NS_CLAIM);
+      const claim = await claimRegistry.get(xData.claimId);
+      claim.segmnt = xData.segmnt;
+      await claimRegistry.update(claim);
+}
+
+
+/** housekeep Transaction
+ * @param {org.lloyds.model.housekeep} housekeep
+ * @transaction
+ */
+async function housekeep(xData) {
+      const claimRegistry = await getAssetRegistry(NS_CLAIM);
+      const claim = await claimRegistry.get(xData.claimId);
+      claim.houseKeeping = xData.housekeep;
+      await claimRegistry.update(claim);
+}
+
+
+/** AdditionalInfo Transaction
+ * @param {org.lloyds.model.claimAddtionalInfo} claimAddtionalInfo
+ * @transaction
+ */
+async function claimAddtionalInfo(xData) {
+      let claim = xData.claim;
+
+      if (!claim.additionalInfo) {
+            claim.additionalInfo = [];
+      }
+
+      claim.additionalInfo.push(xData);
+      const claimRegistry = await getAssetRegistry(NS_CLAIM);
+      await claimRegistry.update(claim);
+}
+
 
 

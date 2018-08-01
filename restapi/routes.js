@@ -1417,6 +1417,7 @@ module.exports = (app) => {
         var results2;
         var claim_obj;
         var policy_obj;
+        const user = req.headers["user"];
         bnUtil.connect(req, () => {
             let bnDef = bnUtil.connection.getBusinessNetwork();
             console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
@@ -1434,21 +1435,19 @@ module.exports = (app) => {
                     console.log('2. Received results2: ', results2);
 
                     for (var i = 0; i < results1.length; i++) {
-
-                        let settlementAmountArry = [];
-                        let claimExpertOpinionArry = [];
-                        let claimQueryArry = [];
-                        let segmntArry = [];
-                        let conflictOfInterestArry = [];
-                        let claimEvaluationArry = [];
-                        let claimPremiumCheckArry = [];
-                        let claimHouseKeepingCheckArry = [];
-                        let claimAdditionalInfoArry = [];
-
                         let details = [];
-
                         var obj = results1[i];
                         console.log("*********");
+                        const owner = obj.owner.$identifier.toString()
+                        let iSowner = false;
+
+                        if (owner == user ){
+                            iSowner = true;
+
+                        }
+
+
+
                         console.log(obj.PolicyNo.$identifier)
                         var policyResult = (results2.filter(item => item.PolicyNo === obj.PolicyNo.$identifier.toString()));
                         var policy_obj = policyResult[0]
@@ -1577,11 +1576,13 @@ module.exports = (app) => {
                         }
 
                         jsonObj.push({
-                            "owner": obj.owner.$identifier.toString(),
+                            
+                            "owner": owner,
+                            "iSowner" : iSowner,
                             "InsuredCompanyName": policy_obj.InsuredCompanyName,
                             "ClaimNo": obj.ClaimNo,
                             "PolicyNo": policy_obj.PolicyNo,
-                            "ClaimCreateDate": obj.ClaimCreateDate,
+                            "ClaimCreateDate": obj.ClaimCreateDate.toString("yyyyMMdd").replace(/T/, ' ').replace(/\..+/, ''),
                             "ClaimUrgency": timeDifference(obj.ClaimTargetDate),
                             "ClaimTargetDate": obj.ClaimTargetDate,
                             "ClaimMode": obj.ClaimMode,
@@ -1612,6 +1613,35 @@ module.exports = (app) => {
                 jsonObj.push({
                     "ClaimDetails1": obj.ClaimDetails1,
                     "ClaimDetails2": obj.ClaimDetails2,
+                });
+                console.log("*************************")
+                res.json({
+                    jsonObj
+                });
+            });
+        });
+    });
+
+    app.get('/claimparties/:ClaimNumber', (req, res) => {
+        var jsonObj = [];
+        connection.connect(cardName).then(function () {
+            var statement1 = 'SELECT  org.lloyds.market.Claim WHERE (ClaimNo == _$id)';
+            var qry = connection.buildQuery(statement1)
+            console.log("*************claimparties************")
+            return connection.query(qry, { id: req.params.ClaimNumber }).then((results1) => {
+                var obj = results1[0];
+                jsonObj.push({
+                    "ClaimNumber": req.params.ClaimNumber,
+                    "owner": obj.LeadCarrier.$identifier.toString(),
+                    "LeadCarrier": obj.LeadCarrier.$identifier.toString(),
+                    "PlacingBroker": obj.PlacingBroker.$identifier.toString(),
+                    "ClaimsBroker": obj.ClaimsBroker.$identifier.toString(),
+                    "OverseasBroker": obj.LeadCarrier.$identifier.toString(),
+                    "PolicyOwner": obj.PolicyOwner.$identifier.toString(),
+                    "Followers1": obj.Followers1.$identifier.toString(),
+                    "Followers2": obj.Followers2.$identifier.toString(),
+                    "Followers3": obj.Followers3.$identifier.toString(),
+                    "Followers4": obj.Followers4.$identifier.toString(),
                 });
                 console.log("*************************")
                 res.json({
@@ -1684,6 +1714,12 @@ module.exports = (app) => {
 
     app.get('/ClaimEvaluation/:ClaimNumber', (req, res) => {
         var jsonObj = [];
+        let ClaimSegmentation = [];
+        let ClaimExpertOpinion = "";
+        let ClaimQuery = "";
+        let ClaimAckBy = "";
+        let AdditionalInfo = [];
+
         connection.connect(cardName).then(function () {
             let bnDef = connection.getBusinessNetwork();
             console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
@@ -1698,37 +1734,36 @@ module.exports = (app) => {
                 return connection.query(qry, { id: obj.PolicyNo.$identifier.toString() }).then((results2) => {
                     console.log('2. Received results2: ', results2);
                     var policy_obj = results2[0]
-                    let details = [];
                     if (obj.segmnt != null) {
                         let table = [];
-
+                        
+                        
                         table.push({
                             "Name": obj.segmnt.name.$identifier.toString(),
                             "Role": obj.segmnt.role,
                             "Date": obj.segmnt.segDate,
                         });
-                        details.push({
-                            "Type": "SCAP",
-                            "Name": "Claim Segmentation",
+                        ClaimSegmentation.push({
+                            "CSType": "SCAP",
+                            "Name"
+                            : "Claim Segmentation",
                             table
+                        });
+
+                        jsonObj.push({
+                            ClaimSegmentation
                         });
                     }
                     if (obj.ClaimExpertOpinion != null) {
-                        details.push({
-                            "ClaimExpertOpinion": obj.ClaimExpertOpinion.ClaimExpertOpinion,
-                        });
+                        ClaimExpertOpinion = obj.ClaimExpertOpinion.ClaimExpertOpinion;
                     }
 
                     if (obj.ClaimQuery != null) {
-                        details.push({
-                            "ClaimQuery": obj.ClaimQuery.ClaimQuery,
-                        });
+                        ClaimQuery = obj.ClaimQuery.ClaimQuery;
                     }
 
                     if (obj.ClaimMode != "Pending") {
-                        details.push({
-                            "ClaimAckBy": obj.LeadCarrier.$identifier.toString(),
-                        });
+                        ClaimAckBy =  obj.LeadCarrier.$identifier.toString();
                     }
 
                     if (obj.additionalInfo == null) {
@@ -1740,18 +1775,22 @@ module.exports = (app) => {
                             "Status": "Pending",
                             "ReceivedOn": new Date(),
                         });
-                        details.push({
+                        AdditionalInfo.push({
                             "Name": obj.LeadCarrier.$identifier.toString(),
                             table
                         });
+                        jsonObj.push({
+                            AdditionalInfo
+                        });
                     }
-                    jsonObj.push({
-                        details
-                    });
 
                     console.log("***********ClaimEvaluation ends**************")
                     res.json({
-                        jsonObj
+                        ClaimSegmentation,
+                        ClaimExpertOpinion,
+                        ClaimQuery,
+                        ClaimAckBy,
+                        AdditionalInfo
                     });
                 });
             });
