@@ -945,9 +945,7 @@ module.exports = (app) => {
             segmentation.segDate = new Date(req.body.data.segDate);
             segmentation.CreateDate = new Date(req.body.data.CreateDate);
             segmentation.TargetDate = new Date(req.body.data.TargetDate);
-            segmentation.Status = req.body.data.status;
-
-
+            
             transaction.segmnt = segmentation;
 
             // 6. Submit the transaction

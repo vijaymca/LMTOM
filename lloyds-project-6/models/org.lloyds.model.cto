@@ -172,8 +172,6 @@ event ClaimQueryUpdated {
     o  _ClaimQuery ClaimQuery
 }
 
-
-
 // To check ClaimMode
 transaction TransactionUpdateClaimMode {
     o String claimId
