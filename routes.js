@@ -570,10 +570,20 @@ module.exports = (app) => {
                         "Propdamage": "",
                         "businessInter": ""
                     },
+                    "FinancialOverview": {
+                        "Premium": "",
+                        "BrokerComm": "",
+                        "overSeas": "",
+                        "FeeFro": "NA",
+                        "Fee3rd": "NA",
+                        "FeeOther": ""
+                    },
+                    "followers":[],
                     "Sublimits": serializer.toJSON(policy.sublimits)
                 });
-                console.log("*************************");
-                console.log(jsonObj);
+
+                //console.log("*************************");
+               // console.log(jsonObj);
                 res.json({
                     jsonObj
                 });
@@ -590,6 +600,9 @@ module.exports = (app) => {
         });
     });
 
+    /** POST -> NEW POLICY
+     * 
+     */
     app.post('/Policies/new', (req, res) => {
 
         const policyNew = "policyNew";
@@ -654,8 +667,7 @@ module.exports = (app) => {
         });
     });
 
-    /**
-     * 
+    /** PUT -> UPDATE POLICY
      * 
      */
     app.put('/Policies/update/:PolicyNo', (req, res) => {
@@ -927,11 +939,14 @@ module.exports = (app) => {
 
             const segmentation = factory.newConcept(NS, 'Segmentation');
             let relationship = factory.newRelationship(NS, PRTCP_PARTY, req.body.data.user);
-
             segmentation.name = relationship;
             segmentation.role = req.body.data.role;
             segmentation.office = req.body.data.office;
             segmentation.segDate = new Date(req.body.data.segDate);
+            segmentation.CreateDate = new Date(req.body.data.CreateDate);
+            segmentation.TargetDate = new Date(req.body.data.TargetDate);
+            segmentation.Status = req.body.data.status;
+
 
             transaction.segmnt = segmentation;
 
@@ -1058,6 +1073,9 @@ module.exports = (app) => {
             houseKeeping.premiumBeenPaidByPolHolder = req.body.data.premiumBeenPaidByPolHolder;
             houseKeeping.reinstatementPremiumPaid = req.body.data.reinstatementPremiumPaid;
             houseKeeping.anyFraud = req.body.data.anyFraud;
+            houseKeeping.CreateDate = new Date(req.body.data.CreateDate);
+            houseKeeping.TargetDate = new Date(req.body.data.TargetDate);
+            houseKeeping.Status = req.body.data.status;
             transaction.housekeep = houseKeeping;
 
             // 6. Submit the transaction
@@ -1077,7 +1095,7 @@ module.exports = (app) => {
         });
     });
 
-    /**
+    /** PUT -> ADDITIONAL INFORMATION
      * 
      * 
      */

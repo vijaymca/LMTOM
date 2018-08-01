@@ -128,7 +128,6 @@ transaction TransactionClaimExpertOpinionStatus {
     o String Status
 }
 
-
 event ClaimExpertOpinionUpdated {
     o   String    ClaimNo
     o   DateTime  ClaimDateofLoss
@@ -143,7 +142,6 @@ event ClaimExpertOpinionUpdated {
     o   String    Followers4
     o  _ClaimExpertOpinion ClaimExpertOpinion
 }
-
 
 // To check ClaimQuery
 transaction TransactionClaimQuery {

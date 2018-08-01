@@ -225,9 +225,9 @@ concept Segmentation {
   o String role
   o String office
   o DateTime segDate
-   o DateTime CreateDate optional
-    o DateTime TargetDate optional
-    o String Status optional
+  o DateTime CreateDate optional
+  o DateTime TargetDate optional
+  o String Status optional
 }
 
 concept houseKeeping {

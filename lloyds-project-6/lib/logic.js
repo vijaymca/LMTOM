@@ -306,7 +306,7 @@ async function TransactionClaimExpertOpinionStatus(xData) {
     const claimRegistry = await getAssetRegistry('org.lloyds.market.Claim');
     const claim = await claimRegistry.get(xData.claimId);
 
-    claim.ClaimExpertOpinion.Status = xData.Status;
+    claim.ClaimExpertOpinion.StatushouseKeeping = xData.Status;
 
     await claimRegistry.update(claim);
 
@@ -451,6 +451,7 @@ async function housekeep(xData) {
       const claimRegistry = await getAssetRegistry(NS_CLAIM);
       const claim = await claimRegistry.get(xData.claimId);
       claim.houseKeeping = xData.housekeep;
+      
       await claimRegistry.update(claim);
 }
 
