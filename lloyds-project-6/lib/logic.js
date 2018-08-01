@@ -1,3 +1,6 @@
+/*jshint esversion: 6 */
+/*jshint node: true */
+
 const AST_POLICY = 'Policy';
 const AST_CLAIM = 'Claim';
 const PRTCP_PARTY = '_Party';
@@ -7,17 +10,52 @@ const NS_PARTY = 'org.lloyds.market._Party';
 const NS_CLAIM = 'org.lloyds.market.Claim';
 const NS_POLICY = 'org.lloyds.market.Policy';
 
+/**
+ * Initialize some test assets and participants useful for running a demo.
+ * @param {org.lloyds.model.policyNew} policyNew 
+ * @transaction
+ */
+
+async function policyNew(xData) { // eslint-disable-line no-unused-vars
+    const factory = getFactory();
+    //Create Policy
+    const policy = factory.newResource(NS, AST_POLICY, xData.PolicyNo);
+    policy.InsuredCompanyName = xData.InsuredCompanyName;
+    policy.PolicyType = xData.PolicyType;
+    policy.PolicyDetails1 = xData.PolicyDetails1;
+    policy.LeadCarrier = xData.LeadCarrier;
+
+    const effectiveDate = xData.timestamp;
+    effectiveDate.setDate(effectiveDate.getDate());
+
+    policy.PolicyEffectiveDate = effectiveDate;
+    policy.PolicyExpiryDate = PolicyExpiryDate;
+
+    // add Policy to registry
+    const policyRegistry = await getAssetRegistry(NS_POLICY);
+    await policyRegistry.addAll([policy]);
+}
+
+/**
+* Initialize some test assets and participants useful for running a demo.
+* @param {org.lloyds.model.updatePolicy} updatePolicy 
+* @transaction
+*/
+
+async function updatePolicy(xData) {
+    const policy = await claimRegistry.get(xData.claimId);
+
+    const policyRegistry = await getAssetRegistry(NS_POLICY);
+    await policyRegistry.update(policy);
+}
 
 /**
  * CreateClaim Transaction
  * @param {org.lloyds.model.CreateClaim} CreateClaim
  * @transaction
- * 
  */
-
 function createclaim(claimData) {
       return getAssetRegistry('org.lloyds.market.Claim')
-
             .then(function (ClaimRegistry) {
                   // Now add the claim - global function getFactory() called
                   var factory = getFactory();
@@ -27,8 +65,6 @@ function createclaim(claimData) {
                   // Solution to exercise - Removed hardcoded value & invoked
                   // generate the claim ID
                   // 2.1 Set the claimNumber, claimId ... 
-
-
 
                   var claim = factory.newResource('org.lloyds.market', 'Claim', claimData.ClaimNo);
 
@@ -42,8 +78,6 @@ function createclaim(claimData) {
                   claim.ClaimCreateDate = claimData.ClaimCreateDate;
                   claim.ClaimDateofLoss = claimData.ClaimDateofLoss;
                   claim.ClaimTargetDate = claimData.ClaimTargetDate;
-
-
                   let policy = factory.newRelationship('org.lloyds.market', 'Policy', claimData.PolicyNo);
                   claim.PolicyNo = policy;
 
@@ -87,7 +121,6 @@ function createclaim(claimData) {
                         claim.Followers4 = _Party;
                   }
 
-
                   // 3 Emit the event claimCreated
                   var event = factory.newEvent('org.lloyds.model', 'CreateClaimCreated');
                   event.ClaimNo = claimData.ClaimNo;
@@ -103,16 +136,12 @@ function createclaim(claimData) {
                   event.Followers3 = claimData.Followers3;
                   event.Followers4 = claimData.Followers4;
 
-
-
                   emit(event);
 
                   // 4. Add to registry
                   return ClaimRegistry.add(claim);
             });
 }
-
-
 
 
 /** TransactionUpdateClaimMode Transaction
@@ -143,13 +172,9 @@ async function TransactionUpdateClaimMode(xData) {
       event.Followers2 = claim.Followers2.$identifier.toString();
       event.Followers3 = claim.Followers3.$identifier.toString();
       event.Followers4 = claim.Followers4.$identifier.toString();
-      event.ClaimMode = claim.ClaimMode
-
+      event.ClaimMode = claim.ClaimMode;
       emit(event);
-
-
 }
-
 
 
 
@@ -166,10 +191,8 @@ async function TransactionClaimSettlementAmount(xData) {
       SettlementAmount.Amount = xData.Amount;
       SettlementAmount.Status = xData.Status;
 
-
       SettlementAmount.CreateDate = xData.CreateDate;
       SettlementAmount.TargetDate = xData.TargetDate;
-
 
       const claimRegistry = await getAssetRegistry('org.lloyds.market.Claim');
       const claim = await claimRegistry.get(xData.claimId);
@@ -190,11 +213,8 @@ async function TransactionClaimSettlementAmount(xData) {
       event.Followers2 = claim.Followers2.$identifier.toString();
       event.Followers3 = claim.Followers3.$identifier.toString();
       event.Followers4 = claim.Followers4.$identifier.toString();
-      event.ClaimSettlementAmount = claim.ClaimSettlementAmount
-
+      event.ClaimSettlementAmount = claim.ClaimSettlementAmount;
       emit(event);
-
-
 }
 
 
@@ -226,11 +246,8 @@ async function TransactionClaimSettlementAmountStatus(xData) {
       event.Followers2 = claim.Followers2.$identifier.toString();
       event.Followers3 = claim.Followers3.$identifier.toString();
       event.Followers4 = claim.Followers4.$identifier.toString();
-      event.ClaimSettlementAmount = claim.ClaimSettlementAmount
-
+      event.ClaimSettlementAmount = claim.ClaimSettlementAmount;
       emit(event);
-
-
 }
 
 
@@ -274,11 +291,8 @@ async function TransactionClaimExpertOpinion(xData) {
       event.Followers2 = claim.Followers2.$identifier.toString();
       event.Followers3 = claim.Followers3.$identifier.toString();
       event.Followers4 = claim.Followers4.$identifier.toString();
-      event.ClaimExpertOpinion = claim.ClaimExpertOpinion
-
+      event.ClaimExpertOpinion = claim.ClaimExpertOpinion;
       emit(event);
-
-
 }
 
 /** TransactionClaimExpertOpinionStatus Transaction
@@ -310,11 +324,8 @@ async function TransactionClaimExpertOpinionStatus(xData) {
       event.Followers2 = claim.Followers2.$identifier.toString();
       event.Followers3 = claim.Followers3.$identifier.toString();
       event.Followers4 = claim.Followers4.$identifier.toString();
-      event.ClaimExpertOpinion = claim.ClaimExpertOpinion
-
+      event.ClaimExpertOpinion = claim.ClaimExpertOpinion;
       emit(event);
-
-
 }
 
 
@@ -356,11 +367,8 @@ async function TransactionClaimQuery(xData) {
       event.Followers2 = claim.Followers2.$identifier.toString();
       event.Followers3 = claim.Followers3.$identifier.toString();
       event.Followers4 = claim.Followers4.$identifier.toString();
-      event.ClaimQuery = claim.ClaimQuery
-
+      event.ClaimQuery = claim.ClaimQuery;
       emit(event);
-
-
 }
 
 /** TransactionClaimQueryStatus Transaction
@@ -392,35 +400,11 @@ async function TransactionClaimQueryStatus(xData) {
       event.Followers2 = claim.Followers2.$identifier.toString();
       event.Followers3 = claim.Followers3.$identifier.toString();
       event.Followers4 = claim.Followers4.$identifier.toString();
-      event.ClaimQuery = claim.ClaimQuery
+      event.ClaimQuery = claim.ClaimQuery;
 
       emit(event);
-
-
 }
 
-
-async function policyNew(xData) { // eslint-disable-line no-unused-vars
-
-      const factory = getFactory();
-
-      //Create Policy
-      const policy = factory.newResource(NS, AST_POLICY, xData.PolicyNo);
-      policy.InsuredCompanyName = xData.InsuredCompanyName;
-      policy.PolicyType = xData.PolicyType;
-      policy.PolicyDetails1 = xData.PolicyDetails1;
-      policy.LeadCarrier = xData.LeadCarrier;
-
-      const effectiveDate = xData.timestamp;
-      effectiveDate.setDate(effectiveDate.getDate());
-
-      policy.PolicyEffectiveDate = effectiveDate;
-      policy.PolicyExpiryDate = PolicyExpiryDate;
-
-      // add Policy to registry
-      const policyRegistry = await getAssetRegistry(NS_POLICY);
-      await policyRegistry.addAll([policy]);
-}
 
 /** * claimConflict Transaction
  * @param {org.lloyds.model.claimConflict} claimConflict
@@ -433,6 +417,7 @@ async function claimConflict(xData) {
       claim.ClaimMode = xData.ClaimMode;
       claim.owner = xData.owner;
       claim.LeadCarrier = xData.LeadCarrier;
+      claim.comments.push(comment);
       await claimRegistry.update(claim);
 }
 
@@ -447,7 +432,6 @@ async function claimPremCheck(xData) {
       await claimRegistry.update(claim);
 }
 
-
 /** claimSegment Transaction
  * @param {org.lloyds.model.claimSegment} claimSegment
  * @transaction
@@ -458,7 +442,6 @@ async function claimSegment(xData) {
       claim.segmnt = xData.segmnt;
       await claimRegistry.update(claim);
 }
-
 
 /** housekeep Transaction
  * @param {org.lloyds.model.housekeep} housekeep
@@ -471,14 +454,13 @@ async function housekeep(xData) {
       await claimRegistry.update(claim);
 }
 
-
 /** AdditionalInfo Transaction
  * @param {org.lloyds.model.claimAddtionalInfo} claimAddtionalInfo
  * @transaction
  */
 async function claimAddtionalInfo(xData) {
       let claim = xData.claim;
-
+      var factory = getFactory();
       if (!claim.additionalInfo) {
             claim.additionalInfo = [];
       }
@@ -489,4 +471,37 @@ async function claimAddtionalInfo(xData) {
 }
 
 
+/** ClaimSettlementAmount Transaction
+ * @param {org.lloyds.model.ClaimSettlementAmount} ClaimSettlementAmount
+ * @transaction
+ */
+async function ClaimSettlementAmount(xData) {
+    var NS = 'org.lloyds.model.ClaimSettlementAmount';
 
+    var factory = getFactory();
+    let SettlementAmount = await factory.newConcept('org.lloyds.market', '_ClaimSettlementAmount');
+    SettlementAmount.ClaimSettlementAmount = xData.ClaimSettlementAmount;
+    SettlementAmount.ClaimSettlementAmountDate = new Date();
+
+    const claimRegistry = await getAssetRegistry('org.lloyds.market.Claim');
+    const claim = await claimRegistry.get(xData.claimId);
+    claim.ClaimSettlementAmount = SettlementAmount;
+    await claimRegistry.update(claim);
+
+    // 3 Emit the event ClaimSettlementAmountUpdated
+    var event = factory.newEvent('org.lloyds.model', 'ClaimSettlementAmountUpdated');
+    event.ClaimNo = xData.claimId;
+
+    event.ClaimDateofLoss = claim.ClaimDateofLoss;
+    event.LeadCarrier = claim.LeadCarrier.$identifier.toString();
+    event.PlacingBroker = claim.PlacingBroker.$identifier.toString();
+    event.ClaimsBroker = claim.ClaimsBroker.$identifier.toString();
+    event.OverseasBroker = claim.OverseasBroker.$identifier.toString();
+    event.PolicyOwner = claim.PolicyOwner.$identifier.toString();
+    event.Followers1 = claim.Followers1.$identifier.toString();
+    event.Followers2 = claim.Followers2.$identifier.toString();
+    event.Followers3 = claim.Followers3.$identifier.toString();
+    event.Followers4 = claim.Followers4.$identifier.toString();
+    event.ClaimSettlementAmount = claim.ClaimSettlementAmount;
+    emit(event);
+}
