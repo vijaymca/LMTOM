@@ -83,8 +83,6 @@ transaction claimSegment {
   o Segmentation segmnt
 }
 
-
-
 // To check ClaimSettlementAmount
 transaction TransactionClaimSettlementAmount {
     o String claimId
@@ -99,7 +97,6 @@ transaction TransactionClaimSettlementAmountStatus {
     o String claimId
     o String Status
 }
-
 
 event ClaimSettlementAmountUpdated {
     o   String    ClaimNo

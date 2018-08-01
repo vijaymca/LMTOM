@@ -522,6 +522,74 @@ module.exports = (app) => {
         }
     });
 
+    /** GET POLICY INFORMATION
+     * 
+     */
+    app.get('/getPolicy/:PolicyNo', (req, res) => {
+        bnUtil.connect(req, () => {
+            let policyRegistry = {};
+            return bnUtil.connection.getAssetRegistry(NS_POLICY).then((registry) => {
+                console.log('1. Received Registry: ', registry.id);
+                policyRegistry = registry;
+                return policyRegistry.get(req.params.PolicyNo);
+            }).then((policy) => {
+                if (!policy) console.log(req.params.PolicyNo + 'Not found');
+
+                console.log("*************************");
+                console.log(policy);
+
+                const bnDef = bnUtil.connection.getBusinessNetwork();
+
+                //to get the JSON object in get params
+                var serializer = bnDef.getSerializer();
+
+                jsonObj.push({
+                    "PolicyNo": policy.PolicyNo,
+                    "InsuredCompanyName": policy.InsuredCompanyName,
+                    "InsuredMailingAddress": {
+                        "Line1": "",
+                        "City": "",
+                        "PostalCode": "",
+                        "Country": ""
+                    },
+                    "BrokerPlacing": {
+                        "name": "",
+                        "Line1": "",
+                        "City": "",
+                        "PostalCode": "",
+                        "Country": ""
+                    },
+                    "BrokerOverSeas": {
+                        "name": "",
+                        "Line1": "",
+                        "City": "",
+                        "PostalCode": "",
+                        "Country": ""
+                    },
+                    "TotalSumInsured": {
+                        "Propdamage": "",
+                        "businessInter": ""
+                    },
+                    "Sublimits": serializer.toJSON(policy.sublimits)
+                });
+                console.log("*************************");
+                console.log(jsonObj);
+                res.json({
+                    jsonObj
+                });
+            }).catch((error) => {
+                console.log(error);
+                jsonObj.push({
+                    "error": error.toString()
+                });
+                bnUtil.connection.disconnect();
+                res.json({
+                    jsonObj
+                });
+            });
+        });
+    });
+
     app.post('/Policies/new', (req, res) => {
 
         const policyNew = "policyNew";
@@ -565,11 +633,23 @@ module.exports = (app) => {
             // 6. Submit the transaction
             return bnUtil.connection.submitTransaction(policyResource).then(() => {
                 console.log("6. Transaction Submitted/Processed Successfully!!");
-                bnUtil.disconnect();
+                bnUtil.connection.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
 
+                res.json({
+                    jsonObj
+                });
             }).catch((error) => {
                 console.log(error);
-                bnUtil.disconnect();
+                jsonObj.push({
+                    "error": error.toString()
+                });
+                bnUtil.connection.disconnect();
+                res.json({
+                    jsonObj
+                });
             });
         });
     });
@@ -583,29 +663,6 @@ module.exports = (app) => {
         const trPolicy = "updatePolicy";
         bnUtil.connect(req, (error) => {
 
-            /*
-            let policyRegistry = {};
-            return bnUtil.connection.getAssetRegistry('org.lloyds.market.Policy').then((registry) => {
-                console.log('1. Received Registry: ', registry.id);
-                policyRegistry = registry;
-                return policyRegistry.get(req.params.PolicyNo);
-            }).then((policy) => {
-                if (!policy) console.log(req.params.PolicyNo + 'Not found');
-
-                policy.PolicyStatus = req.body.name;
-                return policyRegistry.update(policy).then(() => {
-                    console.log('Updated successfully!!!');
-                    res.end("Updated successfully");
-                    bnUtil.connection.disconnect();
-                });
-            }).catch((error) => {
-                console.log(error);
-                bnUtil.connection.disconnect();
-            });
-*/
-
-
-            // Check for error
             if (error) {
                 console.log(error);
                 process.exit(1);
@@ -625,7 +682,7 @@ module.exports = (app) => {
                 generate: false,
                 includeOptionalFields: false
             };
-            
+
             let policyResource = factory.newTransaction(NS_model, trPolicy, PolicyId, options);
 
             // 5. Set up the properties of the transaction object
@@ -644,11 +701,25 @@ module.exports = (app) => {
             // 6. Submit the transaction
             return bnUtil.connection.submitTransaction(policyResource).then(() => {
                 console.log("6. Transaction Submitted/Processed Successfully!!");
-                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
+                bnUtil.connection.disconnect();
+
+                res.json({
+                    jsonObj
+                });
 
             }).catch((error) => {
                 console.log(error);
-                bnUtil.disconnect();
+
+                jsonObj.push({
+                    "error": error.toString()
+                });
+                bnUtil.connection.disconnect();
+                res.json({
+                    jsonObj
+                });
             });
         });
     });
@@ -705,7 +776,7 @@ module.exports = (app) => {
                     if (req.body.data.ClaimMode === 'Approved') {
                         transaction.ClaimMode = "Approved";
                         transaction.owner = policy.LeadCarrier;
-                        
+
                     } else {
                         transaction.owner = claim.Followers1;
                         transaction.comment = req.body.data.comment;
@@ -722,7 +793,13 @@ module.exports = (app) => {
                 });
             }).catch((error) => {
                 console.log(error);
+                jsonObj.push({
+                    "error": error.toString()
+                });
                 bnUtil.connection.disconnect();
+                res.json({
+                    jsonObj
+                });
             });
         });
     });
@@ -772,7 +849,13 @@ module.exports = (app) => {
                 bnUtil.connection.disconnect();
             }).catch((error) => {
                 console.log(error);
+                jsonObj.push({
+                    "error": error.toString()
+                });
                 bnUtil.connection.disconnect();
+                res.json({
+                    jsonObj
+                });
             });
         });
     });
@@ -858,7 +941,13 @@ module.exports = (app) => {
                 bnUtil.connection.disconnect();
             }).catch((error) => {
                 console.log(error);
+                jsonObj.push({
+                    "error": error.toString()
+                });
                 bnUtil.connection.disconnect();
+                res.json({
+                    jsonObj
+                });
             });
         });
     });
@@ -977,7 +1066,13 @@ module.exports = (app) => {
                 bnUtil.connection.disconnect();
             }).catch((error) => {
                 console.log(error);
+                jsonObj.push({
+                    "error": error.toString()
+                });
                 bnUtil.connection.disconnect();
+                res.json({
+                    jsonObj
+                });
             });
         });
     });
@@ -1032,7 +1127,13 @@ module.exports = (app) => {
                 bnUtil.connection.disconnect();
             }).catch((error) => {
                 console.log(error);
+                jsonObj.push({
+                    "error": error.toString()
+                });
                 bnUtil.connection.disconnect();
+                res.json({
+                    jsonObj
+                });
             });
         });
     });
@@ -1085,7 +1186,13 @@ module.exports = (app) => {
                     });
                 }).catch((error) => {
                     console.log(error);
-                    connection.disconnect();
+                    jsonObj.push({
+                        "error": error.toString()
+                    });
+                    bnUtil.connection.disconnect();
+                    res.json({
+                        jsonObj
+                    });
                 });
 
             });
@@ -1186,7 +1293,13 @@ module.exports = (app) => {
                     });
                 }).catch((error) => {
                     console.log(error);
-                    connection.disconnect();
+                    jsonObj.push({
+                        "error": error.toString()
+                    });
+                    bnUtil.connection.disconnect();
+                    res.json({
+                        jsonObj
+                    });
                 });
 
             });

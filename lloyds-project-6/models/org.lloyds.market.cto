@@ -49,7 +49,7 @@ asset Policy identified by PolicyNo {
   o _sublimits sublimits optional
   o _insuredAmount insuranceAmount
   o _Premium premium optional
-  o _follower[] followers
+  o _follower[] followers optional
 }
 
 enum PolicyType{
@@ -204,6 +204,7 @@ participant _Party identified by OwnerId {
 }
 
 concept _follower {
+  o String index
   --> _Party party
   o Integer written
   o Integer signed
@@ -233,9 +234,9 @@ concept houseKeeping {
   o Boolean premiumBeenPaidByPolHolder default=false
   o Boolean reinstatementPremiumPaid default=false
   o Boolean anyFraud default=false
-   o DateTime CreateDate optional
-    o DateTime TargetDate optional
-    o String Status optional
+  o DateTime CreateDate optional
+  o DateTime TargetDate optional
+  o String Status optional
 }
 
 
