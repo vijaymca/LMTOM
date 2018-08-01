@@ -196,9 +196,9 @@ participant _Party identified by OwnerId {
     o String UserName
     o String Password
     o String Email
-	  o String AgencyId 
-    o String Role 
-    o String CompanyName 
+	  o String AgencyId optional
+    o String Role optional
+    o String CompanyName optional
 	  o String Name optional
     o _Address Address optional    
 }

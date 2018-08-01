@@ -536,7 +536,7 @@ module.exports = (app) => {
                 if (!policy) console.log(req.params.PolicyNo + 'Not found');
 
                 console.log("*************************");
-                console.log(policy);
+                //console.log(policy);
 
                 const bnDef = bnUtil.connection.getBusinessNetwork();
 
@@ -578,12 +578,12 @@ module.exports = (app) => {
                         "Fee3rd": "NA",
                         "FeeOther": ""
                     },
-                    "followers":[],
-                    "Sublimits": serializer.toJSON(policy.sublimits)
+                    "followers": []
+                   // "Sublimits": serializer.toJSON(policy.sublimits)
                 });
 
                 //console.log("*************************");
-               // console.log(jsonObj);
+                // console.log(jsonObj);
                 res.json({
                     jsonObj
                 });
@@ -945,7 +945,7 @@ module.exports = (app) => {
             segmentation.segDate = new Date(req.body.data.segDate);
             segmentation.CreateDate = new Date(req.body.data.CreateDate);
             segmentation.TargetDate = new Date(req.body.data.TargetDate);
-            
+
             transaction.segmnt = segmentation;
 
             // 6. Submit the transaction
