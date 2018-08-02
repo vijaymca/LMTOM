@@ -35,7 +35,7 @@ rule PlacingBroker {
   participant(t): "org.lloyds.market._Party"
   operation: READ
   resource(v): "org.lloyds.market.Claim"
-  condition: (v.PlacingBroker.getIdentifier() == t.getIdentifier()  )
+  condition: (v.PlacingBroker.getIdentifier() == t.getIdentifier())
   action: ALLOW
 }
 
@@ -44,7 +44,7 @@ rule ClaimsBroker {
   participant(t): "org.lloyds.market._Party"
   operation: READ
   resource(v): "org.lloyds.market.Claim"
-  condition: (v.ClaimsBroker.getIdentifier() == t.getIdentifier()  )
+  condition: (v.ClaimsBroker.getIdentifier() == t.getIdentifier())
   action: ALLOW
 }
 
@@ -53,7 +53,7 @@ rule OverseasBroker {
   participant(t): "org.lloyds.market._Party"
   operation: READ
   resource(v): "org.lloyds.market.Claim"
-  condition: (v.OverseasBroker.getIdentifier() == t.getIdentifier()  )
+  condition: (v.OverseasBroker.getIdentifier() == t.getIdentifier())
   action: ALLOW
 }
 
@@ -62,7 +62,7 @@ rule PolicyOwner {
   participant(t): "org.lloyds.market._Party"
   operation: ALL
   resource(v): "org.lloyds.market.Claim"
-  condition: (v.PolicyOwner.getIdentifier() == t.getIdentifier()  )
+  condition: (v.PolicyOwner.getIdentifier() == t.getIdentifier())
   action: ALLOW
 }
 
@@ -71,7 +71,7 @@ rule Followers1 {
   participant(t): "org.lloyds.market._Party"
   operation: READ
   resource(v): "org.lloyds.market.Claim"
-  condition: (v.Followers1.getIdentifier() == t.getIdentifier()  )
+  condition: (v.Followers1.getIdentifier() == t.getIdentifier())
   action: ALLOW
 }
 
@@ -81,7 +81,7 @@ rule Followers2 {
   participant(t): "org.lloyds.market._Party"
   operation: READ
   resource(v): "org.lloyds.market.Claim"
-  condition: (v.Followers2.getIdentifier() == t.getIdentifier()  )
+  condition: (v.Followers2.getIdentifier() == t.getIdentifier())
   action: ALLOW
 }
 
@@ -90,7 +90,7 @@ rule Followers3 {
   participant(t): "org.lloyds.market._Party"
   operation: READ
   resource(v): "org.lloyds.market.Claim"
-  condition: (v.Followers3.getIdentifier() == t.getIdentifier()  )
+  condition: (v.Followers3.getIdentifier() == t.getIdentifier())
   action: ALLOW
 }
 
@@ -99,7 +99,7 @@ rule Followers4 {
   participant(t): "org.lloyds.market._Party"
   operation: READ
   resource(v): "org.lloyds.market.Claim"
-  condition: (v.Followers4.getIdentifier() == t.getIdentifier()  )
+  condition: (v.Followers4.getIdentifier() == t.getIdentifier())
   action: ALLOW
 }
 
@@ -127,11 +127,11 @@ rule NetworkAdminUser {
     action: ALLOW
 }
 
-rule setupDemo {
-    description: "Grant business network administrators full access to user resources"
+rule showlallParties {
+    description: "Get users information to all users"
     participant: "org.lloyds.market._Party"
-    operation: ALL
-    resource: "org.lloyds.market.Policy"
+    operation: READ
+    resource: "org.lloyds.market._Party"
     action: ALLOW
 }
 

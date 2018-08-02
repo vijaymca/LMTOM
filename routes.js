@@ -26,7 +26,6 @@ var results2;
 var claim_obj;
 var policy_obj;
 
-
 module.exports = (app) => {
 
     app.get('/', function (req, res) {
@@ -520,37 +519,60 @@ module.exports = (app) => {
             });
         }
     });
+
+
+function getuserId(){
+    return new Promise((resolve, reject) => {
+
+
+    });
+}
+
     /** GET POLICY INFORMATION
      * 
      */
     app.get('/getPolicy/:PolicyNo', (req, res) => {
         let jsonObj = [];
+       
         bnUtil.connect(req, () => {
+            const bnDef = bnUtil.connection.getBusinessNetwork();
+            var serializer = bnDef.getSerializer();
             let policyRegistry = {};
             return bnUtil.connection.getAssetRegistry(NS_POLICY).then((registry) => {
                 console.log('1. Received Registry: ', registry.id);
                 policyRegistry = registry;
                 return policyRegistry.get(req.params.PolicyNo);
-            }).then((policy) => {
+            }).then(async (policy) => {
                 if (!policy) console.log(req.params.PolicyNo + 'Not found');
 
                 console.log("*************************");
-                //console.log(policy);
 
-                const bnDef = bnUtil.connection.getBusinessNetwork();
+                console.log(serializer.toJSON(policy.Insured));
 
                 //to get the JSON object in get params
-                var serializer = bnDef.getSerializer();
+               
+                let carrierInfo = [];
+                let financialOvervw = [];
+                let followers = [];
+                const insuredAddress = await getIsuredAdress('Asif');
+
+                /**
+                 * 
+                 * financialOver:{
+                        "Premium": "",
+                        "BrokerComm": "",
+                        "overSeas": "",
+                        "FeeFro": "NA",
+                        "Fee3rd": "NA",
+                        "FeeOther": "NA"
+                    }
+                 */
+
 
                 jsonObj.push({
                     "PolicyNo": policy.PolicyNo,
                     "InsuredCompanyName": policy.InsuredCompanyName,
-                    "InsuredMailingAddress": {
-                        "Line1": "",
-                        "City": "",
-                        "PostalCode": "",
-                        "Country": ""
-                    },
+                    "InsuredMailingAddress": insuredAddress,
                     "BrokerPlacing": {
                         "name": "",
                         "Line1": "",
@@ -569,16 +591,10 @@ module.exports = (app) => {
                         "Propdamage": "",
                         "businessInter": ""
                     },
-                    "FinancialOverview": {
-                        "Premium": "",
-                        "BrokerComm": "",
-                        "overSeas": "",
-                        "FeeFro": "NA",
-                        "Fee3rd": "NA",
-                        "FeeOther": ""
-                    },
-                    "followers": []
-                    // "Sublimits": serializer.toJSON(policy.sublimits)
+                    "FinancialOverview": financialOvervw,
+                    "Followers": followers,
+                    "Sublimits": serializer.toJSON(policy.sublimits),
+                    "CarrierInfo": carrierInfo
                 });
 
                 //console.log("*************************");
@@ -1173,7 +1189,7 @@ module.exports = (app) => {
                 res.json({
                     jsonObj
                 });
-                
+
             }).catch((error) => {
                 console.log(error);
                 jsonObj.push({
@@ -2328,9 +2344,6 @@ function validateUser(user, password) {
     }
 }
 
-
-
-
 function getCardName(user) {
     switch (user) {
         case "Isabelle":
@@ -2411,3 +2424,45 @@ function timeDifference(date) {
     }
     return Math.floor(seconds) + " seconds";
 }
+
+/** RETURN INSURED ADDRESS
+ * 
+ */
+function getIsuredAdress(party) {
+    console.log('***CODE STARTED****');
+
+    return new Promise((resolve, reject) => {
+        let req = {
+            headers: {
+                "user": "admin",
+                "password": "1234"
+            }
+        };
+
+        console.log("USER: " + req.headers["user"]);
+        console.log("PASS: " + req.headers["password"]);
+
+        bnUtil.connect(req, async (error) => {
+            let address = {};
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
+
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+
+            const usrRegistry = await bnUtil.connection.getParticipantRegistry('org.lloyds.market._Party');
+            let us = await usrRegistry.exists(party);
+            console.log(us);
+            const usrinf = await usrRegistry.get(party);
+            var serializer = bnDef.getSerializer();
+            console.log(serializer.toJSON(usrinf.Address));
+            address = serializer.toJSON(usrinf.Address);
+            bnUtil.disconnect();
+            resolve(address);
+        });
+    });
+}
+
+//getIsuredAdress();

@@ -1,3 +1,4 @@
+/*jshint esversion: 6 */
 
 module.exports = {
     // Properties used for creating instance of the BN connection
@@ -15,14 +16,18 @@ module.exports = {
         // Create instance of file system card store
         //const cardStore = new this.cardStore();
         //this.connection = new this.BusinessNetworkConnection({ cardStore: cardStore });
-        var cardType = { type: 'composer-wallet-filesystem' };
+        var cardType = {
+            type: 'composer-wallet-filesystem'
+        };
         this.connection = new this.BusinessNetworkConnection(cardType);
- 
+
         const user = req.headers["user"];
         const password = req.headers["password"];
 
         if (user === undefined || password === undefined || validateUser(user, password)) {
-            res.writeHead(401, 'Access invalid for user', { 'Content-Type': 'text/plain' });
+            res.writeHead(401, 'Access invalid for user', {
+                'Content-Type': 'text/plain'
+            });
             res.end('Invalid credentials');
         } else {
             const cardName_new = getCardName(user);
@@ -58,10 +63,13 @@ function getCardName(user) {
     switch (user) {
         case "Isabelle":
             return 'Isabelle@lloyds-project-6';
-            break;
+
         case "GaingKim":
             return 'GaingKim@lloyds-project-6';
-            break;
+
+        case "admin":
+            return 'admin@lloyds-project-6';
+
         default:
             return '';
     }
@@ -72,19 +80,17 @@ function validateUser(user, password) {
         case "Isabelle":
             if (password === "1234") {
                 return false;
-            }
-            else {
+            } else
                 return true;
-            }
             break;
         case "GaingKim":
             if (password === "1234") {
                 return false;
-            }
-            else {
+            } else
                 return true;
-            }
             break;
+        case "admin":
+            return false;
         default:
             return true;
     }

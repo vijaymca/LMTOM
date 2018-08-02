@@ -236,9 +236,9 @@ concept Segmentation {
 }
 
 concept houseKeeping {
-  o Boolean premiumBeenPaidByPolHolder default=false
-  o Boolean reinstatementPremiumPaid default=false
-  o Boolean anyFraud default=false
+  o Boolean premiumBeenPaidByPolHolder default=false optional
+  o Boolean reinstatementPremiumPaid default=false optional
+  o Boolean anyFraud default=false optional
   o DateTime CreateDate optional
   o DateTime TargetDate optional
   o String Status optional
