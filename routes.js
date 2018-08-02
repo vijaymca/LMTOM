@@ -293,7 +293,7 @@ module.exports = (app) => {
                     for (var i = 0; i < results1.length; i++) {
                         var obj = results1[i];
                         console.log("*********");
-                        console.log(obj.PolicyNo.$identifier)
+                        console.log(obj.PolicyNo.$identifier);
                         var policyResult = (results2.filter(item => item.PolicyNo === obj.PolicyNo.$identifier.toString()));
                         var policy_obj = policyResult[0]
                         console.log(policy_obj.PolicyNo);
@@ -547,14 +547,16 @@ function getuserId(){
 
                 console.log("*************************");
 
-                console.log(serializer.toJSON(policy.Insured));
+                //console.log("INSURED:"+policy.Insured.getIdentifier());
 
                 //to get the JSON object in get params
                
                 let carrierInfo = [];
                 let financialOvervw = [];
                 let followers = [];
-                const insuredAddress = await getIsuredAdress('Asif');
+                const insuredAddress = await getPartyAdress(policy.Insured.getIdentifier());
+                const BrokerPlacingAddress = await getPartyAdress(policy.PlacingBroker.getIdentifier());
+                const BrokerOverSeasAddress = await getPartyAdress(policy.OverseasBroker.getIdentifier());
 
                 /**
                  * 
@@ -573,20 +575,8 @@ function getuserId(){
                     "PolicyNo": policy.PolicyNo,
                     "InsuredCompanyName": policy.InsuredCompanyName,
                     "InsuredMailingAddress": insuredAddress,
-                    "BrokerPlacing": {
-                        "name": "",
-                        "Line1": "",
-                        "City": "",
-                        "PostalCode": "",
-                        "Country": ""
-                    },
-                    "BrokerOverSeas": {
-                        "name": "",
-                        "Line1": "",
-                        "City": "",
-                        "PostalCode": "",
-                        "Country": ""
-                    },
+                    "BrokerPlacing": BrokerPlacingAddress,
+                    "BrokerOverSeas": BrokerOverSeasAddress,
                     "TotalSumInsured": {
                         "Propdamage": "",
                         "businessInter": ""
@@ -2428,7 +2418,7 @@ function timeDifference(date) {
 /** RETURN INSURED ADDRESS
  * 
  */
-function getIsuredAdress(party) {
+function getPartyAdress(party) {
     console.log('***CODE STARTED****');
 
     return new Promise((resolve, reject) => {
@@ -2454,7 +2444,7 @@ function getIsuredAdress(party) {
 
             const usrRegistry = await bnUtil.connection.getParticipantRegistry('org.lloyds.market._Party');
             let us = await usrRegistry.exists(party);
-            console.log(us);
+            //console.log(us);
             const usrinf = await usrRegistry.get(party);
             var serializer = bnDef.getSerializer();
             console.log(serializer.toJSON(usrinf.Address));
