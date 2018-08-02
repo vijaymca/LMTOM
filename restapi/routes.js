@@ -34,7 +34,7 @@ module.exports = (app) => {
     });
 
     app.get('/login', async (req, res, next) => {
-        //var jsonObj = [];
+        var jsonObj = [];
         console.log("1. ********* login")
         const user = req.headers["user"];
         const password = req.headers["password"];
@@ -101,7 +101,6 @@ module.exports = (app) => {
                             //console.log("User does not exists");
                             jsonObj.push({
                                 "Error": "Invalid User",
-
                             });
                             console.log("User does not exists", jsonObj);
                             resolve(jsonObj);
@@ -117,6 +116,7 @@ module.exports = (app) => {
     }
 
     app.get('/Claims', function (req, res) {
+        var jsonObj = [];
 
         const user = req.headers["user"];
         const password = req.headers["password"];
@@ -159,7 +159,6 @@ module.exports = (app) => {
                             "InsuredCompanyName": policy_obj.InsuredCompanyName,
                             "PolicyNo": policy_obj.PolicyNo,
                             "Day": obj.ClaimCreateDate.toString(),
-
                             "MovementDate": policy_obj.PolicyEffectiveDate,
 
                         });
@@ -188,6 +187,7 @@ module.exports = (app) => {
     });
 
     app.post('/Claim/new', (req, res) => {
+        var jsonObj = [];
         bnUtil.connect(req, () => {
             console.log("1. Claim/new");
             let PolicyRegistry = {};
@@ -212,6 +212,7 @@ module.exports = (app) => {
                 transaction.setPropertyValue('ClaimCreateDate', new Date(req.body.ClaimCreateDate));
                 transaction.setPropertyValue('ClaimDateofLoss', new Date(req.body.ClaimDateofLoss));
                 transaction.setPropertyValue('ClaimTargetDate', new Date(req.body.ClaimTargetDate));
+                transaction.setPropertyValue('ClaimEstimateLoss', req.body.ClaimEstimateLoss);
                 transaction.setPropertyValue('PolicyNo', req.body.PolicyNo);
                 transaction.setPropertyValue('owner', Policy.LeadCarrier.$identifier.toString());
                 transaction.setPropertyValue('LeadCarrier', Policy.LeadCarrier.$identifier.toString());
@@ -231,7 +232,6 @@ module.exports = (app) => {
                     bnUtil.disconnect();
                     jsonObj.push({
                         "status": "Transaction Submitted",
-
                     });
                     res.json({
                         jsonObj
@@ -241,7 +241,6 @@ module.exports = (app) => {
                     console.log(error);
                     jsonObj.push({
                         "error": error.toString(),
-
                     });
                     res.json({
                         jsonObj
@@ -309,8 +308,6 @@ module.exports = (app) => {
                             "PolicyStatus": policy_obj.PolicyStatus,
                             "ClaimActionRequired": obj.ClaimActionRequired,
                             "ClaimDateofLoss": obj.ClaimDateofLoss
-
-
                         });
                     }
 
@@ -383,16 +380,14 @@ module.exports = (app) => {
                     res.json({
                         jsonObj
                     });
-
                 });
-
-
             });
         });
     });
 
 
     app.get('/ClaimHistory', function (req, res) {
+        var jsonObj = [];
 
         console.log("********* ClaimHistory");
 
@@ -457,6 +452,7 @@ module.exports = (app) => {
     });
 
     app.get('/ClaimHistory/:ClaimNumber', function (req, res) {
+        var jsonObj = [];
         console.log("*********  ClaimInvestigate " + req.params.ClaimNumber);
 
         console.log("********* getClaimHistory");
@@ -603,6 +599,7 @@ module.exports = (app) => {
      * 
      */
     app.post('/Policies/new', (req, res) => {
+        var jsonObj = [];
 
         const policyNew = "policyNew";
         bnUtil.connect(req, (error) => {
@@ -670,6 +667,7 @@ module.exports = (app) => {
      * 
      */
     app.put('/Policies/update/:PolicyNo', (req, res) => {
+        var jsonObj = [];
         const trPolicy = "updatePolicy";
         bnUtil.connect(req, (error) => {
 
@@ -738,6 +736,7 @@ module.exports = (app) => {
      * 
      */
     app.put('/ClaimConflict/:ClaimNo', (req, res) => {
+        var jsonObj = [];
         const claimConflictTrans = "claimConflict";
         bnUtil.connect(req, (error) => {
 
@@ -824,6 +823,7 @@ module.exports = (app) => {
      * 
      */
     app.put('/ClaimPremiumCheck/update/:ClaimNo', (req, res) => {
+        var jsonObj = [];
 
         const claimPremCheck = "claimPremCheck";
         bnUtil.connect(req, (error) => {
@@ -922,6 +922,7 @@ module.exports = (app) => {
      * 
      */
     app.put('/ClaimSegment/update/:ClaimNo', (req, res) => {
+        var jsonObj = [];
         const claimSegment = "claimSegment";
         bnUtil.connect(req, (error) => {
 
@@ -987,6 +988,7 @@ module.exports = (app) => {
      * 
      */
     app.get('/ClaimSegment/:ClaimNo', (req, res) => {
+        var jsonObj = [];
         bnUtil.connect(req, () => {
             let claimRegistry = {};
             return bnUtil.connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
@@ -1060,6 +1062,7 @@ module.exports = (app) => {
      * 
      */
     app.put('/HouseKeepCheck/update/:ClaimNo', (req, res) => {
+        var jsonObj = [];
         const housekeep = "housekeep";
         bnUtil.connect(req, (error) => {
 
@@ -1124,6 +1127,7 @@ module.exports = (app) => {
      * 
      */
     app.put('/claimAdditionalInfo/update/:ClaimNo', (req, res) => {
+        var jsonObj = [];
         const addInfo = "claimAddtionalInfo";
         bnUtil.connect(req, async (error) => {
 
@@ -1190,6 +1194,7 @@ module.exports = (app) => {
 
     //Update the Claim SettlementAmt
     app.put('/UpdateClaimQuery/:ClaimNo', (req, res) => {
+        var jsonObj = [];
 
         const transactionName = "TransactionClaimQuery";
         bnUtil.connect(req, (error) => {
@@ -1250,6 +1255,7 @@ module.exports = (app) => {
 
     //Update the Claim SettlementAmt
     app.put('/UpdateClaimQueryStatus/:ClaimNo', (req, res) => {
+        var jsonObj = [];
 
         const transactionName = "TransactionClaimSettlementAmountStatus";
         bnUtil.connect(req, (error) => {
@@ -1307,6 +1313,7 @@ module.exports = (app) => {
 
     //Update the Claim SettlementAmt
     app.put('/UpdateClaimExpertOpinion/:ClaimNo', (req, res) => {
+        var jsonObj = [];
 
         const transactionName = "TransactionClaimExpertOpinion";
         bnUtil.connect(req, (error) => {
@@ -1367,6 +1374,7 @@ module.exports = (app) => {
 
     //Update the Claim SettlementAmt
     app.put('/UpdateClaimExpertOpinionStatus/:ClaimNo', (req, res) => {
+        var jsonObj = [];
 
         const transactionName = "TransactionClaimExpertOpinionStatus";
         bnUtil.connect(req, (error) => {
@@ -1424,6 +1432,7 @@ module.exports = (app) => {
 
     //Update the Claim SettlementAmt
     app.put('/PolicyholderApproval/:ClaimNo', (req, res) => {
+        var jsonObj = [];
 
         const transactionName = "TransactionUpdateClaimMode";
         bnUtil.connect(req, (error) => {
@@ -1482,9 +1491,9 @@ module.exports = (app) => {
 
     //Update the Claim SettlementAmt
     app.put('/ClaimAcknowledge/:ClaimNo', (req, res) => {
+        var jsonObj = [];
 
         const transactionName = "TransactionUpdateClaimMode";
-        var jsonObj = [];
         bnUtil.connect(req, (error) => {
 
             // Check for error
@@ -1606,9 +1615,7 @@ module.exports = (app) => {
     });
 
     app.get('/MyCases', (req, res) => {
-
         var jsonObj = [];
-
         const user = req.headers["user"];
         bnUtil.connect(req, () => {
             let bnDef = bnUtil.connection.getBusinessNetwork();
@@ -1647,7 +1654,7 @@ module.exports = (app) => {
 
                         if (obj.ClaimMode != null) {
                             let Status;
-                            if (obj.ClaimMode == "Conflict Of Interest") {
+                            if (obj.ClaimMode == "ConflictofInterest") {
                                 Status = "Pending";
                             } else {
                                 Status = "Completed";
@@ -1716,10 +1723,6 @@ module.exports = (app) => {
 
                             });
                         }
-
-
-
-
                         jsonObj.push({
 
                             "owner": owner,
@@ -1822,18 +1825,26 @@ module.exports = (app) => {
                     var policy_obj = results2[0]
                     let details = [];
                     if (obj.ClaimSettlementAmount != null) {
+
+                        let Status;
+                        if (obj.ClaimSettlementAmount.Status != "Completed") {
+                            Status = "Pending";
+                        } else {
+                            Status = "Agreed";
+                        }
                         details.push({
                             "PartyName": policy_obj.InsuredCompanyName,
                             "PartyType": "Policyholder",
                             "SettlementAmount": obj.ClaimSettlementAmount.Amount,
-                            "Confirmation": obj.ClaimSettlementAmount.Status,
+                            "Confirmation": Status,
+                        });
+                        jsonObj.push({
+                            "Lead": obj.LeadCarrier.$identifier.toString(),
+                            "SettlementAmount": obj.ClaimSettlementAmount.Amount,
+                            details
                         });
                     }
-                    jsonObj.push({
-                        "Lead": obj.LeadCarrier.$identifier.toString(),
-                        "SettlementAmount": obj.ClaimSettlementAmount.Amount,
-                        details
-                    });
+
                     console.log("***********getClaimSettlement ends**************")
                     res.json({
                         jsonObj
@@ -1893,21 +1904,23 @@ module.exports = (app) => {
                 }).then((results2) => {
                     console.log('2. Received results2: ', results2);
                     var policy_obj = results2[0]
+
                     if (obj.segmnt != null) {
+                        let CSType = "SCAP";
                         let table = [];
-
-
+                        if (obj.ClaimEstimateLoss != undefined && parseInt(obj.ClaimEstimateLoss) > 250000) {
+                            CSType = "Non SCAP";
+                        }
                         table.push({
                             "Name": obj.segmnt.name.$identifier.toString(),
                             "Role": obj.segmnt.role,
                             "Date": obj.segmnt.segDate,
                         });
                         ClaimSegmentation.push({
-                            "CSType": "SCAP",
+                            "CSType": CSType,
                             "Name": "Claim Segmentation",
                             table
                         });
-
                         jsonObj.push({
                             ClaimSegmentation
                         });
@@ -1915,18 +1928,16 @@ module.exports = (app) => {
                     if (obj.ClaimExpertOpinion != null) {
                         ClaimExpertOpinion = obj.ClaimExpertOpinion.ClaimExpertOpinion;
                     }
-
                     if (obj.ClaimQuery != null) {
                         ClaimQuery = obj.ClaimQuery.ClaimQuery;
                     }
-
-                    if (obj.ClaimMode != "Pending") {
-                        ClaimAckBy = obj.LeadCarrier.$identifier.toString();
+                    if (obj.ClaimMode != "ConflictofInterest") {
+                        ClaimAckBy = obj.owner.$identifier.toString();
                     }
 
                     if (obj.additionalInfo != null) {
                         AdditionalInfo.push({
-                            "Name": obj.LeadCarrier.$identifier.toString(),
+                            "Name": obj.owner.$identifier.toString(),
                         });
                         for (var i = 0; i < obj.additionalInfo.length; i++) {
                             let infoObj = obj.additionalInfo[i]
@@ -1946,27 +1957,6 @@ module.exports = (app) => {
                             AdditionalInfo
                         });
                     }
-
-
-
-                    if (obj.additionalInfo == null) {
-                        let table = [];
-                        table.push({
-                            "PartyName": obj.LeadCarrier.$identifier.toString(),
-                            "PartyType": "Palcing Broker",
-                            "Details": "Please send KYC",
-                            "Status": "Pending",
-                            "ReceivedOn": new Date(),
-                        });
-                        AdditionalInfo.push({
-                            "Name": obj.LeadCarrier.$identifier.toString(),
-                            table
-                        });
-                        jsonObj.push({
-                            AdditionalInfo
-                        });
-                    }
-
                     console.log("***********ClaimEvaluation ends**************")
                     res.json({
                         ClaimSegmentation,
@@ -2108,6 +2098,7 @@ module.exports = (app) => {
 
     //Update the Claim SettlementAmt
     app.put('/UpdateSettlementAmt/:ClaimNo', (req, res) => {
+        var jsonObj = [];
 
         const transactionName = "TransactionClaimQuery";
         bnUtil.connect(req, (error) => {
@@ -2168,7 +2159,7 @@ module.exports = (app) => {
 
     //Update the Claim SettlementAmt
     app.put('/UpdateSettlementAmtStatus/:ClaimNo', (req, res) => {
-
+        var jsonObj = [];
         const transactionName = "TransactionClaimSettlementAmountStatus";
         bnUtil.connect(req, (error) => {
 
@@ -2436,4 +2427,39 @@ function timeDifference(date) {
         return interval + " minutes";
     }
     return Math.floor(seconds) + " seconds";
+}
+
+
+async function getUserName(party, password) {
+    return new Promise((resolve, reject) => {
+        connection.connect(cardName).then(function () {
+            console.log("Fetching uset details for user ", party);
+
+            connection.getParticipantRegistry('org.lloyds.market._Party')
+                .then(function (playerRegistry) {
+                    return playerRegistry.exists(party);
+                })
+                .then(function (exists) {
+                    if (exists) {
+                        console.log("user exists");
+                        return connection.getParticipantRegistry('org.lloyds.market._Party')
+                            .then(function (assetRegistry) {
+                                return assetRegistry.get(party);
+                            })
+                            .then(function (user) {
+                                return(user.Name);
+
+                            });
+
+                    } else {
+                        return(party);
+                    }
+
+                });
+
+        });
+
+
+    });
+
 }

@@ -256,6 +256,7 @@ asset Claim identified by ClaimNo {
     --> _Party owner
     o DateTime ClaimUpdateDate optional
     o String ClaimNotes optional
+    o Integer ClaimEstimateLoss optional
 
     o _ClaimSettlementAmount ClaimSettlementAmount optional
     o _ClaimAdditionalInformation ClaimAdditionalInformation optional

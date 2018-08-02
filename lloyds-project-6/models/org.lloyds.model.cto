@@ -50,6 +50,7 @@ transaction CreateClaim {
     o   DateTime  ClaimCreateDate
     o   DateTime  ClaimDateofLoss
     o   DateTime  ClaimTargetDate
+    o   Integer   ClaimEstimateLoss
     o   String    PolicyNo
     o   String    owner default="admin"
     o   String    LeadCarrier default="admin"
