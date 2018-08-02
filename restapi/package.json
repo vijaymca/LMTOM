@@ -17,6 +17,7 @@
     "composer-cucumber-steps": "^0.19.6",
     "connect": "~2.14.4",
     "cucumber": "^2.2.0",
+    "date-format": "^1.2.0",
     "dateformat": "^3.0.3",
     "eslint": "latest",
     "express": "^4.16.3",

@@ -211,7 +211,7 @@ concept _follower {
 }
 
 enum ClaimType {
-    o Open
+  o Conflict Of Interest
   o Pending
   o Approved
   o Reject

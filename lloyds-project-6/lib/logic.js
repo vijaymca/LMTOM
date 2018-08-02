@@ -69,7 +69,7 @@ function createclaim(claimData) {
                   var claim = factory.newResource('org.lloyds.market', 'Claim', claimData.ClaimNo);
 
                   claim.ClaimCreatedBy = claimData.ClaimCreatedBy;
-                  claim.ClaimMode = claimData.ClaimMode;
+                  claim.ClaimMode = "Conflict Of Interest";
                   claim.ClaimDetails1 = claimData.ClaimDetails1;
                   claim.ClaimDetails2 = claimData.ClaimDetails2;
                   claim.ClaimPremiumStatus = claimData.ClaimPremiumStatus;

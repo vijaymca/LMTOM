@@ -38,23 +38,24 @@ module.exports = (app) => {
         console.log("1. ********* login")
         const user = req.headers["user"];
         const password = req.headers["password"];
-        console.log("2. ********* login1", user)
+        console.log("2. ********* login1", user);
         if (user === undefined || password === undefined) { // || validateUser(user, password)) {
-            res.writeHead(401, 'Access invalid for user', { 'Content-Type': 'text/plain' });
+            res.writeHead(401, 'Access invalid for user', {
+                'Content-Type': 'text/plain'
+            });
 
             res.end('Invalid credentials');
-        }
-        else {
-            console.log("3. ********* login2")
-            const party = await fetchDetails(user, password)
-            console.log("3. ********* login2")
+        } else {
+            console.log("3. ********* login2");
+            const party = await fetchDetails(user, password);
+            console.log("3. ********* login2");
             res.json(party);
 
         }
     });
 
     async function fetchDetails(user, password) {
-        const details = await getUserDetails(user, password)
+        const details = await getUserDetails(user, password);
         console.log("After await --> ", details);
         connection.disconnect();
         return details;
@@ -69,7 +70,7 @@ module.exports = (app) => {
 
                 connection.getParticipantRegistry('org.lloyds.market._Party')
                     .then(function (playerRegistry) {
-                        return playerRegistry.exists(party)
+                        return playerRegistry.exists(party);
                     })
                     .then(function (exists) {
                         if (exists) {
@@ -88,17 +89,15 @@ module.exports = (app) => {
                                             "Email": user.Email,
                                         });
                                         resolve(jsonObj);
-                                    }
-                                    else {
+                                    } else {
                                         jsonObj.push({
                                             "Error": "Incorrect Password",
                                         });
                                         resolve(jsonObj);
                                     }
-                                })
+                                });
 
-                        }
-                        else {
+                        } else {
                             //console.log("User does not exists");
                             jsonObj.push({
                                 "Error": "Invalid User",
@@ -226,6 +225,7 @@ module.exports = (app) => {
                 transaction.setPropertyValue('Followers3', Policy.Followers3.$identifier.toString());
                 transaction.setPropertyValue('Followers4', Policy.Followers4.$identifier.toString());
 
+                // 6. Submit the transaction
                 return bnUtil.connection.submitTransaction(transaction).then(() => {
                     console.log("3. Transaction Submitted/Processed Successfully!!");
                     bnUtil.disconnect();
@@ -349,12 +349,14 @@ module.exports = (app) => {
         var claim_obj;
         var policy_obj;
         bnUtil.connect(req, () => {
-            let policyRegistry = {}
+            let policyRegistry = {};
             var statement1 = 'SELECT  org.lloyds.market.Claim WHERE (ClaimNo == _$id)';
-            var qry = bnUtil.connection.buildQuery(statement1)
+            var qry = bnUtil.connection.buildQuery(statement1);
             //console.log(qry);
-            console.log("*************ClaimInvestigate************")
-            return bnUtil.connection.query(qry, { id: req.params.ClaimNumber }).then((results1) => {
+            console.log("*************ClaimInvestigate************");
+            return bnUtil.connection.query(qry, {
+                id: req.params.ClaimNumber
+            }).then((results1) => {
 
                 let bnDef = bnUtil.connection.getBusinessNetwork();
                 console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
@@ -362,7 +364,9 @@ module.exports = (app) => {
                 var qry = bnUtil.connection.buildQuery(statement2)
                 console.log(qry);
                 var obj = results1[0];
-                return bnUtil.connection.query(qry, { id: obj.PolicyNo.$identifier }).then((results2) => {
+                return bnUtil.connection.query(qry, {
+                    id: obj.PolicyNo.$identifier
+                }).then((results2) => {
                     console.log('2. Received results2: ', results2[0]);
                     var policy_obj = results2[0];
                     console.log(policy_obj.PolicyNo);
@@ -517,9 +521,10 @@ module.exports = (app) => {
         }
     });
     /** GET POLICY INFORMATION
-         * 
-         */
+     * 
+     */
     app.get('/getPolicy/:PolicyNo', (req, res) => {
+        let jsonObj = [];
         bnUtil.connect(req, () => {
             let policyRegistry = {};
             return bnUtil.connection.getAssetRegistry(NS_POLICY).then((registry) => {
@@ -530,7 +535,7 @@ module.exports = (app) => {
                 if (!policy) console.log(req.params.PolicyNo + 'Not found');
 
                 console.log("*************************");
-                console.log(policy);
+                //console.log(policy);
 
                 const bnDef = bnUtil.connection.getBusinessNetwork();
 
@@ -564,10 +569,20 @@ module.exports = (app) => {
                         "Propdamage": "",
                         "businessInter": ""
                     },
-                    "Sublimits": serializer.toJSON(policy.sublimits)
+                    "FinancialOverview": {
+                        "Premium": "",
+                        "BrokerComm": "",
+                        "overSeas": "",
+                        "FeeFro": "NA",
+                        "Fee3rd": "NA",
+                        "FeeOther": ""
+                    },
+                    "followers": []
+                    // "Sublimits": serializer.toJSON(policy.sublimits)
                 });
-                console.log("*************************");
-                console.log(jsonObj);
+
+                //console.log("*************************");
+                // console.log(jsonObj);
                 res.json({
                     jsonObj
                 });
@@ -584,6 +599,9 @@ module.exports = (app) => {
         });
     });
 
+    /** POST -> NEW POLICY
+     * 
+     */
     app.post('/Policies/new', (req, res) => {
 
         const policyNew = "policyNew";
@@ -648,12 +666,10 @@ module.exports = (app) => {
         });
     });
 
-    /**
-     * 
+    /** PUT -> UPDATE POLICY
      * 
      */
     app.put('/Policies/update/:PolicyNo', (req, res) => {
-
         const trPolicy = "updatePolicy";
         bnUtil.connect(req, (error) => {
 
@@ -755,7 +771,7 @@ module.exports = (app) => {
                 claimRegistry = registry;
                 return claimRegistry.get(req.params.ClaimNo);
             }).then((claim) => {
-                console.log("claim:" + claim);
+                console.log("Comment:" + req.body.data.comment);
 
                 if (!claim) console.log(req.params.ClaimNo + 'Not found');
 
@@ -770,7 +786,7 @@ module.exports = (app) => {
                     if (req.body.data.ClaimMode === 'Approved') {
                         transaction.ClaimMode = "Approved";
                         transaction.owner = policy.LeadCarrier;
-
+                        transaction.comment = req.body.data.comment;
                     } else {
                         transaction.owner = claim.Followers1;
                         transaction.comment = req.body.data.comment;
@@ -783,6 +799,12 @@ module.exports = (app) => {
                     return bnUtil.connection.submitTransaction(transaction).then(() => {
                         console.log("6. Transaction Submitted/Processed Successfully!!");
                         bnUtil.connection.disconnect();
+                        jsonObj.push({
+                            "status": "Transaction Submitted",
+                        });
+                        res.json({
+                            jsonObj
+                        });
                     });
                 });
             }).catch((error) => {
@@ -798,7 +820,7 @@ module.exports = (app) => {
         });
     });
 
-/** PUT -> UPDATE CLAIM PREMIUM CHECK
+    /** PUT -> UPDATE CLAIM PREMIUM CHECK
      * 
      */
     app.put('/ClaimPremiumCheck/update/:ClaimNo', (req, res) => {
@@ -840,24 +862,31 @@ module.exports = (app) => {
             // 6. Submit the transaction
             return bnUtil.connection.submitTransaction(transaction).then(() => {
                 console.log("6. Transaction Submitted/Processed Successfully!!");
-                bnUtil.connection.disconnect();
+                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
+                res.json({
+                    jsonObj
+                });
             }).catch((error) => {
                 console.log(error);
                 jsonObj.push({
                     "error": error.toString()
                 });
-                bnUtil.connection.disconnect();
+                bnUtil.disconnect();
                 res.json({
                     jsonObj
                 });
             });
         });
     });
-    
-      /** GET -> PREMIUMCHECK DETAILS
+
+    /** GET -> PREMIUMCHECK DETAILS
      * 
      */
-        app.get('/ClaimPremiumCheck/:ClaimNo', (req, res) => {
+    app.get('/ClaimPremiumCheck/:ClaimNo', (req, res) => {
+        let jsonObj = [];
         bnUtil.connect(req, () => {
             let claimRegistry = {};
             return bnUtil.connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
@@ -884,11 +913,12 @@ module.exports = (app) => {
                 res.json({
                     jsonObj
                 });
+                bnUtil.disconnect();
             });
         });
     });
 
- /** PUT -> UPDATE SEGMENTATION INFORMATION
+    /** PUT -> UPDATE SEGMENTATION INFORMATION
      * 
      */
     app.put('/ClaimSegment/update/:ClaimNo', (req, res) => {
@@ -921,24 +951,31 @@ module.exports = (app) => {
 
             const segmentation = factory.newConcept(NS, 'Segmentation');
             let relationship = factory.newRelationship(NS, PRTCP_PARTY, req.body.data.user);
-
             segmentation.name = relationship;
             segmentation.role = req.body.data.role;
             segmentation.office = req.body.data.office;
             segmentation.segDate = new Date(req.body.data.segDate);
+            segmentation.CreateDate = new Date(req.body.data.CreateDate);
+            segmentation.TargetDate = new Date(req.body.data.TargetDate);
 
             transaction.segmnt = segmentation;
 
             // 6. Submit the transaction
             return bnUtil.connection.submitTransaction(transaction).then(() => {
                 console.log("6. Transaction Submitted/Processed Successfully!!");
-                bnUtil.connection.disconnect();
+                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
+                res.json({
+                    jsonObj
+                });
             }).catch((error) => {
                 console.log(error);
                 jsonObj.push({
                     "error": error.toString()
                 });
-                bnUtil.connection.disconnect();
+                bnUtil.disconnect();
                 res.json({
                     jsonObj
                 });
@@ -946,7 +983,7 @@ module.exports = (app) => {
         });
     });
 
-     /** GET -> SEGMENTATION DETAILS
+    /** GET -> SEGMENTATION DETAILS
      * 
      */
     app.get('/ClaimSegment/:ClaimNo', (req, res) => {
@@ -976,6 +1013,7 @@ module.exports = (app) => {
                 res.json({
                     jsonObj
                 });
+                bnUtil.disconnect();
             });
         });
     });
@@ -985,6 +1023,7 @@ module.exports = (app) => {
      * 
      */
     app.get('/HouseKeepCheck/:ClaimNo', (req, res) => {
+        let jsonObj = [];
         bnUtil.connect(req, () => {
             let claimRegistry = {};
             return bnUtil.connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
@@ -1004,13 +1043,14 @@ module.exports = (app) => {
 
                 jsonObj.push({
                     "ClaimNo": claim.ClaimNo,
-                    "checkPremium": serializer.toJSON(claim.houseKeeping)
+                    "houseKeeping": serializer.toJSON(claim.houseKeeping)
                 });
                 console.log("*************************");
                 console.log(jsonObj);
                 res.json({
                     jsonObj
                 });
+                bnUtil.disconnect();
             });
         });
     });
@@ -1051,18 +1091,27 @@ module.exports = (app) => {
             houseKeeping.premiumBeenPaidByPolHolder = req.body.data.premiumBeenPaidByPolHolder;
             houseKeeping.reinstatementPremiumPaid = req.body.data.reinstatementPremiumPaid;
             houseKeeping.anyFraud = req.body.data.anyFraud;
+            houseKeeping.CreateDate = new Date(req.body.data.CreateDate);
+            houseKeeping.TargetDate = new Date(req.body.data.TargetDate);
+            houseKeeping.Status = req.body.data.status;
             transaction.housekeep = houseKeeping;
 
             // 6. Submit the transaction
             return bnUtil.connection.submitTransaction(transaction).then(() => {
                 console.log("6. Transaction Submitted/Processed Successfully!!");
-                bnUtil.connection.disconnect();
+                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
+                res.json({
+                    jsonObj
+                });
             }).catch((error) => {
                 console.log(error);
                 jsonObj.push({
                     "error": error.toString()
                 });
-                bnUtil.connection.disconnect();
+                bnUtil.disconnect();
                 res.json({
                     jsonObj
                 });
@@ -1070,7 +1119,7 @@ module.exports = (app) => {
         });
     });
 
-    /**
+    /** PUT -> ADDITIONAL INFORMATION
      * 
      * 
      */
@@ -1117,13 +1166,20 @@ module.exports = (app) => {
             // 6. Submit the transaction
             return bnUtil.connection.submitTransaction(transaction).then(() => {
                 console.log("6. Transaction Submitted/Processed Successfully!!");
-                bnUtil.connection.disconnect();
+                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
+                res.json({
+                    jsonObj
+                });
+
             }).catch((error) => {
                 console.log(error);
                 jsonObj.push({
                     "error": error.toString()
                 });
-                bnUtil.connection.disconnect();
+                bnUtil.disconnect();
                 res.json({
                     jsonObj
                 });
@@ -1366,8 +1422,6 @@ module.exports = (app) => {
         });
     });
 
-
-
     //Update the Claim SettlementAmt
     app.put('/PolicyholderApproval/:ClaimNo', (req, res) => {
 
@@ -1430,6 +1484,7 @@ module.exports = (app) => {
     app.put('/ClaimAcknowledge/:ClaimNo', (req, res) => {
 
         const transactionName = "TransactionUpdateClaimMode";
+        var jsonObj = [];
         bnUtil.connect(req, (error) => {
 
             // Check for error
@@ -1486,13 +1541,40 @@ module.exports = (app) => {
     app.get('/MyPolicy', (req, res) => {
 
         var jsonObj = [];
-        var results1;
-        var results2;
-        var claim_obj;
-        var policy_obj;
-        bnUtil.connect(req, () => {
-            let policyRegistry = {}
 
+        bnUtil.connect(req, () => {
+            var statement2 = 'SELECT org.lloyds.market.Policy';
+            var qry = bnUtil.connection.buildQuery(statement2)
+            console.log(qry);
+            return bnUtil.connection.query(qry).then((results2) => {
+                console.log('2. Received results2: ', results2);
+                for (var i = 0; i < results2.length; i++) {
+                    var obj = results2[i];
+                    console.log("*********");
+                    jsonObj.push({
+                        "PolicyHolder": obj.InsuredCompanyName,
+
+                        "PolicyNo": obj.PolicyNo,
+                        "PolicyEffectiveDate": dateFormat(obj.PolicyEffectiveDate),
+                        "PolicyExpiryDate": dateFormat(obj.PolicyExpiryDate),
+                        "PolicyLOB": obj.PolicyType,
+                        "PolicyStatus": "Active",
+                    });
+                }
+                console.log("*************************")
+                res.json({
+                    jsonObj
+                });
+
+            });
+        });
+    });
+
+    app.get('/tamycases', (req, res) => {
+
+        var jsonObj = [];
+
+        bnUtil.connect(req, () => {
             var statement2 = 'SELECT org.lloyds.market.Policy';
             var qry = bnUtil.connection.buildQuery(statement2)
             console.log(qry);
@@ -1505,13 +1587,13 @@ module.exports = (app) => {
                     var obj = results2[i];
                     console.log("*********");
                     jsonObj.push({
-                        "PolicyHolder": obj.InsuredCompanyName,
-
+                        "Insured": obj.InsuredCompanyName,
                         "PolicyNo": obj.PolicyNo,
-                        "PolicyEffectiveDate": obj.PolicyEffectiveDate,
-                        "PolicyExpiryDate": obj.PolicyExpiryDate,
-                        "PolicyLOB": obj.PolicyType,
-                        "PolicyStatus": obj.PolicyStatus,
+                        "CreateDate": dateFormat(obj.PolicyEffectiveDate),
+                        "Urgency": ((Math.abs(obj.PolicyExpiryDate) - new Date()) / 36e5).toFixed(),
+                        "TargetDate": dateFormat(obj.PolicyExpiryDate),
+                        "Status": "Pending",
+
                     });
                 }
                 console.log("*************************")
@@ -1520,24 +1602,17 @@ module.exports = (app) => {
                 });
 
             });
-
-
-            // });
         });
     });
 
     app.get('/MyCases', (req, res) => {
 
         var jsonObj = [];
-        var results1;
-        var results2;
-        var claim_obj;
-        var policy_obj;
+
         const user = req.headers["user"];
         bnUtil.connect(req, () => {
             let bnDef = bnUtil.connection.getBusinessNetwork();
             console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
-            let policyRegistry = {}
             var serializer = bnDef.getSerializer();
             var statement1 = 'SELECT org.lloyds.market.Claim';
             var qry = bnUtil.connection.buildQuery(statement1)
@@ -1548,7 +1623,7 @@ module.exports = (app) => {
                 var qry = bnUtil.connection.buildQuery(statement2)
                 console.log(qry);
                 return bnUtil.connection.query(qry).then((results2) => {
-                    console.log('2. Received results2: ', results2);
+                    // console.log('2. Received results2: ', results2);
 
                     for (var i = 0; i < results1.length; i++) {
                         let details = [];
@@ -1562,72 +1637,19 @@ module.exports = (app) => {
 
                         }
 
-
-
-                        console.log(obj.PolicyNo.$identifier)
+                        //console.log(obj.PolicyNo.$identifier)
                         var policyResult = (results2.filter(item => item.PolicyNo === obj.PolicyNo.$identifier.toString()));
                         var policy_obj = policyResult[0]
+
+                        console.log(obj.ClaimCreateDate);
+
                         console.log(policy_obj.PolicyNo);
-
-                        if (obj.ClaimSettlementAmount != null) {
-                            details.push({
-                                "Name": "Claim Settlement",
-                                "ClaimNo": obj.ClaimNo,
-                                "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": obj.ClaimSettlementAmount.CreateDate,
-                                "Urgency": timeDifference(obj.ClaimSettlementAmount.TargetDate),
-                                "TargetDate": obj.ClaimSettlementAmount.TargetDate,
-                                "Status": obj.ClaimSettlementAmount.Status
-                            });
-
-                        }
-
-                        if (obj.ClaimExpertOpinion != null) {
-
-                            details.push({
-                                "Name": "Claim Expert Opinion",
-                                "ClaimNo": obj.ClaimNo,
-                                "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": obj.ClaimExpertOpinion.CreateDate,
-                                "Urgency": timeDifference(obj.ClaimExpertOpinion.TargetDate),
-                                "TargetDate": obj.ClaimExpertOpinion.TargetDate,
-                                "Status": obj.ClaimExpertOpinion.Status
-
-                            });
-                        }
-
-                        if (obj.ClaimQuery != null) {
-                            details.push({
-                                "Name": "Claim Query",
-                                "ClaimNo": obj.ClaimNo,
-                                "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": obj.ClaimQuery.CreateDate,
-                                "Urgency": timeDifference(obj.ClaimQuery.TargetDate),
-                                "TargetDate": obj.ClaimQuery.TargetDate,
-                                "Status": obj.ClaimQuery.Status
-
-                            });
-                        }
-
-                        if (obj.segmnt != null) { // to do 
-                            details.push({
-                                "Name": "Claim Segmentation",
-                                "ClaimNo": obj.ClaimNo,
-                                "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": obj.ClaimCreateDate,
-                                "Urgency": timeDifference(obj.ClaimTargetDate),
-                                "TargetDate": obj.ClaimTargetDate,
-                                "Status": obj.ClaimMode,
-
-                            });
-                        }
 
                         if (obj.ClaimMode != null) {
                             let Status;
-                            if (obj.ClaimMode == "Pending") {
+                            if (obj.ClaimMode == "Conflict Of Interest") {
                                 Status = "Pending";
-                            }
-                            else {
+                            } else {
                                 Status = "Completed";
                             }
 
@@ -1635,61 +1657,68 @@ module.exports = (app) => {
                                 "Name": "Conflict Of Interest",
                                 "ClaimNo": obj.ClaimNo,
                                 "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": obj.ClaimCreateDate,
-                                "Urgency": timeDifference(obj.ClaimTargetDate),
-                                "TargetDate": obj.ClaimTargetDate,
+                                "CreateDate": dateFormat(obj.ClaimCreateDate),
+                                "Urgency": ((Math.abs(obj.ClaimTargetDate) - new Date()) / 36e5).toFixed(),
+                                "TargetDate": dateFormat(obj.ClaimTargetDate),
                                 "Status": Status,
 
                             });
                         }
-                        if (obj.claimEvaluation != null) {
+
+                        if (obj.segmnt != null) { // to do 
                             details.push({
                                 "Name": "Claim Evaluation",
                                 "ClaimNo": obj.ClaimNo,
                                 "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": obj.ClaimCreateDate,
-                                "Urgency": timeDifference(obj.ClaimTargetDate),
-                                "TargetDate": obj.ClaimTargetDate,
-                                "Status": obj.ClaimMode,
+                                "CreateDate": dateFormat(obj.segmnt.CreateDate),
+                                "Urgency": ((Math.abs(obj.segmnt.TargetDate) - new Date()) / 36e5).toFixed(),
+                                "TargetDate": dateFormat(obj.segmnt.TargetDate),
+                                "Status": "Completed",
 
                             });
                         }
-                        if (obj.checkPremium != null) {
+
+                        if (obj.ClaimSettlementAmount != null) {
+                            details.push({
+                                "Name": "Claim Settlement",
+                                "ClaimNo": obj.ClaimNo,
+                                "PolicyNo": policy_obj.PolicyNo,
+                                "CreateDate": dateFormat(obj.ClaimSettlementAmount.CreateDate),
+                                "Urgency": ((Math.abs(obj.ClaimSettlementAmount.TargetDate) - new Date()) / 36e5).toFixed(),
+                                "TargetDate": dateFormat(obj.ClaimSettlementAmount.TargetDate),
+                                "Status": obj.ClaimSettlementAmount.Status
+                            });
+
+                        }
+
+                        if (obj.checkPremium != null) { // to do 
                             details.push({
                                 "Name": "premium Check",
                                 "ClaimNo": obj.ClaimNo,
                                 "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": obj.CreateDate,
-                                "Urgency": timeDifference(obj.TargetDate),
-                                "TargetDate": obj.TargetDate,
-                                "Status": obj.checkPremium.Status
+                                "CreateDate": dateFormat(obj.ClaimCreateDate),
+                                "Urgency": ((Math.abs(obj.ClaimTargetDate) - new Date()) / 36e5).toFixed(),
+                                "TargetDate": dateFormat(obj.ClaimTargetDate),
+                                "Status": "Completed",
 
                             });
                         }
-                        if (obj.additionalInfo != null) {
-                            details.push({
-                                "Name": "Additional Information",
-                                "ClaimNo": obj.ClaimNo,
-                                "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": obj.additionalInfo.CreateDate,
-                                "Urgency": timeDifference(obj.additionalInfo.TargetDate),
-                                "TargetDate": obj.additionalInfo.TargetDate,
-                                "Status": obj.additionalInfo.Status
 
-                            });
-                        }
                         if (obj.houseKeeping != null) {
                             details.push({
                                 "Name": "House Keeping",
                                 "ClaimNo": obj.ClaimNo,
                                 "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": obj.CreateDate,
-                                "Urgency": timeDifference(obj.TargetDate),
-                                "TargetDate": obj.TargetDate,
+                                "CreateDate": dateFormat(obj.houseKeeping.CreateDate),
+                                "Urgency": ((Math.abs(obj.houseKeeping.TargetDate) - new Date()) / 36e5).toFixed(),
+                                "TargetDate": dateFormat(obj.houseKeeping.TargetDate),
                                 "Status": obj.houseKeeping.Status
 
                             });
                         }
+
+
+
 
                         jsonObj.push({
 
@@ -1698,9 +1727,9 @@ module.exports = (app) => {
                             "InsuredCompanyName": policy_obj.InsuredCompanyName,
                             "ClaimNo": obj.ClaimNo,
                             "PolicyNo": policy_obj.PolicyNo,
-                            "ClaimCreateDate": obj.ClaimCreateDate.toString("yyyyMMdd").replace(/T/, ' ').replace(/\..+/, ''),
-                            "ClaimUrgency": timeDifference(obj.ClaimTargetDate),
-                            "ClaimTargetDate": obj.ClaimTargetDate,
+                            "ClaimCreateDate": dateFormat(obj.ClaimCreateDate),
+                            "ClaimUrgency": ((Math.abs(obj.ClaimTargetDate) - new Date()) / 36e5).toFixed(),
+                            "ClaimTargetDate": dateFormat(obj.ClaimTargetDate),
                             "ClaimMode": obj.ClaimMode,
                             "details": details,
 
@@ -1724,7 +1753,9 @@ module.exports = (app) => {
             var qry = connection.buildQuery(statement1)
             //console.log(qry);
             console.log("*************ClaimInvestigate************")
-            return connection.query(qry, { id: req.params.ClaimNumber }).then((results1) => {
+            return connection.query(qry, {
+                id: req.params.ClaimNumber
+            }).then((results1) => {
                 var obj = results1[0];
                 jsonObj.push({
                     "ClaimDetails1": obj.ClaimDetails1,
@@ -1744,7 +1775,9 @@ module.exports = (app) => {
             var statement1 = 'SELECT  org.lloyds.market.Claim WHERE (ClaimNo == _$id)';
             var qry = connection.buildQuery(statement1)
             console.log("*************claimparties************")
-            return connection.query(qry, { id: req.params.ClaimNumber }).then((results1) => {
+            return connection.query(qry, {
+                id: req.params.ClaimNumber
+            }).then((results1) => {
                 var obj = results1[0];
                 jsonObj.push({
                     "ClaimNumber": req.params.ClaimNumber,
@@ -1775,12 +1808,16 @@ module.exports = (app) => {
             var statement1 = 'SELECT  org.lloyds.market.Claim WHERE (ClaimNo == _$id)';
             var qry = connection.buildQuery(statement1)
             console.log("************getClaimSettlement*************")
-            return connection.query(qry, { id: req.params.ClaimNumber }).then((results1) => {
+            return connection.query(qry, {
+                id: req.params.ClaimNumber
+            }).then((results1) => {
                 var obj = results1[0];
                 var statement2 = 'SELECT  org.lloyds.market.Policy WHERE (PolicyNo == _$id)';
                 var qry = connection.buildQuery(statement2)
                 console.log(qry);
-                return connection.query(qry, { id: obj.PolicyNo.$identifier.toString() }).then((results2) => {
+                return connection.query(qry, {
+                    id: obj.PolicyNo.$identifier.toString()
+                }).then((results2) => {
                     console.log('2. Received results2: ', results2);
                     var policy_obj = results2[0]
                     let details = [];
@@ -1815,7 +1852,9 @@ module.exports = (app) => {
             var qry = bnUtil.connection.buildQuery(statement1)
             //console.log(qry);
             console.log("*************ClaimInvestigate************")
-            return bnUtil.connection.query(qry, { id: req.params.PolicyNo }).then((results1) => {
+            return bnUtil.connection.query(qry, {
+                id: req.params.PolicyNo
+            }).then((results1) => {
                 var obj = results1[0];
                 jsonObj.push({
                     "PolicyDetails1": obj.PolicyDetails1,
@@ -1842,12 +1881,16 @@ module.exports = (app) => {
             var statement1 = 'SELECT  org.lloyds.market.Claim WHERE (ClaimNo == _$id)';
             var qry = connection.buildQuery(statement1)
             console.log("************ClaimEvaluation*************")
-            return connection.query(qry, { id: req.params.ClaimNumber }).then((results1) => {
+            return connection.query(qry, {
+                id: req.params.ClaimNumber
+            }).then((results1) => {
                 var obj = results1[0];
                 var statement2 = 'SELECT  org.lloyds.market.Policy WHERE (PolicyNo == _$id)';
                 var qry = connection.buildQuery(statement2)
                 console.log(qry);
-                return connection.query(qry, { id: obj.PolicyNo.$identifier.toString() }).then((results2) => {
+                return connection.query(qry, {
+                    id: obj.PolicyNo.$identifier.toString()
+                }).then((results2) => {
                     console.log('2. Received results2: ', results2);
                     var policy_obj = results2[0]
                     if (obj.segmnt != null) {
@@ -1861,8 +1904,7 @@ module.exports = (app) => {
                         });
                         ClaimSegmentation.push({
                             "CSType": "SCAP",
-                            "Name"
-                                : "Claim Segmentation",
+                            "Name": "Claim Segmentation",
                             table
                         });
 
@@ -1881,6 +1923,31 @@ module.exports = (app) => {
                     if (obj.ClaimMode != "Pending") {
                         ClaimAckBy = obj.LeadCarrier.$identifier.toString();
                     }
+
+                    if (obj.additionalInfo != null) {
+                        AdditionalInfo.push({
+                            "Name": obj.LeadCarrier.$identifier.toString(),
+                        });
+                        for (var i = 0; i < obj.additionalInfo.length; i++) {
+                            let infoObj = obj.additionalInfo[i]
+                            let table = [];
+                            table.push({
+                                "PartyName": infoObj.PartyName,
+                                "PartyType": infoObj.PartyType,
+                                "Details": infoObj.Details,
+                                "Status": infoObj.Status,
+                                "ReceivedOn": infoObj.timestamp,
+                            });
+                            AdditionalInfo.push({
+                                table
+                            });
+                        }
+                        jsonObj.push({
+                            AdditionalInfo
+                        });
+                    }
+
+
 
                     if (obj.additionalInfo == null) {
                         let table = [];
@@ -1922,14 +1989,15 @@ module.exports = (app) => {
             var qry = bnUtil.connection.buildQuery(statement1)
             //console.log(qry);
             console.log("*************ClaimInvestigate************")
-            return bnUtil.connection.query(qry, { id: req.params.ClaimNumber }).then((results1) => {
+            return bnUtil.connection.query(qry, {
+                id: req.params.ClaimNumber
+            }).then((results1) => {
                 var obj = results1[0];
                 if (obj.ClaimMode != "Pending") {
                     jsonObj.push({
                         "Status": true,
                     });
-                }
-                else {
+                } else {
                     jsonObj.push({
                         "Status": false,
                     });
@@ -1952,12 +2020,16 @@ module.exports = (app) => {
             var statement1 = 'SELECT  org.lloyds.market.Claim WHERE (ClaimNo == _$id)';
             var qry = bnUtil.connection.buildQuery(statement1)
             console.log("************getClaimSettlement*************")
-            return bnUtil.connection.query(qry, { id: req.params.ClaimNumber }).then((results1) => {
+            return bnUtil.connection.query(qry, {
+                id: req.params.ClaimNumber
+            }).then((results1) => {
                 var obj = results1[0];
                 var statement2 = 'SELECT  org.lloyds.market.Policy WHERE (PolicyNo == _$id)';
                 var qry = bnUtil.connection.buildQuery(statement2)
                 console.log(qry);
-                return bnUtil.connection.query(qry, { id: obj.PolicyNo.$identifier.toString() }).then((results2) => {
+                return bnUtil.connection.query(qry, {
+                    id: obj.PolicyNo.$identifier.toString()
+                }).then((results2) => {
                     console.log('2. Received results2: ', results2);
                     var policy_obj = results2[0]
                     let details = [];
@@ -1995,12 +2067,16 @@ module.exports = (app) => {
             var statement1 = 'SELECT  org.lloyds.market.Claim WHERE (ClaimNo == _$id)';
             var qry = bnUtil.connection.buildQuery(statement1)
             console.log("************getClaimSettlgetadditionalInfoement*************")
-            return bnUtil.connection.query(qry, { id: req.params.ClaimNumber }).then((results1) => {
+            return bnUtil.connection.query(qry, {
+                id: req.params.ClaimNumber
+            }).then((results1) => {
                 var obj = results1[0];
                 var statement2 = 'SELECT  org.lloyds.market.Policy WHERE (PolicyNo == _$id)';
                 var qry = bnUtil.connection.buildQuery(statement2)
                 //console.log(qry);
-                return bnUtil.connection.query(qry, { id: obj.PolicyNo.$identifier.toString() }).then((results2) => {
+                return bnUtil.connection.query(qry, {
+                    id: obj.PolicyNo.$identifier.toString()
+                }).then((results2) => {
                     //console.log('2. Received results2: ', results2);
                     var policy_obj = results2[0]
                     let details = [];
@@ -2029,105 +2105,252 @@ module.exports = (app) => {
             });
         });
     });
+
+    //Update the Claim SettlementAmt
+    app.put('/UpdateSettlementAmt/:ClaimNo', (req, res) => {
+
+        const transactionName = "TransactionClaimQuery";
+        bnUtil.connect(req, (error) => {
+
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
+
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
+
+            console.log(req.params.ClaimNo);
+
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
+
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            };
+
+            const transaction = factory.newTransaction(NS_model, transactionName, req.params.ClaimNo, options);
+            transaction.claimId = req.params.ClaimNo;
+
+            console.log("before transaction");
+            transaction.ClaimQuery = req.body.ClaimQuery;
+            transaction.CreateDate = new Date();
+            transaction.TargetDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+
+
+
+            // 6. Submit the transaction
+            return bnUtil.connection.submitTransaction(transaction).then(() => {
+                console.log("6. Transaction Submitted/Processed Successfully!!");
+                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
+                res.json({
+                    jsonObj
+                });
+            }).catch((error) => {
+                jsonObj.push({
+                    "error": error.toString(),
+                });
+                console.log(error);
+                bnUtil.connection.disconnect();
+                res.json({
+                    jsonObj
+                });
+            });
+        });
+    });
+
+    //Update the Claim SettlementAmt
+    app.put('/UpdateSettlementAmtStatus/:ClaimNo', (req, res) => {
+
+        const transactionName = "TransactionClaimSettlementAmountStatus";
+        bnUtil.connect(req, (error) => {
+
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
+
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
+
+            console.log(req.params.ClaimNo);
+
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
+
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            };
+
+            console.log("before transaction", req.body.Status);
+            const transaction = factory.newTransaction(NS_model, transactionName, req.params.ClaimNo, options);
+            transaction.claimId = req.params.ClaimNo;
+
+            transaction.Status = req.body.Status;
+
+            // 6. Submit the transaction
+            return bnUtil.connection.submitTransaction(transaction).then(() => {
+                console.log("6. Transaction Submitted/Processed Successfully!!");
+                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
+                res.json({
+                    jsonObj
+                });
+            }).catch((error) => {
+                jsonObj.push({
+                    "error": error.toString(),
+
+                });
+                console.log(error);
+                bnUtil.connection.disconnect();
+
+
+                res.json({
+                    jsonObj
+                });
+            });
+        });
+    });
+
 };
 
 
+function dateFormat(dateVal) {
+    var newDate = new Date(dateVal);
+
+    var sMonth = padValue(newDate.getMonth() + 1);
+    var sDay = padValue(newDate.getDate());
+    var sYear = newDate.getFullYear();
+    var sHour = newDate.getHours();
+    var sMinute = padValue(newDate.getMinutes());
+    var sAMPM = "AM";
+
+    var iHourCheck = parseInt(sHour);
+
+    if (iHourCheck > 12) {
+        sAMPM = "PM";
+        sHour = iHourCheck - 12;
+    } else if (iHourCheck === 0) {
+        sHour = "12";
+    }
+
+    sHour = padValue(sHour);
+
+    return sMonth + "-" + sDay + "-" + sYear + " " + sHour + ":" + sMinute + " " + sAMPM;
+}
+
+function padValue(value) {
+    return (value < 10) ? "0" + value : value;
+}
 
 function validateUser(user, password) {
     switch (user) {
         case "Isabelle":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "GaingKim":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "DavidCoker":
-            if (password === "1234") {
-                return false
+            if (password === "2345") {
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "JamesAtkins":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "JohnWhite":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "SIC10":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "ABCUW":
-            if (password === "1234") {
-                return false
+            if (password === "2345") {
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "Bleachers":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "ECP":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "JamesEstates":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "Towers":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "Dakota":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         case "SouthernCentre":
             if (password === "1234") {
-                return false
+                return false;
             } else {
-                return true
+                return true;
             }
             break;
         default:
-            return true
+            return true;
     }
 }
 
@@ -2137,43 +2360,43 @@ function validateUser(user, password) {
 function getCardName(user) {
     switch (user) {
         case "Isabelle":
-            return 'Isabelle_card@lloyds-project-10';
+            return 'Isabelle-card@lloyds-project-11';
             break;
         case "GaingKim":
-            return 'GaingKim_card@lloyds-project-10';
+            return 'GaingKim-card@lloyds-project-11';
             break;
         case "DavidCoker":
-            return 'DavidCoker_card@lloyds-project-10';
+            return 'DavidCoker-card@lloyds-project-11';
             break;
         case "JamesAtkins":
-            return 'JamesAtkins_card@lloyds-project-10';
+            return 'JamesAtkins-card@lloyds-project-11';
             break;
         case "JohnWhite":
-            return 'JohnWhite_card@lloyds-project-10';
+            return 'JohnWhite-card@lloyds-project-11';
             break;
         case "SIC10":
-            return 'SIC10_card@lloyds-project-10';
+            return 'SIC10-card@lloyds-project-11';
             break;
         case "ABCUW":
-            return 'ABCUW_card@lloyds-project-10';
+            return 'ABCUW-card@lloyds-project-11';
             break;
         case "Bleachers":
-            return 'Bleachers_card@lloyds-project-10';
+            return 'Bleachers-card@lloyds-project-11';
             break;
         case "ECP":
-            return 'ECP_Card@lloyds-project-10';
+            return 'ECP-card@lloyds-project-11';
             break;
         case "JamesEstates":
-            return 'JamesEstates_card@lloyds-project-10';
+            return 'JamesEstates-card@lloyds-project-11';
             break;
         case "Towers":
-            return 'Towers_card@lloyds-project-10';
+            return 'Towers-card@lloyds-project-11';
             break;
         case "Dakota":
-            return 'Dakota_card@lloyds-project-10';
+            return 'Dakota-card@lloyds-project-11';
             break;
         case "SouthernCentre":
-            return 'SouthernCentre_card@lloyds-project-10';
+            return 'SouthernCentre-card@lloyds-project-11';
             break;
         default:
             return '';
