@@ -3,41 +3,20 @@
  */
 
 namespace org.lloyds.model
-import org.lloyds.market.PolicyType
 import org.lloyds.market.Policy
 import org.lloyds.market._Party
 import org.lloyds.market.Claim
 import org.lloyds.market._ClaimSettlementAmount
+import org.lloyds.market._ClaimExpertOpinion
+import org.lloyds.market._ClaimQuery
+import org.lloyds.market.PolicyType
 import org.lloyds.market.ClaimType
 import org.lloyds.market._Premium
 import org.lloyds.market.Segmentation
 import org.lloyds.market.houseKeeping
-import org.lloyds.market._ClaimExpertOpinion
-import org.lloyds.market._ClaimQuery
+
   
-transaction policyNew {
-  o String PolicyNo
-  o String InsuredCompanyName
-  o PolicyType PolicyType
-  o String PolicyDetails1
-  o DateTime PolicyEffectiveDate
-  o DateTime PolicyExpiryDate
-  --> _Party LeadCarrier
-}
 
-transaction claimConflict {
-  o ClaimType ClaimMode
-  o String claimId
-  --> _Party owner
-  --> _Party Followers1 optional
-  o String comment 
-}
-
-// To check premium paid
-transaction claimPremCheck {
-  o String claimId
-  o _Premium premium
-}
 
 transaction CreateClaim {
   o   String    ClaimNo
@@ -78,10 +57,6 @@ event CreateClaimCreated {
   o   String    Followers4
 }
 
-transaction claimSegment {
-   o String claimId
-  o Segmentation segmnt
-}
 
 // To check ClaimSettlementAmount
 transaction TransactionClaimSettlementAmount {
@@ -193,7 +168,34 @@ event EventUpdateClaimMode  {
     o   String    Followers4
     o   String    ClaimMode
 }   
+transaction policyNew {
+  o String PolicyNo
+  o String InsuredCompanyName
+  o PolicyType PolicyType
+  o String PolicyDetails1
+  o DateTime PolicyEffectiveDate
+  o DateTime PolicyExpiryDate
+  --> _Party LeadCarrier
+}
 
+transaction claimConflict {
+  o ClaimType ClaimMode optional
+  o String claimId
+  --> _Party owner
+  --> _Party Followers1 optional
+  o String comment optional
+}
+
+// To check premium paid
+transaction claimPremCheck {
+  o String claimId
+  o _Premium premium
+}
+
+transaction claimSegment {
+   o String claimId
+  o Segmentation segmnt
+}
 
 transaction housekeep {
   o String claimId
@@ -210,14 +212,6 @@ transaction claimAddtionalInfo {
   --> Claim claim
 }
 
-  // To check ClaimSettlementAmount
-transaction ClaimSettlementAmount {
-  o String claimId
-  o String ClaimSettlementAmount
-  o DateTime ClaimSettlementAmountDate
-  o Boolean ClaimSettlementStatus
-}
-  
 event eventclaimAddtionalInfo {
   o claimAddtionalInfo claimAddtionalInfo
 }

@@ -34,7 +34,7 @@ asset Policy identified by PolicyNo {
   --> _Party Insured optional
   --> _Party ProducingBroker optional
   
-  --> _Party LeadCarrier 
+  --> _Party LeadCarrier optional
   --> _Party PlacingBroker optional
   --> _Party ClaimsBroker optional
   --> _Party OverseasBroker optional
@@ -43,11 +43,11 @@ asset Policy identified by PolicyNo {
   --> _Party Followers3 optional
   --> _Party Followers4 optional
 
-  o _ContractPeriod ContractPeriod
+  o _ContractPeriod ContractPeriod optional
   o _Contract Contract optional
   o _ContractSection ContractSection optional
   o _sublimits sublimits optional
-  o _insuredAmount insuranceAmount
+  o _insuredAmount insuranceAmount optional
   o _Premium premium optional
   o _follower[] followers optional
 }
@@ -218,6 +218,12 @@ enum ClaimType {
   o Closed
   o PH_Approved
   o Acknowledge
+  o NewClaimConflictofInterest
+  o ConflictofInterest
+  o ClaimEvaluation
+  o ClaimSettlement
+  o PremiumCheck
+  o HousekeepingCheck
 }
 
 concept Segmentation {
@@ -239,9 +245,6 @@ concept houseKeeping {
 }
 
 
-// Asif i have removed addInfo concept, and why PremiumCheck require here. I have added _premium already
-
-
   // ASSETS
 asset Claim identified by ClaimNo {
   o String ClaimNo
@@ -260,7 +263,7 @@ asset Claim identified by ClaimNo {
   o String ClaimNotes optional
 
   o _ClaimSettlementAmount ClaimSettlementAmount optional
-  o _ClaimAdditionalInformation ClaimAdditionalInformation optional
+ 
   o _ClaimExpertOpinion ClaimExpertOpinion optional
   o _ClaimQuery ClaimQuery optional
   
@@ -282,17 +285,13 @@ asset Claim identified by ClaimNo {
 }
 
 concept _ClaimSettlementAmount {
-  o String ClaimSettlementAmount
-  o DateTime ClaimSettlementAmountDate
-  o Boolean ClaimSettlementStatus optional
-}
-  
-concept _ClaimAdditionalInformation {
-  o String ClaimAdditionalInformation
-  o DateTime ClaimAdditionalInformationDate
-}
+    o String Amount
+    o DateTime CreateDate optional
+    o DateTime TargetDate optional
+    o String Status optional
 
-// Asif: This is already created as transaction. Does this required
+}
+    
 concept _ClaimExpertOpinion {
     o String ClaimExpertOpinion
     o DateTime CreateDate optional
@@ -302,7 +301,6 @@ concept _ClaimExpertOpinion {
   
 concept _ClaimQuery {
   o String ClaimQuery
-  o DateTime ClaimQueryDate
     o DateTime CreateDate optional
     o DateTime TargetDate optional
     o String Status optional

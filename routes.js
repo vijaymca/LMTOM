@@ -670,7 +670,6 @@ module.exports = (app) => {
      * 
      */
     app.put('/Policies/update/:PolicyNo', (req, res) => {
-
         const trPolicy = "updatePolicy";
         bnUtil.connect(req, (error) => {
 
@@ -772,7 +771,7 @@ module.exports = (app) => {
                 claimRegistry = registry;
                 return claimRegistry.get(req.params.ClaimNo);
             }).then((claim) => {
-                console.log("claim:" + claim);
+                console.log("Comment:" + req.body.data.comment);
 
                 if (!claim) console.log(req.params.ClaimNo + 'Not found');
 
@@ -787,7 +786,7 @@ module.exports = (app) => {
                     if (req.body.data.ClaimMode === 'Approved') {
                         transaction.ClaimMode = "Approved";
                         transaction.owner = policy.LeadCarrier;
-
+                        transaction.comment = req.body.data.comment;
                     } else {
                         transaction.owner = claim.Followers1;
                         transaction.comment = req.body.data.comment;
@@ -800,6 +799,12 @@ module.exports = (app) => {
                     return bnUtil.connection.submitTransaction(transaction).then(() => {
                         console.log("6. Transaction Submitted/Processed Successfully!!");
                         bnUtil.connection.disconnect();
+                        jsonObj.push({
+                            "status": "Transaction Submitted",
+                        });
+                        res.json({
+                            jsonObj
+                        });
                     });
                 });
             }).catch((error) => {
@@ -857,13 +862,19 @@ module.exports = (app) => {
             // 6. Submit the transaction
             return bnUtil.connection.submitTransaction(transaction).then(() => {
                 console.log("6. Transaction Submitted/Processed Successfully!!");
-                bnUtil.connection.disconnect();
+                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
+                res.json({
+                    jsonObj
+                });
             }).catch((error) => {
                 console.log(error);
                 jsonObj.push({
                     "error": error.toString()
                 });
-                bnUtil.connection.disconnect();
+                bnUtil.disconnect();
                 res.json({
                     jsonObj
                 });
@@ -902,6 +913,7 @@ module.exports = (app) => {
                 res.json({
                     jsonObj
                 });
+                bnUtil.disconnect();
             });
         });
     });
@@ -951,13 +963,19 @@ module.exports = (app) => {
             // 6. Submit the transaction
             return bnUtil.connection.submitTransaction(transaction).then(() => {
                 console.log("6. Transaction Submitted/Processed Successfully!!");
-                bnUtil.connection.disconnect();
+                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
+                res.json({
+                    jsonObj
+                });
             }).catch((error) => {
                 console.log(error);
                 jsonObj.push({
                     "error": error.toString()
                 });
-                bnUtil.connection.disconnect();
+                bnUtil.disconnect();
                 res.json({
                     jsonObj
                 });
@@ -995,6 +1013,7 @@ module.exports = (app) => {
                 res.json({
                     jsonObj
                 });
+                bnUtil.disconnect();
             });
         });
     });
@@ -1031,6 +1050,7 @@ module.exports = (app) => {
                 res.json({
                     jsonObj
                 });
+                bnUtil.disconnect();
             });
         });
     });
@@ -1079,13 +1099,19 @@ module.exports = (app) => {
             // 6. Submit the transaction
             return bnUtil.connection.submitTransaction(transaction).then(() => {
                 console.log("6. Transaction Submitted/Processed Successfully!!");
-                bnUtil.connection.disconnect();
+                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
+                res.json({
+                    jsonObj
+                });
             }).catch((error) => {
                 console.log(error);
                 jsonObj.push({
                     "error": error.toString()
                 });
-                bnUtil.connection.disconnect();
+                bnUtil.disconnect();
                 res.json({
                     jsonObj
                 });
@@ -1140,13 +1166,20 @@ module.exports = (app) => {
             // 6. Submit the transaction
             return bnUtil.connection.submitTransaction(transaction).then(() => {
                 console.log("6. Transaction Submitted/Processed Successfully!!");
-                bnUtil.connection.disconnect();
+                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
+                res.json({
+                    jsonObj
+                });
+                
             }).catch((error) => {
                 console.log(error);
                 jsonObj.push({
                     "error": error.toString()
                 });
-                bnUtil.connection.disconnect();
+                bnUtil.disconnect();
                 res.json({
                     jsonObj
                 });
@@ -1389,8 +1422,6 @@ module.exports = (app) => {
         });
     });
 
-
-
     //Update the Claim SettlementAmt
     app.put('/PolicyholderApproval/:ClaimNo', (req, res) => {
 
@@ -1509,13 +1540,40 @@ module.exports = (app) => {
     app.get('/MyPolicy', (req, res) => {
 
         var jsonObj = [];
-        var results1;
-        var results2;
-        var claim_obj;
-        var policy_obj;
-        bnUtil.connect(req, () => {
-            let policyRegistry = {}
 
+        bnUtil.connect(req, () => {
+            var statement2 = 'SELECT org.lloyds.market.Policy';
+            var qry = bnUtil.connection.buildQuery(statement2)
+            console.log(qry);
+            return bnUtil.connection.query(qry).then((results2) => {
+                console.log('2. Received results2: ', results2);
+                for (var i = 0; i < results2.length; i++) {
+                    var obj = results2[i];
+                    console.log("*********");
+                    jsonObj.push({
+                        "PolicyHolder": obj.InsuredCompanyName,
+
+                        "PolicyNo": obj.PolicyNo,
+                        "PolicyEffectiveDate": dateFormat(obj.PolicyEffectiveDate),
+                        "PolicyExpiryDate": dateFormat(obj.PolicyExpiryDate),
+                        "PolicyLOB": obj.PolicyType,
+                        "PolicyStatus": "Active",
+                    });
+                }
+                console.log("*************************")
+                res.json({
+                    jsonObj
+                });
+
+            });
+        });
+    });
+
+    app.get('/tamycases', (req, res) => {
+
+        var jsonObj = [];
+
+        bnUtil.connect(req, () => {
             var statement2 = 'SELECT org.lloyds.market.Policy';
             var qry = bnUtil.connection.buildQuery(statement2)
             console.log(qry);
@@ -1528,13 +1586,13 @@ module.exports = (app) => {
                     var obj = results2[i];
                     console.log("*********");
                     jsonObj.push({
-                        "PolicyHolder": obj.InsuredCompanyName,
-
+                        "Insured": obj.InsuredCompanyName,
                         "PolicyNo": obj.PolicyNo,
-                        "PolicyEffectiveDate": obj.PolicyEffectiveDate,
-                        "PolicyExpiryDate": obj.PolicyExpiryDate,
-                        "PolicyLOB": obj.PolicyType,
-                        "PolicyStatus": obj.PolicyStatus,
+                        "CreateDate": dateFormat(obj.PolicyEffectiveDate),
+                        "Urgency": ((Math.abs(obj.PolicyExpiryDate) - new Date()) / 36e5).toFixed(),
+                        "TargetDate": dateFormat(obj.PolicyExpiryDate),
+                        "Status": "Pending",
+
                     });
                 }
                 console.log("*************************")
@@ -1543,24 +1601,17 @@ module.exports = (app) => {
                 });
 
             });
-
-
-            // });
         });
     });
 
     app.get('/MyCases', (req, res) => {
 
         var jsonObj = [];
-        var results1;
-        var results2;
-        var claim_obj;
-        var policy_obj;
+
         const user = req.headers["user"];
         bnUtil.connect(req, () => {
             let bnDef = bnUtil.connection.getBusinessNetwork();
             console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
-            let policyRegistry = {}
             var serializer = bnDef.getSerializer();
             var statement1 = 'SELECT org.lloyds.market.Claim';
             var qry = bnUtil.connection.buildQuery(statement1)
@@ -1571,7 +1622,7 @@ module.exports = (app) => {
                 var qry = bnUtil.connection.buildQuery(statement2)
                 console.log(qry);
                 return bnUtil.connection.query(qry).then((results2) => {
-                    console.log('2. Received results2: ', results2);
+                    // console.log('2. Received results2: ', results2);
 
                     for (var i = 0; i < results1.length; i++) {
                         let details = [];
@@ -1585,69 +1636,17 @@ module.exports = (app) => {
 
                         }
 
-
-
-                        console.log(obj.PolicyNo.$identifier)
+                        //console.log(obj.PolicyNo.$identifier)
                         var policyResult = (results2.filter(item => item.PolicyNo === obj.PolicyNo.$identifier.toString()));
                         var policy_obj = policyResult[0]
+
+                        console.log(obj.ClaimCreateDate);
+
                         console.log(policy_obj.PolicyNo);
-
-                        if (obj.ClaimSettlementAmount != null) {
-                            details.push({
-                                "Name": "Claim Settlement",
-                                "ClaimNo": obj.ClaimNo,
-                                "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": obj.ClaimSettlementAmount.CreateDate,
-                                "Urgency": timeDifference(obj.ClaimSettlementAmount.TargetDate),
-                                "TargetDate": obj.ClaimSettlementAmount.TargetDate,
-                                "Status": obj.ClaimSettlementAmount.Status
-                            });
-
-                        }
-
-                        if (obj.ClaimExpertOpinion != null) {
-
-                            details.push({
-                                "Name": "Claim Expert Opinion",
-                                "ClaimNo": obj.ClaimNo,
-                                "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": obj.ClaimExpertOpinion.CreateDate,
-                                "Urgency": timeDifference(obj.ClaimExpertOpinion.TargetDate),
-                                "TargetDate": obj.ClaimExpertOpinion.TargetDate,
-                                "Status": obj.ClaimExpertOpinion.Status
-
-                            });
-                        }
-
-                        if (obj.ClaimQuery != null) {
-                            details.push({
-                                "Name": "Claim Query",
-                                "ClaimNo": obj.ClaimNo,
-                                "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": obj.ClaimQuery.CreateDate,
-                                "Urgency": timeDifference(obj.ClaimQuery.TargetDate),
-                                "TargetDate": obj.ClaimQuery.TargetDate,
-                                "Status": obj.ClaimQuery.Status
-
-                            });
-                        }
-
-                        if (obj.segmnt != null) { // to do 
-                            details.push({
-                                "Name": "Claim Segmentation",
-                                "ClaimNo": obj.ClaimNo,
-                                "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": obj.ClaimCreateDate,
-                                "Urgency": timeDifference(obj.ClaimTargetDate),
-                                "TargetDate": obj.ClaimTargetDate,
-                                "Status": obj.ClaimMode,
-
-                            });
-                        }
 
                         if (obj.ClaimMode != null) {
                             let Status;
-                            if (obj.ClaimMode == "Pending") {
+                            if (obj.ClaimMode == "Conflict Of Interest") {
                                 Status = "Pending";
                             } else {
                                 Status = "Completed";
@@ -1657,61 +1656,68 @@ module.exports = (app) => {
                                 "Name": "Conflict Of Interest",
                                 "ClaimNo": obj.ClaimNo,
                                 "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": obj.ClaimCreateDate,
-                                "Urgency": timeDifference(obj.ClaimTargetDate),
-                                "TargetDate": obj.ClaimTargetDate,
+                                "CreateDate": dateFormat(obj.ClaimCreateDate),
+                                "Urgency": ((Math.abs(obj.ClaimTargetDate) - new Date()) / 36e5).toFixed(),
+                                "TargetDate": dateFormat(obj.ClaimTargetDate),
                                 "Status": Status,
 
                             });
                         }
-                        if (obj.claimEvaluation != null) {
+
+                        if (obj.segmnt != null) { // to do 
                             details.push({
                                 "Name": "Claim Evaluation",
                                 "ClaimNo": obj.ClaimNo,
                                 "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": obj.ClaimCreateDate,
-                                "Urgency": timeDifference(obj.ClaimTargetDate),
-                                "TargetDate": obj.ClaimTargetDate,
-                                "Status": obj.ClaimMode,
+                                "CreateDate": dateFormat(obj.segmnt.CreateDate),
+                                "Urgency": ((Math.abs(obj.segmnt.TargetDate) - new Date()) / 36e5).toFixed(),
+                                "TargetDate": dateFormat(obj.segmnt.TargetDate),
+                                "Status": "Completed",
 
                             });
                         }
-                        if (obj.checkPremium != null) {
+
+                        if (obj.ClaimSettlementAmount != null) {
+                            details.push({
+                                "Name": "Claim Settlement",
+                                "ClaimNo": obj.ClaimNo,
+                                "PolicyNo": policy_obj.PolicyNo,
+                                "CreateDate": dateFormat(obj.ClaimSettlementAmount.CreateDate),
+                                "Urgency": ((Math.abs(obj.ClaimSettlementAmount.TargetDate) - new Date()) / 36e5).toFixed(),
+                                "TargetDate": dateFormat(obj.ClaimSettlementAmount.TargetDate),
+                                "Status": obj.ClaimSettlementAmount.Status
+                            });
+
+                        }
+
+                        if (obj.checkPremium != null) { // to do 
                             details.push({
                                 "Name": "premium Check",
                                 "ClaimNo": obj.ClaimNo,
                                 "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": obj.CreateDate,
-                                "Urgency": timeDifference(obj.TargetDate),
-                                "TargetDate": obj.TargetDate,
-                                "Status": obj.checkPremium.Status
+                                "CreateDate": dateFormat(obj.ClaimCreateDate),
+                                "Urgency": ((Math.abs(obj.ClaimTargetDate) - new Date()) / 36e5).toFixed(),
+                                "TargetDate": dateFormat(obj.ClaimTargetDate),
+                                "Status": "Completed",
 
                             });
                         }
-                        if (obj.additionalInfo != null) {
-                            details.push({
-                                "Name": "Additional Information",
-                                "ClaimNo": obj.ClaimNo,
-                                "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": obj.additionalInfo.CreateDate,
-                                "Urgency": timeDifference(obj.additionalInfo.TargetDate),
-                                "TargetDate": obj.additionalInfo.TargetDate,
-                                "Status": obj.additionalInfo.Status
 
-                            });
-                        }
                         if (obj.houseKeeping != null) {
                             details.push({
                                 "Name": "House Keeping",
                                 "ClaimNo": obj.ClaimNo,
                                 "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": obj.CreateDate,
-                                "Urgency": timeDifference(obj.TargetDate),
-                                "TargetDate": obj.TargetDate,
+                                "CreateDate": dateFormat(obj.houseKeeping.CreateDate),
+                                "Urgency": ((Math.abs(obj.houseKeeping.TargetDate) - new Date()) / 36e5).toFixed(),
+                                "TargetDate": dateFormat(obj.houseKeeping.TargetDate),
                                 "Status": obj.houseKeeping.Status
 
                             });
                         }
+
+
+
 
                         jsonObj.push({
 
@@ -1720,9 +1726,9 @@ module.exports = (app) => {
                             "InsuredCompanyName": policy_obj.InsuredCompanyName,
                             "ClaimNo": obj.ClaimNo,
                             "PolicyNo": policy_obj.PolicyNo,
-                            "ClaimCreateDate": obj.ClaimCreateDate.toString("yyyyMMdd").replace(/T/, ' ').replace(/\..+/, ''),
-                            "ClaimUrgency": timeDifference(obj.ClaimTargetDate),
-                            "ClaimTargetDate": obj.ClaimTargetDate,
+                            "ClaimCreateDate": dateFormat(obj.ClaimCreateDate),
+                            "ClaimUrgency": ((Math.abs(obj.ClaimTargetDate) - new Date()) / 36e5).toFixed(),
+                            "ClaimTargetDate": dateFormat(obj.ClaimTargetDate),
                             "ClaimMode": obj.ClaimMode,
                             "details": details,
 
@@ -2073,9 +2079,156 @@ module.exports = (app) => {
             });
         });
     });
+
+    //Update the Claim SettlementAmt
+    app.put('/UpdateSettlementAmt/:ClaimNo', (req, res) => {
+
+        const transactionName = "TransactionClaimQuery";
+        bnUtil.connect(req, (error) => {
+
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
+
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
+
+            console.log(req.params.ClaimNo);
+
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
+
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            };
+
+            const transaction = factory.newTransaction(NS_model, transactionName, req.params.ClaimNo, options);
+            transaction.claimId = req.params.ClaimNo;
+
+            console.log("before transaction");
+            transaction.ClaimQuery = req.body.ClaimQuery;
+            transaction.CreateDate = new Date();
+            transaction.TargetDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+
+
+
+            // 6. Submit the transaction
+            return bnUtil.connection.submitTransaction(transaction).then(() => {
+                console.log("6. Transaction Submitted/Processed Successfully!!");
+                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
+                res.json({
+                    jsonObj
+                });
+            }).catch((error) => {
+                jsonObj.push({
+                    "error": error.toString(),
+                });
+                console.log(error);
+                bnUtil.connection.disconnect();
+                res.json({
+                    jsonObj
+                });
+            });
+        });
+    });
+
+    //Update the Claim SettlementAmt
+    app.put('/UpdateSettlementAmtStatus/:ClaimNo', (req, res) => {
+
+        const transactionName = "TransactionClaimSettlementAmountStatus";
+        bnUtil.connect(req, (error) => {
+
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
+
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
+
+            console.log(req.params.ClaimNo);
+
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
+
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            };
+
+            console.log("before transaction", req.body.Status);
+            const transaction = factory.newTransaction(NS_model, transactionName, req.params.ClaimNo, options);
+            transaction.claimId = req.params.ClaimNo;
+
+            transaction.Status = req.body.Status;
+
+            // 6. Submit the transaction
+            return bnUtil.connection.submitTransaction(transaction).then(() => {
+                console.log("6. Transaction Submitted/Processed Successfully!!");
+                bnUtil.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
+                res.json({
+                    jsonObj
+                });
+            }).catch((error) => {
+                jsonObj.push({
+                    "error": error.toString(),
+
+                });
+                console.log(error);
+                bnUtil.connection.disconnect();
+
+
+                res.json({
+                    jsonObj
+                });
+            });
+        });
+    });
+
 };
 
 
+function dateFormat(dateVal) {
+    var newDate = new Date(dateVal);
+
+    var sMonth = padValue(newDate.getMonth() + 1);
+    var sDay = padValue(newDate.getDate());
+    var sYear = newDate.getFullYear();
+    var sHour = newDate.getHours();
+    var sMinute = padValue(newDate.getMinutes());
+    var sAMPM = "AM";
+
+    var iHourCheck = parseInt(sHour);
+
+    if (iHourCheck > 12) {
+        sAMPM = "PM";
+        sHour = iHourCheck - 12;
+    } else if (iHourCheck === 0) {
+        sHour = "12";
+    }
+
+    sHour = padValue(sHour);
+
+    return sMonth + "-" + sDay + "-" + sYear + " " + sHour + ":" + sMinute + " " + sAMPM;
+}
+
+function padValue(value) {
+    return (value < 10) ? "0" + value : value;
+}
 
 function validateUser(user, password) {
     switch (user) {
