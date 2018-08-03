@@ -15,9 +15,6 @@ import org.lloyds.market._Premium
 import org.lloyds.market.Segmentation
 import org.lloyds.market.houseKeeping
 
-  
-
-
 transaction CreateClaim {
   o   String    ClaimNo
   o   String    ClaimCreatedBy

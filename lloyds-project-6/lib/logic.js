@@ -37,10 +37,10 @@ async function policyNew(xData) { // eslint-disable-line no-unused-vars
 }
 
 /**
- * Initialize some test assets and participants useful for running a demo.
- * @param {org.lloyds.model.updatePolicy} updatePolicy 
- * @transaction
- */
+* Initialize some test assets and participants useful for running a demo.
+* @param {org.lloyds.model.updatePolicy} updatePolicy 
+* @transaction
+*/
 
 async function updatePolicy(xData) {
     const policy = await claimRegistry.get(xData.claimId);
@@ -69,7 +69,7 @@ function createclaim(claimData) {
                   var claim = factory.newResource('org.lloyds.market', 'Claim', claimData.ClaimNo);
 
                   claim.ClaimCreatedBy = claimData.ClaimCreatedBy;
-                  claim.ClaimMode = claimData.ClaimMode;
+                  claim.ClaimMode = "ConflictofInterest";
                   claim.ClaimDetails1 = claimData.ClaimDetails1;
                   claim.ClaimDetails2 = claimData.ClaimDetails2;
                   claim.ClaimPremiumStatus = claimData.ClaimPremiumStatus;
@@ -78,6 +78,7 @@ function createclaim(claimData) {
                   claim.ClaimCreateDate = claimData.ClaimCreateDate;
                   claim.ClaimDateofLoss = claimData.ClaimDateofLoss;
                   claim.ClaimTargetDate = claimData.ClaimTargetDate;
+                  claim.ClaimEstimateLoss = claimData.ClaimEstimateLoss;
                   let policy = factory.newRelationship('org.lloyds.market', 'Policy', claimData.PolicyNo);
                   claim.PolicyNo = policy;
 
@@ -197,6 +198,8 @@ async function TransactionClaimSettlementAmount(xData) {
       const claimRegistry = await getAssetRegistry('org.lloyds.market.Claim');
       const claim = await claimRegistry.get(xData.claimId);
       claim.ClaimSettlementAmount = SettlementAmount;
+
+      
       await claimRegistry.update(claim);
 
       // 3 Emit the event ClaimSettlementAmountUpdated
@@ -230,6 +233,8 @@ async function TransactionClaimSettlementAmountStatus(xData) {
       const claimRegistry = await getAssetRegistry('org.lloyds.market.Claim');
       const claim = await claimRegistry.get(xData.claimId);
       claim.ClaimSettlementAmount.Status = xData.Status;
+
+      claim.ClaimMode = "PremiumCheck";
       await claimRegistry.update(claim);
 
       // 3 Emit the event ClaimSettlementAmountUpdated
@@ -249,6 +254,7 @@ async function TransactionClaimSettlementAmountStatus(xData) {
       event.ClaimSettlementAmount = claim.ClaimSettlementAmount;
       emit(event);
 }
+
 
 /** TransactionClaimExpertOpinion Transaction
  * @param {org.lloyds.model.TransactionClaimExpertOpinion} TransactionClaimExpertOpinion
@@ -408,21 +414,21 @@ async function TransactionClaimQueryStatus(xData) {
  * @transaction
  */
 async function claimConflict(xData) {
-    // Update claim
-   
-    const claimRegistry = await getAssetRegistry(NS_CLAIM);
-    const claim = await claimRegistry.get(xData.claimId);
-    claim.ClaimMode = xData.ClaimMode;
-    claim.owner = xData.owner;
-    claim.LeadCarrier = xData.LeadCarrier;
-
-    if (!claim.comments) {
-          claim.comments = [];
-    }
-
-    claim.comments.push(xData.comment);
-    await claimRegistry.update(claim);
-}
+      // Update claim
+     
+      const claimRegistry = await getAssetRegistry(NS_CLAIM);
+      const claim = await claimRegistry.get(xData.claimId);
+      claim.ClaimMode = xData.ClaimMode;
+      claim.owner = xData.owner;
+      claim.LeadCarrier = xData.LeadCarrier;
+  
+      if (!claim.comments) {
+            claim.comments = [];
+      }
+  
+      claim.comments.push(xData.comment);
+      await claimRegistry.update(claim);
+  }
 
 /** claimPremCheck Transaction
  * @param {org.lloyds.model.claimPremCheck} claimPremCheck
@@ -432,6 +438,8 @@ async function claimPremCheck(xData) {
       const claimRegistry = await getAssetRegistry(NS_CLAIM);
       const claim = await claimRegistry.get(xData.claimId);
       claim.checkPremium = xData.premium;
+      
+      claim.ClaimMode = "HousekeepingCheck";
       await claimRegistry.update(claim);
 }
 
@@ -443,6 +451,8 @@ async function claimSegment(xData) {
       const claimRegistry = await getAssetRegistry(NS_CLAIM);
       const claim = await claimRegistry.get(xData.claimId);
       claim.segmnt = xData.segmnt;
+      
+      claim.ClaimMode = "ClaimSettlement";
       await claimRegistry.update(claim);
 }
 
@@ -454,6 +464,8 @@ async function housekeep(xData) {
       const claimRegistry = await getAssetRegistry(NS_CLAIM);
       const claim = await claimRegistry.get(xData.claimId);
       claim.houseKeeping = xData.housekeep;
+      
+      claim.ClaimMode = "Closed";
       await claimRegistry.update(claim);
 }
 

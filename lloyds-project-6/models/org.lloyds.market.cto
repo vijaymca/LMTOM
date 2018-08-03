@@ -45,14 +45,26 @@ asset Policy identified by PolicyNo {
 
   o _ContractPeriod ContractPeriod optional
   o _Contract Contract optional
-  o _ContractSection ContractSection optional
-  o _sublimits sublimits optional
+   o _sublimits sublimits optional
   o _insuredAmount insuranceAmount optional
-  o _Premium premium optional
+  o _Premium[] premium optional
   o _follower[] followers optional
+  o carrierInfo[] carrierInfo optional
 }
 
-enum PolicyType{
+concept carrierInfo
+ {
+o String LineNo
+o String PostalCode
+o Double bindingVal default = 383985000.0
+o Double constMach default= 120000.0
+o Double BI_monthip default=12000000.0
+o Integer sectionA default = 1
+o Double premium default = 31236.0
+o Integer cntry_tax default=12
+}
+
+enum PolicyType {
   o CommercialProp
   o Terrorism
 }
@@ -70,9 +82,8 @@ concept _Contract {
 }
 
 concept _insuredAmount {
-  o Double property_damage
-  o Double busi_interupt
-  o Double total_insured_amt
+  o Double property_damage default=520200000.0
+  o Double busi_interupt default=13200000.0
 }
 
 concept _sublimits {
@@ -84,43 +95,6 @@ concept _sublimits {
   o Double flood default = 100000000.0
   o Double neighbous_recourse_tenants_liablt default = 50000000.0
   o Double professional_fees default=2000000.0
-}
-
-concept _ContractSection {
-	o String HighLevelReference  optional
-  o String InsuredRiskOrInterestDescription  optional
-	o _ContractPeriod ContractPeriod
-  o _ContractSectionClass ContractSectionClass
-  o _Location RiskLocation
-  o String LocationJurisdictionLocation  optional
-  o String USARiskClassification optional
-	o String FSAClientClassification optional
-	o String ConditionsDescription optional
-	o String CedentSharePercentage optional
-	o String BrokerSharePercentage optional
-	o String OrderPercentage optional
-	o String LinePercentageBasis optional
-  o _ContractCoverage ContractCoverage optional
-  o _ContractDeductible ContractDeductible optional
-  o _Premium Premium optional
-  o _Brokerage Brokerage optional
-  o _OtherDeductions OtherDeductions optional
-	o String FeePayableByClientIndicator
-	o String ClauseType
-	o String Description
-	o String NoticeOfCancellation
-	o String ContractChangesAgreementBasis
-	o String DocumentProductionDetailsDescription
-	o String ClaimsAgreementBasisDescription
-	o String ClaimsDelegatedAuthorityDescription
-	o String ClaimsAdministrationDescription
-	o String ExpertFeesCollectionMethodDescription
-	o String RecordingTransmittingStoringInformationProvisionsDescription
-	o String BureauxArrangementsDescription
-	o String SigningProvisionsDescription   
-  o _TaxProvisions TaxProvisions
-  o String SettlementDue
-  o _ContractMarket ContractMarket
 }
 
 concept _ContractMarket {
@@ -169,10 +143,12 @@ concept _ContractDeductible {
 
 concept _Premium {
 	  o String PremiumType  optional
-    o String PremiumAmount  optional
+    o Double PremiumAmount default=135000.0
     o String PaymentDate  optional
-    o String TermsOfTradePeriod  optional
-    o String PaymentsDescription  optional
+    o String TermsOfTradePeriod optional
+    o String PaymentsDescription optional
+    o Double placeBrokerComm default=0.09 optional
+   o Double overseasBroComm default=0.11 optional
 
     o Boolean premiumBeenPaiByPolHolder default=false optional
     o Boolean reinstatementApplicable default=false optional
@@ -266,13 +242,13 @@ asset Claim identified by ClaimNo {
  
   o _ClaimExpertOpinion ClaimExpertOpinion optional
   o _ClaimQuery ClaimQuery optional
-  
+    
   o Segmentation segmnt optional
   o houseKeeping houseKeeping optional
   o claimAddtionalInfo[] additionalInfo optional
   o _Premium checkPremium optional
   o String[] comments optional
- 
+ o String   ClaimEstimateLoss
   --> _Party LeadCarrier optional
   --> _Party PlacingBroker optional
   --> _Party ClaimsBroker optional

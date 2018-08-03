@@ -521,55 +521,50 @@ module.exports = (app) => {
     });
 
 
-function getuserId(){
-    return new Promise((resolve, reject) => {
-
-
-    });
-}
-
     /** GET POLICY INFORMATION
      * 
      */
     app.get('/getPolicy/:PolicyNo', (req, res) => {
         let jsonObj = [];
-       
+
         bnUtil.connect(req, () => {
             const bnDef = bnUtil.connection.getBusinessNetwork();
             var serializer = bnDef.getSerializer();
             let policyRegistry = {};
-            return bnUtil.connection.getAssetRegistry(NS_POLICY).then((registry) => {
+            return bnUtil.connection.getAssetRegistry(NS_POLICY).then(async (registry) => {
                 console.log('1. Received Registry: ', registry.id);
                 policyRegistry = registry;
-                return policyRegistry.get(req.params.PolicyNo);
+
+                const exists = await policyRegistry.exists(req.params.PolicyNo);
+
+                if (exists) {
+                    return policyRegistry.get(req.params.PolicyNo);
+                }
+
             }).then(async (policy) => {
-                if (!policy) console.log(req.params.PolicyNo + 'Not found');
 
-                console.log("*************************");
+                const obj = serializer.toJSON(policy);
 
-                //console.log("INSURED:"+policy.Insured.getIdentifier());
+                // console.log(`INSURED:${JSON.stringify(obj.premium)}`);
 
-                //to get the JSON object in get params
-               
-                let carrierInfo = [];
-                let financialOvervw = [];
-                let followers = [];
-                const insuredAddress = await getPartyAdress(policy.Insured.getIdentifier());
-                const BrokerPlacingAddress = await getPartyAdress(policy.PlacingBroker.getIdentifier());
-                const BrokerOverSeasAddress = await getPartyAdress(policy.OverseasBroker.getIdentifier());
 
-                /**
-                 * 
-                 * financialOver:{
-                        "Premium": "",
-                        "BrokerComm": "",
-                        "overSeas": "",
-                        "FeeFro": "NA",
-                        "Fee3rd": "NA",
-                        "FeeOther": "NA"
-                    }
-                 */
+                let polLayerinfo = {
+                    "layer": "Primary",
+                    "limit": {
+                        "for": "40000000",
+                        "per": "50000"
+                    },
+                    "deductable": "50000",
+                    "PD": obj.insuranceAmount.property_damage,
+                    "BI": obj.insuranceAmount.busi_interupt,
+                    "coverage": "Property(PD&BI)",
+                    "brokarage": "20",
+                    "premium": "135000"
+                };
 
+                const insuredAddress = await getPartyAdress(req, policy.Insured.getIdentifier());
+                const BrokerPlacingAddress = await getPartyAdress(req, policy.PlacingBroker.getIdentifier());
+                const BrokerOverSeasAddress = await getPartyAdress(req, policy.OverseasBroker.getIdentifier());
 
                 jsonObj.push({
                     "PolicyNo": policy.PolicyNo,
@@ -577,21 +572,19 @@ function getuserId(){
                     "InsuredMailingAddress": insuredAddress,
                     "BrokerPlacing": BrokerPlacingAddress,
                     "BrokerOverSeas": BrokerOverSeasAddress,
-                    "TotalSumInsured": {
-                        "Propdamage": "",
-                        "businessInter": ""
-                    },
-                    "FinancialOverview": financialOvervw,
-                    "Followers": followers,
-                    "Sublimits": serializer.toJSON(policy.sublimits),
-                    "CarrierInfo": carrierInfo
+                    "TotalSumInsured": obj.insuranceAmount,
+                    "FinancialOverview": obj.premium,
+                    "polLayerinfo": polLayerinfo,
+                    "ContractPeriod": obj.ContractPeriod,
+                    "Followers": obj.followers,
+                    "Sublimits": obj.sublimits,
+                    "CarrierInfo": obj.carrierInfo
                 });
 
-                //console.log("*************************");
-                // console.log(jsonObj);
                 res.json({
                     jsonObj
                 });
+
             }).catch((error) => {
                 console.log(error);
                 jsonObj.push({
@@ -795,6 +788,7 @@ function getuserId(){
                         transaction.comment = req.body.data.comment;
                     } else {
                         transaction.owner = claim.Followers1;
+                        //transaction.ClaimMode = claim.
                         transaction.comment = req.body.data.comment;
                     }
 
@@ -2418,20 +2412,9 @@ function timeDifference(date) {
 /** RETURN INSURED ADDRESS
  * 
  */
-function getPartyAdress(party) {
+function getPartyAdress(req, party) {
     console.log('***CODE STARTED****');
-
     return new Promise((resolve, reject) => {
-        let req = {
-            headers: {
-                "user": "admin",
-                "password": "1234"
-            }
-        };
-
-        console.log("USER: " + req.headers["user"]);
-        console.log("PASS: " + req.headers["password"]);
-
         bnUtil.connect(req, async (error) => {
             let address = {};
             // Check for error
@@ -2443,16 +2426,17 @@ function getPartyAdress(party) {
             let bnDef = bnUtil.connection.getBusinessNetwork();
 
             const usrRegistry = await bnUtil.connection.getParticipantRegistry('org.lloyds.market._Party');
-            let us = await usrRegistry.exists(party);
-            //console.log(us);
-            const usrinf = await usrRegistry.get(party);
-            var serializer = bnDef.getSerializer();
-            console.log(serializer.toJSON(usrinf.Address));
-            address = serializer.toJSON(usrinf.Address);
-            bnUtil.disconnect();
-            resolve(address);
+            let isExist = await usrRegistry.exists(party);
+            if (isExist) {
+                const usrinf = await usrRegistry.get(party);
+                var serializer = bnDef.getSerializer();
+                //console.log(serializer.toJSON(usrinf.Address));
+                address = serializer.toJSON(usrinf.Address);
+                bnUtil.disconnect();
+                resolve(address);
+            } else {
+                reject(Error("Invalid user"));
+            }
         });
     });
 }
-
-//getIsuredAdress();
