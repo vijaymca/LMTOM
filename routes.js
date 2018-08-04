@@ -33,16 +33,16 @@ module.exports = (app) => {
     });
 
     app.get('/login', async (req, res, next) => {
-        //var jsonObj = [];
+        var jsonObj = [];
         console.log("1. ********* login")
         const user = req.headers["user"];
         const password = req.headers["password"];
         console.log("2. ********* login1", user);
-        if (user === undefined || password === undefined) { // || validateUser(user, password)) {
+        if (user === undefined || password === undefined  || user === "" || password === "") { // || validateUser(user, password)) {
             res.writeHead(401, 'Access invalid for user', {
                 'Content-Type': 'text/plain'
             });
-
+            
             res.end('Invalid credentials');
         } else {
             console.log("3. ********* login2");
@@ -100,33 +100,29 @@ module.exports = (app) => {
                             //console.log("User does not exists");
                             jsonObj.push({
                                 "Error": "Invalid User",
-
                             });
                             console.log("User does not exists", jsonObj);
                             resolve(jsonObj);
                         }
-
                     });
-
             });
-
-
         });
 
     }
 
     app.get('/Claims', function (req, res) {
+        var jsonObj = [];
 
         const user = req.headers["user"];
         const password = req.headers["password"];
 
-        if (user === undefined || password === undefined || validateUser(user, password)) {
+        if (user === undefined) {
             res.writeHead(401, 'Access invalid for user', {
                 'Content-Type': 'text/plain'
             });
             res.end('Invalid credentials');
         } else {
-            console.log(res);
+            //console.log(res);
             const cardName_new = getCardName(user);
             return connection.connect(cardName_new).then(function () {
                 var statement = 'SELECT org.lloyds.market.Claim';
@@ -158,9 +154,7 @@ module.exports = (app) => {
                             "InsuredCompanyName": policy_obj.InsuredCompanyName,
                             "PolicyNo": policy_obj.PolicyNo,
                             "Day": obj.ClaimCreateDate.toString(),
-
-                            "MovementDate": policy_obj.PolicyEffectiveDate,
-
+                            "MovementDate": policy_obj.PolicyEffectiveDate
                         });
                     }
 
@@ -172,7 +166,7 @@ module.exports = (app) => {
                                 var attrValue = obj[key];
                                 var d = new Date(attrValue);
                                 jsonObj[i][key] = timeDifference(d);
-                                console.log(timeDifference(d));
+                                //console.log(timeDifference(d));
                             }
                         }
                     }
@@ -181,13 +175,24 @@ module.exports = (app) => {
                     });
                 });
 
+            }).catch((error) => {
+                var jsonObj = [];
+                console.log(error);
+
+                jsonObj.push({
+                    "status": error.toString()
+                });
+                res.json({
+                    jsonObj
+                });
             });
         }
 
     });
 
     app.post('/Claim/new', (req, res) => {
-        bnUtil.connect(req, () => {
+        var jsonObj = [];
+        bnUtil.connect(req, res, () => {
             console.log("1. Claim/new");
             let PolicyRegistry = {};
             return bnUtil.connection.getAssetRegistry('org.lloyds.market.Policy').then((registry) => {
@@ -211,6 +216,7 @@ module.exports = (app) => {
                 transaction.setPropertyValue('ClaimCreateDate', new Date(req.body.ClaimCreateDate));
                 transaction.setPropertyValue('ClaimDateofLoss', new Date(req.body.ClaimDateofLoss));
                 transaction.setPropertyValue('ClaimTargetDate', new Date(req.body.ClaimTargetDate));
+                transaction.setPropertyValue('ClaimEstimateLoss', req.body.ClaimEstimateLoss);
                 transaction.setPropertyValue('PolicyNo', req.body.PolicyNo);
                 transaction.setPropertyValue('owner', Policy.LeadCarrier.$identifier.toString());
                 transaction.setPropertyValue('LeadCarrier', Policy.LeadCarrier.$identifier.toString());
@@ -230,7 +236,6 @@ module.exports = (app) => {
                     bnUtil.disconnect();
                     jsonObj.push({
                         "status": "Transaction Submitted",
-
                     });
                     res.json({
                         jsonObj
@@ -240,7 +245,6 @@ module.exports = (app) => {
                     console.log(error);
                     jsonObj.push({
                         "error": error.toString(),
-
                     });
                     res.json({
                         jsonObj
@@ -263,7 +267,7 @@ module.exports = (app) => {
         const user = req.headers["user"];
         const password = req.headers["password"];
 
-        if (user === undefined || password === undefined || validateUser(user, password)) {
+        if (user === undefined ) {
             res.writeHead(401, 'Access invalid for user', {
                 'Content-Type': 'text/plain'
             });
@@ -308,8 +312,6 @@ module.exports = (app) => {
                             "PolicyStatus": policy_obj.PolicyStatus,
                             "ClaimActionRequired": obj.ClaimActionRequired,
                             "ClaimDateofLoss": obj.ClaimDateofLoss
-
-
                         });
                     }
 
@@ -347,7 +349,7 @@ module.exports = (app) => {
         var results2;
         var claim_obj;
         var policy_obj;
-        bnUtil.connect(req, () => {
+        bnUtil.connect(req, res, () => {
             let policyRegistry = {};
             var statement1 = 'SELECT  org.lloyds.market.Claim WHERE (ClaimNo == _$id)';
             var qry = bnUtil.connection.buildQuery(statement1);
@@ -382,29 +384,39 @@ module.exports = (app) => {
                     res.json({
                         jsonObj
                     });
-
                 });
-
-
-            });
+            }).catch((error) => {
+                console.log(error);
+                jsonObj.push({
+                    "error": error.toString()
+                });
+                res.json({
+                    jsonObj
+                });
         });
     });
+});
 
 
     app.get('/ClaimHistory', function (req, res) {
+        var jsonObj = [];
 
         console.log("********* ClaimHistory");
 
         const user = req.headers["user"];
         const password = req.headers["password"];
 
-        if (user === undefined || password === undefined || validateUser(user, password)) {
+        if (user === undefined) {
             res.writeHead(401, 'Access invalid for user', {
                 'Content-Type': 'text/plain'
             });
-            res.end('Invalid credentials');
+            jsonObj.push({
+                "status": 'user header is undefined'
+            });
+            res.json({
+                jsonObj
+            });
         } else {
-            console.log(res);
             const cardName_new = getCardName(user);
             return connection.connect(cardName_new).then(function () {
                 var statement = 'SELECT org.lloyds.market.Claim';
@@ -451,11 +463,23 @@ module.exports = (app) => {
                         jsonObj
                     });
                 });
+            }).catch((error) => {
+                var jsonObj = [];
+                console.log(error);
+
+                jsonObj.push({
+                    "error": error.toString(),
+                });
+                res.json({
+                    jsonObj
+                });
             });
         }
     });
 
+
     app.get('/ClaimHistory/:ClaimNumber', function (req, res) {
+        var jsonObj = [];
         console.log("*********  ClaimInvestigate " + req.params.ClaimNumber);
 
         console.log("********* getClaimHistory");
@@ -463,15 +487,20 @@ module.exports = (app) => {
         const user = req.headers["user"];
         const password = req.headers["password"];
 
-        if (user === undefined || password === undefined || validateUser(user, password)) {
+        if (user === undefined) {
             res.writeHead(401, 'Access invalid for user', {
                 'Content-Type': 'text/plain'
             });
-            res.end('Invalid credentials');
+            jsonObj.push({
+                "status": 'user header is undefined'
+            });
+            res.json({
+                jsonObj
+            });
         } else {
-            console.log(res);
+            //console.log(res);
             const cardName_new = getCardName(user);
-            return connection.connect(cardName).then(function () {
+            return connection.connect(cardName_new).then(function () {
                 var statement = 'SELECT  org.lloyds.market.Claim WHERE (ClaimNo == _$id)';
                 return connection.buildQuery(statement);
             }).then((qry) => {
@@ -483,7 +512,7 @@ module.exports = (app) => {
                 console.log(claim_obj.PolicyNo.$identifier);
                 connection.disconnect();
 
-                return connection.connect(cardName).then(function () {
+                return connection.connect(cardName_new).then(function () {
                     var statement = 'SELECT  org.lloyds.market.Policy WHERE (PolicyNo == _$id)';
                     return connection.buildQuery(statement);
                 }).then((qry) => {
@@ -516,18 +545,36 @@ module.exports = (app) => {
                         jsonObj
                     });
                 });
+            }).catch((error) => {
+                console.log(error);
+                var jsonObj = [];
+
+                jsonObj.push({
+                    "error": error.toString(),
+                });
+                //res.writeHead(401, 'Access invalid for user', { 'Content-Type': 'text/plain' });
+                res.json({
+                    jsonObj
+                });
             });
         }
     });
 
 
-    /** GET POLICY INFORMATION
+    function getuserId() {
+        return new Promise((resolve, reject) => {
+
+
+        });
+    }
+
+     /** GET POLICY INFORMATION
      * 
      */
     app.get('/getPolicy/:PolicyNo', (req, res) => {
         let jsonObj = [];
 
-        bnUtil.connect(req, () => {
+        bnUtil.connect(req, res, (error) => {
             const bnDef = bnUtil.connection.getBusinessNetwork();
             var serializer = bnDef.getSerializer();
             let policyRegistry = {};
@@ -562,9 +609,9 @@ module.exports = (app) => {
                     "premium": "135000"
                 };
 
-                const insuredAddress = await getPartyAdress(req, policy.Insured.getIdentifier());
-                const BrokerPlacingAddress = await getPartyAdress(req, policy.PlacingBroker.getIdentifier());
-                const BrokerOverSeasAddress = await getPartyAdress(req, policy.OverseasBroker.getIdentifier());
+                const insuredAddress = await getPartyAdress(req, res, policy.Insured.getIdentifier());
+                const BrokerPlacingAddress = await getPartyAdress(req,res, policy.PlacingBroker.getIdentifier());
+                const BrokerOverSeasAddress = await getPartyAdress(req,res, policy.OverseasBroker.getIdentifier());
 
                 jsonObj.push({
                     "PolicyNo": policy.PolicyNo,
@@ -598,13 +645,15 @@ module.exports = (app) => {
         });
     });
 
+  
     /** POST -> NEW POLICY
      * 
      */
     app.post('/Policies/new', (req, res) => {
+        var jsonObj = [];
 
         const policyNew = "policyNew";
-        bnUtil.connect(req, (error) => {
+        bnUtil.connect(req, res, (error) => {
 
             // Check for error
             if (error) {
@@ -669,8 +718,9 @@ module.exports = (app) => {
      * 
      */
     app.put('/Policies/update/:PolicyNo', (req, res) => {
+        var jsonObj = [];
         const trPolicy = "updatePolicy";
-        bnUtil.connect(req, (error) => {
+        bnUtil.connect(req, res, (error) => {
 
             if (error) {
                 console.log(error);
@@ -737,8 +787,9 @@ module.exports = (app) => {
      * 
      */
     app.put('/ClaimConflict/:ClaimNo', (req, res) => {
+        var jsonObj = [];
         const claimConflictTrans = "claimConflict";
-        bnUtil.connect(req, (error) => {
+        bnUtil.connect(req, res, (error) => {
 
             // Check for error
             if (error) {
@@ -783,12 +834,12 @@ module.exports = (app) => {
                     console.log("Policy num: " + JSON.stringify(claim.PolicyNo.$identifier));
 
                     if (req.body.data.ClaimMode === 'Approved') {
-                        transaction.ClaimMode = "Approved";
-                        transaction.owner = policy.LeadCarrier;
+                        transaction.ClaimMode = "ClaimEvaluation";
+                        transaction.owner = claim.owner;
                         transaction.comment = req.body.data.comment;
                     } else {
                         transaction.owner = claim.Followers1;
-                        //transaction.ClaimMode = claim.
+                        transaction.ClaimMode = claim.ClaimMode;
                         transaction.comment = req.body.data.comment;
                     }
 
@@ -824,13 +875,14 @@ module.exports = (app) => {
      * 
      */
     app.put('/ClaimPremiumCheck/update/:ClaimNo', (req, res) => {
+        var jsonObj = [];
 
         const claimPremCheck = "claimPremCheck";
-        bnUtil.connect(req, (error) => {
+        bnUtil.connect(req, res, (error) => {
 
             // Check for error
             if (error) {
-                console.log(error);
+                console.lolg(error);
                 process.exit(1);
             }
 
@@ -887,7 +939,7 @@ module.exports = (app) => {
      */
     app.get('/ClaimPremiumCheck/:ClaimNo', (req, res) => {
         let jsonObj = [];
-        bnUtil.connect(req, () => {
+        bnUtil.connect(req, res, () => {
             let claimRegistry = {};
             return bnUtil.connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
                 console.log('1. Received Registry: ', registry.id);
@@ -903,11 +955,14 @@ module.exports = (app) => {
 
                 //to get the JSON object in get params
                 var serializer = bnDef.getSerializer();
-
+                if (claim.checkPremium != null) {
                 jsonObj.push({
                     "ClaimNo": claim.ClaimNo,
                     "checkPremium": serializer.toJSON(claim.checkPremium)
                 });
+            }
+
+
                 console.log("*************************");
                 console.log(jsonObj);
                 res.json({
@@ -922,8 +977,9 @@ module.exports = (app) => {
      * 
      */
     app.put('/ClaimSegment/update/:ClaimNo', (req, res) => {
+        var jsonObj = [];
         const claimSegment = "claimSegment";
-        bnUtil.connect(req, (error) => {
+        bnUtil.connect(req, res, (error) => {
 
             // Check for error
             if (error) {
@@ -987,7 +1043,8 @@ module.exports = (app) => {
      * 
      */
     app.get('/ClaimSegment/:ClaimNo', (req, res) => {
-        bnUtil.connect(req, () => {
+        var jsonObj = [];
+        bnUtil.connect(req, res, () => {
             let claimRegistry = {};
             return bnUtil.connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
                 console.log('1. Received Registry: ', registry.id);
@@ -1003,11 +1060,14 @@ module.exports = (app) => {
 
                 //to get the JSON object in get params
                 var serializer = bnDef.getSerializer();
-
+                if (claim.segmnt != null) {
                 jsonObj.push({
                     "ClaimNo": claim.ClaimNo,
                     "checkPremium": serializer.toJSON(claim.segmnt)
                 });
+            }
+
+
                 console.log("*************************");
                 console.log(jsonObj);
                 res.json({
@@ -1024,7 +1084,7 @@ module.exports = (app) => {
      */
     app.get('/HouseKeepCheck/:ClaimNo', (req, res) => {
         let jsonObj = [];
-        bnUtil.connect(req, () => {
+        bnUtil.connect(req, res, () => {
             let claimRegistry = {};
             return bnUtil.connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
                 console.log('1. Received Registry: ', registry.id);
@@ -1040,13 +1100,63 @@ module.exports = (app) => {
 
                 //to get the JSON object in get params
                 var serializer = bnDef.getSerializer();
+                if (claim.houseKeeping != null) {
+                    jsonObj.push({
+                        "ClaimNo": claim.ClaimNo,
+                        "houseKeeping": serializer.toJSON(claim.houseKeeping)
+                    });
+                }
+                
 
-                jsonObj.push({
-                    "ClaimNo": claim.ClaimNo,
-                    "houseKeeping": serializer.toJSON(claim.houseKeeping)
-                });
+
+
                 console.log("*************************");
                 console.log(jsonObj);
+                res.json({
+                    jsonObj
+                });
+                bnUtil.disconnect();
+            });
+        });
+    });
+
+
+        /** GET -> HOUSE KEEPING TABLE
+     * 
+     */
+    app.get('/HouseKeepSanction/:ClaimNo', (req, res) => {
+        let jsonObj = [];
+        let table = [];
+        bnUtil.connect(req, res, () => {
+            let claimRegistry = {};
+            return bnUtil.connection.getAssetRegistry('org.lloyds.market.Claim').then((registry) => {
+                console.log('1. Received Registry: ', registry.id);
+                claimRegistry = registry;
+                return claimRegistry.get(req.params.ClaimNo);
+            }).then((claim) => {
+                if (!claim) console.log(req.params.ClaimNo + 'Not found');
+
+                console.log("*************************");
+                //console.log(claim);
+
+                if (claim.houseKeeping != null) {
+                    table.push({
+                        "Carrier": claim.owner.$identifier.toString(),
+                        "Status": "Confirmed"
+                    });
+                }
+                else{
+                    table.push({
+                        "Carrier": claim.owner.$identifier.toString(),
+                        "Status": "Pending"
+                    });
+
+                }
+                console.log("*************************");
+                jsonObj.push({
+                    table
+                });
+
                 res.json({
                     jsonObj
                 });
@@ -1060,8 +1170,9 @@ module.exports = (app) => {
      * 
      */
     app.put('/HouseKeepCheck/update/:ClaimNo', (req, res) => {
+        var jsonObj = [];
         const housekeep = "housekeep";
-        bnUtil.connect(req, (error) => {
+        bnUtil.connect(req, res, (error) => {
 
             // Check for error
             if (error) {
@@ -1124,8 +1235,9 @@ module.exports = (app) => {
      * 
      */
     app.put('/claimAdditionalInfo/update/:ClaimNo', (req, res) => {
+        var jsonObj = [];
         const addInfo = "claimAddtionalInfo";
-        bnUtil.connect(req, async (error) => {
+        bnUtil.connect(req, res, async (error) => {
 
             // Check for error
             if (error) {
@@ -1190,9 +1302,10 @@ module.exports = (app) => {
 
     //Update the Claim SettlementAmt
     app.put('/UpdateClaimQuery/:ClaimNo', (req, res) => {
+        var jsonObj = [];
 
         const transactionName = "TransactionClaimQuery";
-        bnUtil.connect(req, (error) => {
+        bnUtil.connect(req, res, (error) => {
 
             // Check for error
             if (error) {
@@ -1250,9 +1363,10 @@ module.exports = (app) => {
 
     //Update the Claim SettlementAmt
     app.put('/UpdateClaimQueryStatus/:ClaimNo', (req, res) => {
+        var jsonObj = [];
 
         const transactionName = "TransactionClaimSettlementAmountStatus";
-        bnUtil.connect(req, (error) => {
+        bnUtil.connect(req, res, (error) => {
 
             // Check for error
             if (error) {
@@ -1307,9 +1421,10 @@ module.exports = (app) => {
 
     //Update the Claim SettlementAmt
     app.put('/UpdateClaimExpertOpinion/:ClaimNo', (req, res) => {
+        var jsonObj = [];
 
         const transactionName = "TransactionClaimExpertOpinion";
-        bnUtil.connect(req, (error) => {
+        bnUtil.connect(req, res, (error) => {
 
             // Check for error
             if (error) {
@@ -1367,9 +1482,10 @@ module.exports = (app) => {
 
     //Update the Claim SettlementAmt
     app.put('/UpdateClaimExpertOpinionStatus/:ClaimNo', (req, res) => {
+        var jsonObj = [];
 
         const transactionName = "TransactionClaimExpertOpinionStatus";
-        bnUtil.connect(req, (error) => {
+        bnUtil.connect(req, res, (error) => {
 
             // Check for error
             if (error) {
@@ -1424,9 +1540,10 @@ module.exports = (app) => {
 
     //Update the Claim SettlementAmt
     app.put('/PolicyholderApproval/:ClaimNo', (req, res) => {
+        var jsonObj = [];
 
         const transactionName = "TransactionUpdateClaimMode";
-        bnUtil.connect(req, (error) => {
+        bnUtil.connect(req, res, (error) => {
 
             // Check for error
             if (error) {
@@ -1482,9 +1599,10 @@ module.exports = (app) => {
 
     //Update the Claim SettlementAmt
     app.put('/ClaimAcknowledge/:ClaimNo', (req, res) => {
+        var jsonObj = [];
 
         const transactionName = "TransactionUpdateClaimMode";
-        bnUtil.connect(req, (error) => {
+        bnUtil.connect(req, res, (error) => {
 
             // Check for error
             if (error) {
@@ -1541,7 +1659,7 @@ module.exports = (app) => {
 
         var jsonObj = [];
 
-        bnUtil.connect(req, () => {
+        bnUtil.connect(req, res, () => {
             var statement2 = 'SELECT org.lloyds.market.Policy';
             var qry = bnUtil.connection.buildQuery(statement2)
             console.log(qry);
@@ -1573,7 +1691,7 @@ module.exports = (app) => {
 
         var jsonObj = [];
 
-        bnUtil.connect(req, () => {
+        bnUtil.connect(req, res, () => {
             var statement2 = 'SELECT org.lloyds.market.Policy';
             var qry = bnUtil.connection.buildQuery(statement2)
             console.log(qry);
@@ -1609,7 +1727,7 @@ module.exports = (app) => {
         var jsonObj = [];
 
         const user = req.headers["user"];
-        bnUtil.connect(req, () => {
+        bnUtil.connect(req, res, () => {
             let bnDef = bnUtil.connection.getBusinessNetwork();
             console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
             var serializer = bnDef.getSerializer();
@@ -1622,7 +1740,6 @@ module.exports = (app) => {
                 var qry = bnUtil.connection.buildQuery(statement2)
                 console.log(qry);
                 return bnUtil.connection.query(qry).then((results2) => {
-                    // console.log('2. Received results2: ', results2);
 
                     for (var i = 0; i < results1.length; i++) {
                         let details = [];
@@ -1636,17 +1753,15 @@ module.exports = (app) => {
 
                         }
 
-                        //console.log(obj.PolicyNo.$identifier)
                         var policyResult = (results2.filter(item => item.PolicyNo === obj.PolicyNo.$identifier.toString()));
                         var policy_obj = policyResult[0]
 
                         console.log(obj.ClaimCreateDate);
-
                         console.log(policy_obj.PolicyNo);
 
                         if (obj.ClaimMode != null) {
                             let Status;
-                            if (obj.ClaimMode == "Conflict Of Interest") {
+                            if (obj.ClaimMode == "ConflictofInterest") {
                                 Status = "Pending";
                             } else {
                                 Status = "Completed";
@@ -1715,10 +1830,6 @@ module.exports = (app) => {
 
                             });
                         }
-
-
-
-
                         jsonObj.push({
 
                             "owner": owner,
@@ -1738,6 +1849,14 @@ module.exports = (app) => {
                     res.json({
                         jsonObj
                     });
+                });
+            }).catch((error) => {
+                console.log(error);
+                jsonObj.push({
+                    "status": error
+                });
+                res.json({
+                    jsonObj
                 });
             });
         });
@@ -1821,18 +1940,26 @@ module.exports = (app) => {
                     var policy_obj = results2[0]
                     let details = [];
                     if (obj.ClaimSettlementAmount != null) {
+
+                        let Status;
+                        if (obj.ClaimSettlementAmount.Status != "Completed") {
+                            Status = "Pending";
+                        } else {
+                            Status = "Agreed";
+                        }
                         details.push({
                             "PartyName": policy_obj.InsuredCompanyName,
                             "PartyType": "Policyholder",
                             "SettlementAmount": obj.ClaimSettlementAmount.Amount,
-                            "Confirmation": obj.ClaimSettlementAmount.Status,
+                            "Confirmation": Status,
+                        });
+                        jsonObj.push({
+                            "Lead": obj.LeadCarrier.$identifier.toString(),
+                            "SettlementAmount": obj.ClaimSettlementAmount.Amount,
+                            details
                         });
                     }
-                    jsonObj.push({
-                        "Lead": obj.LeadCarrier.$identifier.toString(),
-                        "SettlementAmount": obj.ClaimSettlementAmount.Amount,
-                        details
-                    });
+
                     console.log("***********getClaimSettlement ends**************")
                     res.json({
                         jsonObj
@@ -1845,7 +1972,7 @@ module.exports = (app) => {
     app.get('/PolicyPDF/:PolicyNo', (req, res) => {
         var jsonObj = [];
         var results1;
-        bnUtil.connect(req, () => {
+        bnUtil.connect(req, res, () => {
             let policyRegistry = {}
             var statement1 = 'SELECT  org.lloyds.market.Policy WHERE (PolicyNo == _$id)';
             var qry = bnUtil.connection.buildQuery(statement1)
@@ -1892,21 +2019,23 @@ module.exports = (app) => {
                 }).then((results2) => {
                     console.log('2. Received results2: ', results2);
                     var policy_obj = results2[0]
+
                     if (obj.segmnt != null) {
+                        let CSType = "SCAP";
                         let table = [];
-
-
+                        if (obj.ClaimEstimateLoss != undefined && parseInt(obj.ClaimEstimateLoss) > 250000) {
+                            CSType = "Non SCAP";
+                        }
                         table.push({
                             "Name": obj.segmnt.name.$identifier.toString(),
                             "Role": obj.segmnt.role,
                             "Date": obj.segmnt.segDate,
                         });
                         ClaimSegmentation.push({
-                            "CSType": "SCAP",
+                            "CSType": CSType,
                             "Name": "Claim Segmentation",
                             table
                         });
-
                         jsonObj.push({
                             ClaimSegmentation
                         });
@@ -1914,33 +2043,35 @@ module.exports = (app) => {
                     if (obj.ClaimExpertOpinion != null) {
                         ClaimExpertOpinion = obj.ClaimExpertOpinion.ClaimExpertOpinion;
                     }
-
                     if (obj.ClaimQuery != null) {
                         ClaimQuery = obj.ClaimQuery.ClaimQuery;
                     }
-
-                    if (obj.ClaimMode != "Pending") {
-                        ClaimAckBy = obj.LeadCarrier.$identifier.toString();
+                    if (obj.ClaimMode != "ConflictofInterest") {
+                        ClaimAckBy = obj.owner.$identifier.toString();
                     }
 
-                    if (obj.additionalInfo == null) {
-                        let table = [];
-                        table.push({
-                            "PartyName": obj.LeadCarrier.$identifier.toString(),
-                            "PartyType": "Palcing Broker",
-                            "Details": "Please send KYC",
-                            "Status": "Pending",
-                            "ReceivedOn": new Date(),
-                        });
+                    if (obj.additionalInfo != null) {
                         AdditionalInfo.push({
-                            "Name": obj.LeadCarrier.$identifier.toString(),
-                            table
+                            "Name": obj.owner.$identifier.toString(),
                         });
+                        for (var i = 0; i < obj.additionalInfo.length; i++) {
+                            let infoObj = obj.additionalInfo[i]
+                            let table = [];
+                            table.push({
+                                "PartyName": infoObj.PartyName,
+                                "PartyType": infoObj.PartyType,
+                                "Details": infoObj.Details,
+                                "Status": infoObj.Status,
+                                "ReceivedOn": infoObj.timestamp,
+                            });
+                            AdditionalInfo.push({
+                                table
+                            });
+                        }
                         jsonObj.push({
                             AdditionalInfo
                         });
                     }
-
                     console.log("***********ClaimEvaluation ends**************")
                     res.json({
                         ClaimSegmentation,
@@ -1957,7 +2088,7 @@ module.exports = (app) => {
     app.get('/getConflictOfInterest/:ClaimNumber', (req, res) => {
         var jsonObj = [];
         var results1;
-        bnUtil.connect(req, () => {
+        bnUtil.connect(req, res, () => {
             let policyRegistry = {}
             var statement1 = 'SELECT  org.lloyds.market.Claim WHERE (ClaimNo == _$id)';
             var qry = bnUtil.connection.buildQuery(statement1)
@@ -1988,7 +2119,7 @@ module.exports = (app) => {
 
     app.get('/getClaimSeg/:ClaimNumber', (req, res) => {
         var jsonObj = [];
-        bnUtil.connect(req, () => {
+        bnUtil.connect(req, res, () => {
             let bnDef = bnUtil.connection.getBusinessNetwork();
             console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
             var statement1 = 'SELECT  org.lloyds.market.Claim WHERE (ClaimNo == _$id)';
@@ -2035,7 +2166,7 @@ module.exports = (app) => {
 
     app.get('/getadditionalInfo/:ClaimNumber', (req, res) => {
         var jsonObj = [];
-        bnUtil.connect(req, () => {
+        bnUtil.connect(req, res, () => {
             let bnDef = bnUtil.connection.getBusinessNetwork();
             console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
             var statement1 = 'SELECT  org.lloyds.market.Claim WHERE (ClaimNo == _$id)';
@@ -2082,9 +2213,10 @@ module.exports = (app) => {
 
     //Update the Claim SettlementAmt
     app.put('/UpdateSettlementAmt/:ClaimNo', (req, res) => {
+        var jsonObj = [];
 
         const transactionName = "TransactionClaimQuery";
-        bnUtil.connect(req, (error) => {
+        bnUtil.connect(req, res, (error) => {
 
             // Check for error
             if (error) {
@@ -2142,9 +2274,9 @@ module.exports = (app) => {
 
     //Update the Claim SettlementAmt
     app.put('/UpdateSettlementAmtStatus/:ClaimNo', (req, res) => {
-
+        var jsonObj = [];
         const transactionName = "TransactionClaimSettlementAmountStatus";
-        bnUtil.connect(req, (error) => {
+        bnUtil.connect(req, res, (error) => {
 
             // Check for error
             if (error) {
@@ -2230,149 +2362,12 @@ function padValue(value) {
     return (value < 10) ? "0" + value : value;
 }
 
-function validateUser(user, password) {
-    switch (user) {
-        case "Isabelle":
-            if (password === "1234") {
-                return false;
-            } else {
-                return true;
-            }
-            break;
-        case "GaingKim":
-            if (password === "1234") {
-                return false;
-            } else {
-                return true;
-            }
-            break;
-        case "DavidCoker":
-            if (password === "2345") {
-                return false;
-            } else {
-                return true;
-            }
-            break;
-        case "JamesAtkins":
-            if (password === "1234") {
-                return false;
-            } else {
-                return true;
-            }
-            break;
-        case "JohnWhite":
-            if (password === "1234") {
-                return false;
-            } else {
-                return true;
-            }
-            break;
-        case "SIC10":
-            if (password === "1234") {
-                return false;
-            } else {
-                return true;
-            }
-            break;
-        case "ABCUW":
-            if (password === "2345") {
-                return false;
-            } else {
-                return true;
-            }
-            break;
-        case "Bleachers":
-            if (password === "1234") {
-                return false;
-            } else {
-                return true;
-            }
-            break;
-        case "ECP":
-            if (password === "1234") {
-                return false;
-            } else {
-                return true;
-            }
-            break;
-        case "JamesEstates":
-            if (password === "1234") {
-                return false;
-            } else {
-                return true;
-            }
-            break;
-        case "Towers":
-            if (password === "1234") {
-                return false;
-            } else {
-                return true;
-            }
-            break;
-        case "Dakota":
-            if (password === "1234") {
-                return false;
-            } else {
-                return true;
-            }
-            break;
-        case "SouthernCentre":
-            if (password === "1234") {
-                return false;
-            } else {
-                return true;
-            }
-            break;
-        default:
-            return true;
-    }
-}
 
 function getCardName(user) {
-    switch (user) {
-        case "Isabelle":
-            return 'Isabelle-card@lloyds-project-11';
-            break;
-        case "GaingKim":
-            return 'GaingKim-card@lloyds-project-11';
-            break;
-        case "DavidCoker":
-            return 'DavidCoker-card@lloyds-project-11';
-            break;
-        case "JamesAtkins":
-            return 'JamesAtkins-card@lloyds-project-11';
-            break;
-        case "JohnWhite":
-            return 'JohnWhite-card@lloyds-project-11';
-            break;
-        case "SIC10":
-            return 'SIC10-card@lloyds-project-11';
-            break;
-        case "ABCUW":
-            return 'ABCUW-card@lloyds-project-11';
-            break;
-        case "Bleachers":
-            return 'Bleachers-card@lloyds-project-11';
-            break;
-        case "ECP":
-            return 'ECP-card@lloyds-project-11';
-            break;
-        case "JamesEstates":
-            return 'JamesEstates-card@lloyds-project-11';
-            break;
-        case "Towers":
-            return 'Towers-card@lloyds-project-11';
-            break;
-        case "Dakota":
-            return 'Dakota-card@lloyds-project-11';
-            break;
-        case "SouthernCentre":
-            return 'SouthernCentre-card@lloyds-project-11';
-            break;
-        default:
-            return '';
-    }
+
+    return user.concat("-card@lloyds-project-11")
 }
+
 
 function timeDifference(date) {
 
@@ -2412,10 +2407,10 @@ function timeDifference(date) {
 /** RETURN INSURED ADDRESS
  * 
  */
-function getPartyAdress(req, party) {
+function getPartyAdress(req, res, party) {
     console.log('***CODE STARTED****');
     return new Promise((resolve, reject) => {
-        bnUtil.connect(req, async (error) => {
+        bnUtil.connect(req, res, async (error) => {
             let address = {};
             // Check for error
             if (error) {
@@ -2435,8 +2430,44 @@ function getPartyAdress(req, party) {
                 bnUtil.disconnect();
                 resolve(address);
             } else {
-                reject(Error("Invalid user"));
+                reject(Error(`Invalid user: ${party}`));
             }
         });
+    });
+}
+
+
+//getIsuredAdress();
+
+async function getUserName(party, password) {
+    return new Promise((resolve, reject) => {
+        connection.connect(cardName).then(function () {
+            console.log("Fetching uset details for user ", party);
+
+            connection.getParticipantRegistry('org.lloyds.market._Party')
+                .then(function (playerRegistry) {
+                    return playerRegistry.exists(party);
+                })
+                .then(function (exists) {
+                    if (exists) {
+                        console.log("user exists");
+                        return connection.getParticipantRegistry('org.lloyds.market._Party')
+                            .then(function (assetRegistry) {
+                                return assetRegistry.get(party);
+                            })
+                            .then(function (user) {
+                                return (user.Name);
+
+                            });
+
+                    } else {
+                        return (party);
+                    }
+
+                });
+
+        });
+
+
     });
 }

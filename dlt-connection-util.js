@@ -5,13 +5,14 @@ module.exports = {
     cardStore: require('composer-common').FileSystemCardStore,
     BusinessNetworkConnection: require('composer-client').BusinessNetworkConnection,
     // Used for connect()
-    //cardName: "admin@lloyds-project-6",
+    //cardName: "admin@lloyds-project-11",
 
     // Holds the Business Network Connection
     connection: {},
 
     // 1. This is the function that is called by the app
-    connect: function (req, callback) {
+    connect: function (req, res, callback) {
+        console.log("*** dlt-connection-util ***");
 
         // Create instance of file system card store
         //const cardStore = new this.cardStore();
@@ -20,22 +21,32 @@ module.exports = {
             type: 'composer-wallet-filesystem'
         };
         this.connection = new this.BusinessNetworkConnection(cardType);
-
         const user = req.headers["user"];
-        const password = req.headers["password"];
 
-        if (user === undefined || password === undefined || validateUser(user, password)) {
-            res.writeHead(401, 'Access invalid for user', {
-                'Content-Type': 'text/plain'
+        if (user === undefined) {
+            //res.writeHead(401, 'Access invalid for user', { 'Content-Type': 'text/plain' });
+            var jsonObj = [];
+
+            jsonObj.push({
+                "status": 'user header is undefined'
             });
-            res.end('Invalid credentials');
+            res.json({
+                jsonObj
+            });
         } else {
             const cardName_new = getCardName(user);
-
-            // Invoke connect
+            console.log("*** dlt-connection-util card name ***", cardName_new);
             return this.connection.connect(cardName_new).then(function () {
                 callback();
             }).catch((error) => {
+                var jsonObj = [];
+
+                jsonObj.push({
+                    "status": 'user card not found'
+                });
+                res.json({
+                    jsonObj
+                });
                 callback(error);
                 console.log(error);
                 connection.disconnect();
@@ -56,42 +67,8 @@ module.exports = {
             callback({}, error);
         });
     }
-};
-
-
-function getCardName(user) {
-    switch (user) {
-        case "Isabelle":
-            return 'Isabelle@lloyds-project-6';
-
-        case "GaingKim":
-            return 'GaingKim@lloyds-project-6';
-
-        case "admin":
-            return 'admin@lloyds-project-6';
-
-        default:
-            return '';
-    }
 }
 
-function validateUser(user, password) {
-    switch (user) {
-        case "Isabelle":
-            if (password === "1234") {
-                return false;
-            } else
-                return true;
-            break;
-        case "GaingKim":
-            if (password === "1234") {
-                return false;
-            } else
-                return true;
-            break;
-        case "admin":
-            return false;
-        default:
-            return true;
-    }
+function getCardName(user) {
+    return user.concat("-card@lloyds-project-11")
 }
