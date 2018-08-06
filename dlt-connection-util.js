@@ -70,5 +70,5 @@ module.exports = {
 }
 
 function getCardName(user) {
-    return user.concat("-card@lloyds-project-11")
+    return user.concat("@lloyds-project-6");
 }

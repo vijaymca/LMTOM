@@ -54,8 +54,8 @@ asset Policy identified by PolicyNo {
 
 concept carrierInfo
  {
-o String LineNo
-o String PostalCode
+o String LineNo optional
+o String PostalCode optional
 o Double bindingVal default = 383985000.0
 o Double constMach default= 120000.0
 o Double BI_monthip default=12000000.0
@@ -148,8 +148,7 @@ concept _Premium {
     o String TermsOfTradePeriod optional
     o String PaymentsDescription optional
     o Double placeBrokerComm default=0.09 optional
-   o Double overseasBroComm default=0.11 optional
-
+    o Double overseasBroComm default=0.11 optional
     o Boolean premiumBeenPaiByPolHolder default=false optional
     o Boolean reinstatementApplicable default=false optional
     o Boolean reinstatementPaidByPolHolder default=false optional
@@ -182,8 +181,8 @@ participant _Party identified by OwnerId {
 concept _follower {
   o String index
   --> _Party party
-  o Integer written
-  o Integer signed
+  o Integer written default = 20
+  o Integer signed default = 20
 }
 
 enum ClaimType {

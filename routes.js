@@ -38,11 +38,11 @@ module.exports = (app) => {
         const user = req.headers["user"];
         const password = req.headers["password"];
         console.log("2. ********* login1", user);
-        if (user === undefined || password === undefined  || user === "" || password === "") { // || validateUser(user, password)) {
+        if (user === undefined || password === undefined || user === "" || password === "") { // || validateUser(user, password)) {
             res.writeHead(401, 'Access invalid for user', {
                 'Content-Type': 'text/plain'
             });
-            
+
             res.end('Invalid credentials');
         } else {
             console.log("3. ********* login2");
@@ -267,7 +267,7 @@ module.exports = (app) => {
         const user = req.headers["user"];
         const password = req.headers["password"];
 
-        if (user === undefined ) {
+        if (user === undefined) {
             res.writeHead(401, 'Access invalid for user', {
                 'Content-Type': 'text/plain'
             });
@@ -393,9 +393,9 @@ module.exports = (app) => {
                 res.json({
                     jsonObj
                 });
+            });
         });
     });
-});
 
 
     app.get('/ClaimHistory', function (req, res) {
@@ -568,7 +568,7 @@ module.exports = (app) => {
         });
     }
 
-     /** GET POLICY INFORMATION
+    /** GET POLICY INFORMATION
      * 
      */
     app.get('/getPolicy/:PolicyNo', (req, res) => {
@@ -610,8 +610,8 @@ module.exports = (app) => {
                 };
 
                 const insuredAddress = await getPartyAdress(req, res, policy.Insured.getIdentifier());
-                const BrokerPlacingAddress = await getPartyAdress(req,res, policy.PlacingBroker.getIdentifier());
-                const BrokerOverSeasAddress = await getPartyAdress(req,res, policy.OverseasBroker.getIdentifier());
+                const BrokerPlacingAddress = await getPartyAdress(req, res, policy.PlacingBroker.getIdentifier());
+                const BrokerOverSeasAddress = await getPartyAdress(req, res, policy.OverseasBroker.getIdentifier());
 
                 jsonObj.push({
                     "PolicyNo": policy.PolicyNo,
@@ -645,7 +645,7 @@ module.exports = (app) => {
         });
     });
 
-  
+
     /** POST -> NEW POLICY
      * 
      */
@@ -731,7 +731,10 @@ module.exports = (app) => {
             let bnDef = bnUtil.connection.getBusinessNetwork();
             console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
 
-            console.log(req.body.data.PolicyNo);
+            console.log(req.params.PolicyNo);
+            console.log(req.body.data.premium);
+            console.log(req.body.data.followes);
+            console.log(req.body.data.carrierInfo);
 
             // 3. Get the factory
             let factory = bnDef.getFactory();
@@ -742,23 +745,53 @@ module.exports = (app) => {
                 includeOptionalFields: false
             };
 
-            let policyResource = factory.newTransaction(NS_model, trPolicy, PolicyId, options);
+            let PolicyId = req.params.PolicyNo;
+            var policyTraxn = factory.newTransaction(NS_model, trPolicy, PolicyId, options);
 
             // 5. Set up the properties of the transaction object
-            policyResource.PolicyNo = req.body.data.PolicyNo;
+            policyTraxn.PolicyNo = PolicyId;
+            policyTraxn.InsuredCompanyName = req.body.data.InsuredCompanyName;
 
+            //console.log(`ARR:${prem[0]}`);
+            policyTraxn.premium = [];
+            policyTraxn.followes = [];
+            policyTraxn.carrierInfo = [];
 
-            policyResource.InsuredCompanyName = req.body.data.InsuredCompanyName;
-            policyResource.PolicyType = req.body.data.PolicyType;
-            policyResource.PolicyDetails1 = req.body.data.PolicyDetails1;
-            policyResource.PolicyEffectiveDate = new Date(req.body.data.PolicyEffectiveDate);
-            policyResource.PolicyExpiryDate = new Date(req.body.data.PolicyExpiryDate);
+            for (let i in req.body.data.premium) {
+                var premConcept = factory.newConcept(NS, '_Premium');
+                premConcept.PremiumAmount = req.body.data.premium[i].premiumAmount;
+                premConcept.placeBrokerComm = req.body.data.premium[i].placeBrokerComm;
+                premConcept.overseasBroComm = req.body.data.premium[i].overseasBroComm;
+                policyTraxn.premium.push(premConcept);
+            }
 
-            let relationship = factory.newRelationship(NS, PRTCP_PARTY, req.body.data.LeadCarrier);
-            policyResource.LeadCarrier = relationship;
+            for (let i in req.body.data.followes) {
+                var followConcept = factory.newConcept(NS, '_follower');
+                followConcept.index = i;
+
+                var party = factory.newRelationship(NS, '_Party', req.body.data.followes[i].party);
+                followConcept.party = party;
+
+                followConcept.written = req.body.data.followes[i].written;
+                followConcept.signed = req.body.data.followes[i].signed;
+                policyTraxn.followes.push(followConcept);
+            }
+
+            for (let i in req.body.data.carrierInfo) {
+                var carrierConcept = factory.newConcept(NS, 'carrierInfo');
+                carrierConcept.LineNo = req.body.data.carrierInfo[i].LineNo;
+                carrierConcept.PostalCode = req.body.data.carrierInfo[i].PostalCode;
+                carrierConcept.bindingVal = req.body.data.carrierInfo[i].bindingVal;
+                carrierConcept.constMach = req.body.data.carrierInfo[i].constMach;
+                carrierConcept.BI_monthip = req.body.data.carrierInfo[i].BI_monthip;
+                carrierConcept.sectionA = req.body.data.carrierInfo[i].sectionA;
+                carrierConcept.premium = req.body.data.carrierInfo[i].premium;
+                carrierConcept.cntry_tax = req.body.data.carrierInfo[i].cntry_tax;
+                policyTraxn.carrierInfo.push(carrierConcept);
+            }
 
             // 6. Submit the transaction
-            return bnUtil.connection.submitTransaction(policyResource).then(() => {
+            return bnUtil.connection.submitTransaction(policyTraxn).then(() => {
                 console.log("6. Transaction Submitted/Processed Successfully!!");
                 jsonObj.push({
                     "status": "Transaction Submitted",
@@ -956,11 +989,11 @@ module.exports = (app) => {
                 //to get the JSON object in get params
                 var serializer = bnDef.getSerializer();
                 if (claim.checkPremium != null) {
-                jsonObj.push({
-                    "ClaimNo": claim.ClaimNo,
-                    "checkPremium": serializer.toJSON(claim.checkPremium)
-                });
-            }
+                    jsonObj.push({
+                        "ClaimNo": claim.ClaimNo,
+                        "checkPremium": serializer.toJSON(claim.checkPremium)
+                    });
+                }
 
 
                 console.log("*************************");
@@ -1061,11 +1094,11 @@ module.exports = (app) => {
                 //to get the JSON object in get params
                 var serializer = bnDef.getSerializer();
                 if (claim.segmnt != null) {
-                jsonObj.push({
-                    "ClaimNo": claim.ClaimNo,
-                    "checkPremium": serializer.toJSON(claim.segmnt)
-                });
-            }
+                    jsonObj.push({
+                        "ClaimNo": claim.ClaimNo,
+                        "checkPremium": serializer.toJSON(claim.segmnt)
+                    });
+                }
 
 
                 console.log("*************************");
@@ -1106,7 +1139,7 @@ module.exports = (app) => {
                         "houseKeeping": serializer.toJSON(claim.houseKeeping)
                     });
                 }
-                
+
 
 
 
@@ -1121,7 +1154,7 @@ module.exports = (app) => {
     });
 
 
-        /** GET -> HOUSE KEEPING TABLE
+    /** GET -> HOUSE KEEPING TABLE
      * 
      */
     app.get('/HouseKeepSanction/:ClaimNo', (req, res) => {
@@ -1144,8 +1177,7 @@ module.exports = (app) => {
                         "Carrier": claim.owner.$identifier.toString(),
                         "Status": "Confirmed"
                     });
-                }
-                else{
+                } else {
                     table.push({
                         "Carrier": claim.owner.$identifier.toString(),
                         "Status": "Pending"
@@ -2430,7 +2462,9 @@ function getPartyAdress(req, res, party) {
                 bnUtil.disconnect();
                 resolve(address);
             } else {
-                reject(Error(`Invalid user: ${party}`));
+                reject(Error(`Invalid user: ${party}`)).then(() => {}, (error) => {
+                    consol.log(error);
+                });
             }
         });
     });

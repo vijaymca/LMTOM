@@ -14,6 +14,8 @@ import org.lloyds.market.ClaimType
 import org.lloyds.market._Premium
 import org.lloyds.market.Segmentation
 import org.lloyds.market.houseKeeping
+import org.lloyds.market._follower
+import org.lloyds.market.carrierInfo
 
 transaction CreateClaim {
   o   String    ClaimNo
@@ -214,13 +216,9 @@ event eventclaimAddtionalInfo {
 }
 
 transaction updatePolicy {
-o  String policyNo
-o _Premium premium optional
-o Integer brokerper default = 20 optional
-o Integer order default = 100 optional
-o Double buildingVal optional
-o Double Cont_stock_mach optional
-o Double BI_18mont optional
-o Integer SectionA optional
-o Integer contry_tax default = 12
+o String PolicyNo
+o _Premium[] premium optional
+o String InsuredCompanyName optional
+o _follower[] followes optional
+o carrierInfo[] carrierInfo optional
 }
