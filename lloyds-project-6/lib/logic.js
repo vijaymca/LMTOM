@@ -17,39 +17,42 @@ const NS_POLICY = 'org.lloyds.market.Policy';
  */
 
 async function policyNew(xData) { // eslint-disable-line no-unused-vars
-      const factory = getFactory();
-      //Create Policy
-      const policy = factory.newResource(NS, AST_POLICY, xData.PolicyNo);
-      policy.InsuredCompanyName = xData.InsuredCompanyName;
-      policy.PolicyType = xData.PolicyType;
-      policy.PolicyDetails1 = xData.PolicyDetails1;
-      policy.LeadCarrier = xData.LeadCarrier;
+    const factory = getFactory();
+    //Create Policy
+    const policy = factory.newResource(NS, AST_POLICY, xData.PolicyNo);
+    policy.InsuredCompanyName = xData.InsuredCompanyName;
+    policy.PolicyType = xData.PolicyType;
+    policy.PolicyDetails1 = xData.PolicyDetails1;
+    policy.LeadCarrier = xData.LeadCarrier;
 
-      const effectiveDate = xData.timestamp;
-      effectiveDate.setDate(effectiveDate.getDate());
+    const effectiveDate = xData.timestamp;
+    effectiveDate.setDate(effectiveDate.getDate());
 
-      policy.PolicyEffectiveDate = effectiveDate;
-      policy.PolicyExpiryDate = PolicyExpiryDate;
+    policy.PolicyEffectiveDate = effectiveDate;
+    policy.PolicyExpiryDate = PolicyExpiryDate;
 
-      // add Policy to registry
-      const policyRegistry = await getAssetRegistry(NS_POLICY);
-      await policyRegistry.addAll([policy]);
+    // add Policy to registry
+    const policyRegistry = await getAssetRegistry(NS_POLICY);
+    await policyRegistry.addAll([policy]);
 }
 
 /**
- * Initialize some test assets and participants useful for running a demo.
- * @param {org.lloyds.model.updatePolicy} updatePolicy 
- * @transaction
- */
+* Initialize some test assets and participants useful for running a demo.
+* @param {org.lloyds.model.updatePolicy} updatePolicy 
+* @transaction
+*/
 
 async function updatePolicy(xData) {
       const policyRegistry = await getAssetRegistry(NS_POLICY);
       const policy = await policyRegistry.get(xData.PolicyNo);
-      policy.InsuredCompanyName = xData.InsuredCompanyName;
-      policy.premium = xData.premium;
-      policy.followers = xData.followes;
-      policy.carrierInfo = xData.carrierInfo;
-        
+
+      if (xData.Role === "broker") {
+            policy.premium = xData.premium;
+            policy.followers = xData.followes;
+      } else if(xData.Role === "carrier") {
+            policy.carrierInfo = xData.carrierInfo;
+      }
+
       await policyRegistry.update(policy);
 }
 
@@ -66,11 +69,7 @@ function createclaim(claimData) {
 
                   var NS = 'org.lloyds.model.CreateClaim';
 
-                  // Solution to exercise - Removed hardcoded value & invoked
-                  // generate the claim ID
-                  // 2.1 Set the claimNumber, claimId ... 
-
-                  var claim = factory.newResource('org.lloyds.market', 'Claim', claimData.ClaimNo);
+                   var claim = factory.newResource('org.lloyds.market', 'Claim', claimData.ClaimNo);
 
                   claim.ClaimCreatedBy = claimData.ClaimCreatedBy;
                   claim.ClaimMode = "ConflictofInterest";
@@ -203,7 +202,7 @@ async function TransactionClaimSettlementAmount(xData) {
       const claim = await claimRegistry.get(xData.claimId);
       claim.ClaimSettlementAmount = SettlementAmount;
 
-
+      
       await claimRegistry.update(claim);
 
       // 3 Emit the event ClaimSettlementAmountUpdated
@@ -237,8 +236,17 @@ async function TransactionClaimSettlementAmountStatus(xData) {
       const claimRegistry = await getAssetRegistry('org.lloyds.market.Claim');
       const claim = await claimRegistry.get(xData.claimId);
       claim.ClaimSettlementAmount.Status = xData.Status;
-
+      
       claim.ClaimMode = "PremiumCheck";
+      let premium = await factory.newConcept('org.lloyds.market', '_Premium');
+      premium.premiumBeenPaiByPolHolder = false;
+      premium.reinstatementApplicable = false;
+      premium.reinstatementPaidByPolHolder = false;
+      premium.CreateDate = new Date(Date.now());
+      premium.TargetDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+      premium.Status = "Pending";
+      claim.checkPremium = premium;
+
       await claimRegistry.update(claim);
 
       // 3 Emit the event ClaimSettlementAmountUpdated
@@ -419,19 +427,19 @@ async function TransactionClaimQueryStatus(xData) {
  */
 async function claimConflict(xData) {
       // Update claim
-
+     
       const claimRegistry = await getAssetRegistry(NS_CLAIM);
       const claim = await claimRegistry.get(xData.claimId);
       claim.ClaimMode = xData.ClaimMode;
       claim.owner = xData.owner;
-  
+      
       if (!claim.comments) {
             claim.comments = [];
       }
-
+  
       claim.comments.push(xData.comment);
       await claimRegistry.update(claim);
-}
+  }
 
 /** claimPremCheck Transaction
  * @param {org.lloyds.model.claimPremCheck} claimPremCheck
@@ -440,9 +448,20 @@ async function claimConflict(xData) {
 async function claimPremCheck(xData) {
       const claimRegistry = await getAssetRegistry(NS_CLAIM);
       const claim = await claimRegistry.get(xData.claimId);
+      var factory = getFactory();
+      
       claim.checkPremium = xData.premium;
-
+      
       claim.ClaimMode = "HousekeepingCheck";
+      let houseKeeping = await factory.newConcept('org.lloyds.market', 'houseKeeping');
+      houseKeeping.premiumBeenPaidByPolHolder = false;
+      houseKeeping.reinstatementPremiumPaid = false;
+      houseKeeping.anyFraud = false;
+      houseKeeping.CreateDate = new Date(Date.now());
+      houseKeeping.TargetDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+      houseKeeping.Status = "Pending";
+     claim.houseKeeping = houseKeeping;
+
       await claimRegistry.update(claim);
 }
 
@@ -454,7 +473,7 @@ async function claimSegment(xData) {
       const claimRegistry = await getAssetRegistry(NS_CLAIM);
       const claim = await claimRegistry.get(xData.claimId);
       claim.segmnt = xData.segmnt;
-
+      
       claim.ClaimMode = "ClaimSettlement";
       await claimRegistry.update(claim);
 }
@@ -467,7 +486,7 @@ async function housekeep(xData) {
       const claimRegistry = await getAssetRegistry(NS_CLAIM);
       const claim = await claimRegistry.get(xData.claimId);
       claim.houseKeeping = xData.housekeep;
-
+      
       claim.ClaimMode = "Closed";
       await claimRegistry.update(claim);
 }

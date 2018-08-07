@@ -12,6 +12,14 @@
  * limitations under the License.
  */
 
+rule PartyPermission {
+  description: "Allow ClaimOwner"
+  participant: "org.lloyds.market._Party"
+  operation: ALL
+  resource: "org.lloyds.market._Party"
+  action: ALLOW
+}
+ 
 rule ClaimOwner {
   description: "Allow ClaimOwner"
   participant(t): "org.lloyds.market._Party"
@@ -33,7 +41,7 @@ rule LeadCarrier {
 rule PlacingBroker {
   description: "Allow PlacingBroker"
   participant(t): "org.lloyds.market._Party"
-  operation: READ
+  operation: ALL
   resource(v): "org.lloyds.market.Claim"
   condition: (v.PlacingBroker.getIdentifier() == t.getIdentifier()  )
   action: ALLOW
@@ -42,7 +50,7 @@ rule PlacingBroker {
 rule ClaimsBroker {
   description: "Allow ClaimsBroker"
   participant(t): "org.lloyds.market._Party"
-  operation: READ
+  operation: ALL
   resource(v): "org.lloyds.market.Claim"
   condition: (v.ClaimsBroker.getIdentifier() == t.getIdentifier()  )
   action: ALLOW
@@ -51,7 +59,7 @@ rule ClaimsBroker {
 rule OverseasBroker {
   description: "Allow OverseasBroker"
   participant(t): "org.lloyds.market._Party"
-  operation: READ
+  operation: ALL
   resource(v): "org.lloyds.market.Claim"
   condition: (v.OverseasBroker.getIdentifier() == t.getIdentifier()  )
   action: ALLOW
@@ -69,7 +77,7 @@ rule PolicyOwner {
 rule Followers1 {
   description: "Allow Followers1"
   participant(t): "org.lloyds.market._Party"
-  operation: READ
+  operation: ALL
   resource(v): "org.lloyds.market.Claim"
   condition: (v.Followers1.getIdentifier() == t.getIdentifier()  )
   action: ALLOW
@@ -79,7 +87,7 @@ rule Followers1 {
 rule Followers2 {
   description: "Allow Followers2"
   participant(t): "org.lloyds.market._Party"
-  operation: READ
+  operation: ALL
   resource(v): "org.lloyds.market.Claim"
   condition: (v.Followers2.getIdentifier() == t.getIdentifier()  )
   action: ALLOW
@@ -88,7 +96,7 @@ rule Followers2 {
 rule Followers3 {
   description: "Allow Followers3"
   participant(t): "org.lloyds.market._Party"
-  operation: READ
+  operation: ALL
   resource(v): "org.lloyds.market.Claim"
   condition: (v.Followers3.getIdentifier() == t.getIdentifier()  )
   action: ALLOW
@@ -103,29 +111,132 @@ rule Followers4 {
   action: ALLOW
 }
 
-rule CreateClaim {
+rule PolicyInsured {
+  description: "Allow PolicyOwner"
+  participant(t): "org.lloyds.market._Party"
+  operation: ALL
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.Insured.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+rule PolicyInsurer {
+  description: "Allow PolicyOwner"
+  participant(t): "org.lloyds.market._Party"
+  operation: ALL
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.Insurer.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+rule PolicyBroker {
+  description: "Allow PolicyOwner"
+  participant(t): "org.lloyds.market._Party"
+  operation: ALL
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.Broker.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+rule PolicyServiceProvider {
+  description: "Allow PolicyOwner"
+  participant(t): "org.lloyds.market._Party"
+  operation: ALL
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.ServiceProvider.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+rule PolicyProducingBroker {
+  description: "Allow PolicyOwner"
+  participant(t): "org.lloyds.market._Party"
+  operation: ALL
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.ProducingBroker.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+
+rule PolicyLeadCarrier {
+  description: "Allow LeadCarrier"
+  participant(t): "org.lloyds.market._Party"
+  operation: ALL
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.LeadCarrier.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+rule PolicyPlacingBroker {
+  description: "Allow PlacingBroker"
+  participant(t): "org.lloyds.market._Party"
+  operation: ALL
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.PlacingBroker.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+rule PolicyClaimsBroker {
+  description: "Allow ClaimsBroker"
+  participant(t): "org.lloyds.market._Party"
+  operation: ALL
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.ClaimsBroker.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+rule PolicyOverseasBroker {
+  description: "Allow OverseasBroker"
+  participant(t): "org.lloyds.market._Party"
+  operation: ALL
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.OverseasBroker.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+
+
+rule PolicyFollowers1 {
+  description: "Allow Followers1"
+  participant(t): "org.lloyds.market._Party"
+  operation: ALL
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.Followers1.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+
+rule PolicyFollowers2 {
+  description: "Allow Followers2"
+  participant(t): "org.lloyds.market._Party"
+  operation: ALL
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.Followers2.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+rule PolicyFollowers3 {
+  description: "Allow Followers3"
+  participant(t): "org.lloyds.market._Party"
+  operation: ALL
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.Followers3.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+rule PolicyFollowers4 {
+  description: "Allow Followers4"
+  participant(t): "org.lloyds.market._Party"
+  operation: ALL
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.Followers4.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+rule UpdateClaim {
   description: "Make the penguins themselves visible"
   participant: "org.lloyds.market._Party"
   operation: ALL
   resource: "org.lloyds.model.*"
-  action: ALLOW
-}
-
-
-
-rule CreateClaim1 {
-  description: "Make the penguins themselves visible"
-  participant: "org.lloyds.market._Party"
-  operation: ALL
-  resource: "org.lloyds.market.*"
-  action: ALLOW
-}
-
-rule PolicyView {
-  description: "Make the penguins themselves visible"
-  participant: "org.lloyds.market._Party"
-  operation: ALL
-  resource: "org.lloyds.market.Policy"
   action: ALLOW
 }
 

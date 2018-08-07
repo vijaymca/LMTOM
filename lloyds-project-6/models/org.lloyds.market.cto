@@ -10,7 +10,7 @@ import org.lloyds.model.claimAddtionalInfo
 // ASSETS Policy Summary
 asset Policy identified by PolicyNo {
   o String PolicyNo
-  o String InsuredCompanyName
+  o String InsuredCompanyName optional
   o PolicyType PolicyType
   o String PolicyDetails1
   o DateTime PolicyEffectiveDate
@@ -148,10 +148,13 @@ concept _Premium {
     o String TermsOfTradePeriod optional
     o String PaymentsDescription optional
     o Double placeBrokerComm default=0.09 optional
-    o Double overseasBroComm default=0.11 optional
+   o Double overseasBroComm default=0.11 optional
     o Boolean premiumBeenPaiByPolHolder default=false optional
     o Boolean reinstatementApplicable default=false optional
     o Boolean reinstatementPaidByPolHolder default=false optional
+    o DateTime CreateDate optional
+    o DateTime TargetDate optional
+    o String Status optional
 }
 
 concept _Brokerage {
@@ -247,7 +250,7 @@ asset Claim identified by ClaimNo {
   o claimAddtionalInfo[] additionalInfo optional
   o _Premium checkPremium optional
   o String[] comments optional
- o String   ClaimEstimateLoss
+ o String   ClaimEstimateLoss optional
   --> _Party LeadCarrier optional
   --> _Party PlacingBroker optional
   --> _Party ClaimsBroker optional
