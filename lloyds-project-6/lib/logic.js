@@ -487,7 +487,7 @@ async function housekeep(xData) {
       const claim = await claimRegistry.get(xData.claimId);
       claim.houseKeeping = xData.housekeep;
       
-      claim.ClaimMode = "Closed";
+      claim.ClaimMode = "TAGenerated";
       await claimRegistry.update(claim);
 }
 
