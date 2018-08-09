@@ -7,17 +7,14 @@ const bnc = require('composer-client').BusinessNetworkConnection;
 const cardName = 'admin@lloyds-project-11';
 const connection = new bnc();
 const fs = require('fs');
+var js2xmlparser = require("js2xmlparser");
+var colors = require('colors/safe');
 
 const EventEmitter = require('events');
-
 class MyEmitter extends EventEmitter {}
-
 const myEmitter = new MyEmitter();
 // increase the limit
 myEmitter.setMaxListeners(100);
-
-
-
 
 const bnUtil = require('./dlt-connection-util');
 
@@ -571,83 +568,141 @@ module.exports = (app) => {
         }
     });
 
+    function getPolicyRep(req, res) {
+        return new Promise((resolve, reject) => {
+            let jsonObj = [];
+            bnUtil.connect(req, res, (error) => {
+                const bnDef = bnUtil.connection.getBusinessNetwork();
+                var serializer = bnDef.getSerializer();
+                let policyRegistry = {};
+                return bnUtil.connection.getAssetRegistry(NS_POLICY).then(async (registry) => {
+                    console.log('1. Received Registry: ', registry.id);
+                    policyRegistry = registry;
+
+                    const exists = await policyRegistry.exists(req.params.PolicyNo);
+
+                    if (exists) {
+                        return policyRegistry.get(req.params.PolicyNo);
+                    }
+
+                }).then(async (policy) => {
+
+                    const obj = serializer.toJSON(policy);
+
+                    // console.log(`INSURED:${JSON.stringify(obj.premium)}`);
+
+                    let polLayerinfo = {
+                        "layer": "Primary",
+                        "limit": {
+                            "for": "40000000",
+                            "per": "50000"
+                        },
+                        "deductable": "50000",
+                        "PD": obj.insuranceAmount.property_damage,
+                        "BI": obj.insuranceAmount.busi_interupt,
+                        "coverage": "Property(PD&BI)",
+                        "brokarage": "20",
+                        "premium": "135000"
+                    };
+
+                    const insuredAddress = await getPartyAdress(req, res, policy.Insured.getIdentifier());
+                    const BrokerPlacingAddress = await getPartyAdress(req, res, policy.PlacingBroker.getIdentifier());
+                    const BrokerOverSeasAddress = await getPartyAdress(req, res, policy.OverseasBroker.getIdentifier());
+
+                    jsonObj.push({
+                        "PolicyNo": policy.PolicyNo,
+                        "InsuredCompanyName": policy.InsuredCompanyName,
+                        "InsuredMailingAddress": insuredAddress,
+                        "BrokerPlacing": BrokerPlacingAddress,
+                        "BrokerOverSeas": BrokerOverSeasAddress,
+                        "TotalSumInsured": obj.insuranceAmount,
+                        "FinancialOverview": obj.premium,
+                        "polLayerinfo": polLayerinfo,
+                        "ContractPeriod": obj.ContractPeriod,
+                        "Followers": obj.followers,
+                        "Sublimits": obj.sublimits,
+                        "CarrierInfo": obj.carrierInfo
+                    });
+
+                    // res.json({
+                    //     jsonObj
+                    // });
+                    resolve(jsonObj);
+                }).catch((error) => {
+                    console.log(error);
+                    jsonObj.push({
+                        "status": 'exception occured'
+                    });
+                    bnUtil.connection.disconnect();
+                    res.json({
+                        jsonObj
+                    });
+                });
+            });
+        });
+    }
 
     /** GET POLICY INFORMATION
      * 
      */
-    app.get('/getPolicy/:PolicyNo', (req, res) => {
-        let jsonObj = [];
+    app.get('/getPolicy/:PolicyNo', async (req, res) => {
 
-        bnUtil.connect(req, res, (error) => {
-            const bnDef = bnUtil.connection.getBusinessNetwork();
-            var serializer = bnDef.getSerializer();
-            let policyRegistry = {};
-            return bnUtil.connection.getAssetRegistry(NS_POLICY).then(async (registry) => {
-                console.log('1. Received Registry: ', registry.id);
-                policyRegistry = registry;
-
-                const exists = await policyRegistry.exists(req.params.PolicyNo);
-
-                if (exists) {
-                    return policyRegistry.get(req.params.PolicyNo);
-                }
-
-            }).then(async (policy) => {
-
-                const obj = serializer.toJSON(policy);
-
-                // console.log(`INSURED:${JSON.stringify(obj.premium)}`);
-
-                let polLayerinfo = {
-                    "layer": "Primary",
-                    "limit": {
-                        "for": "40000000",
-                        "per": "50000"
-                    },
-                    "deductable": "50000",
-                    "PD": obj.insuranceAmount.property_damage,
-                    "BI": obj.insuranceAmount.busi_interupt,
-                    "coverage": "Property(PD&BI)",
-                    "brokarage": "20",
-                    "premium": "135000"
-                };
-
-                const insuredAddress = await getPartyAdress(req, res, policy.Insured.getIdentifier());
-                const BrokerPlacingAddress = await getPartyAdress(req, res, policy.PlacingBroker.getIdentifier());
-                const BrokerOverSeasAddress = await getPartyAdress(req, res, policy.OverseasBroker.getIdentifier());
-
-                jsonObj.push({
-                    "PolicyNo": policy.PolicyNo,
-                    "InsuredCompanyName": policy.InsuredCompanyName,
-                    "InsuredMailingAddress": insuredAddress,
-                    "BrokerPlacing": BrokerPlacingAddress,
-                    "BrokerOverSeas": BrokerOverSeasAddress,
-                    "TotalSumInsured": obj.insuranceAmount,
-                    "FinancialOverview": obj.premium,
-                    "polLayerinfo": polLayerinfo,
-                    "ContractPeriod": obj.ContractPeriod,
-                    "Followers": obj.followers,
-                    "Sublimits": obj.sublimits,
-                    "CarrierInfo": obj.carrierInfo
-                });
-
-                res.json({
-                    jsonObj
-                });
-
-            }).catch((error) => {
-                console.log(error);
-                jsonObj.push({
-                    "status": 'exception occured'
-                });
-                bnUtil.connection.disconnect();
-                res.json({
-                    jsonObj
-                });
-            });
+        console.log(colors.custom('**Call getPolicy**'));
+        let jsonObj = await getPolicyRep(req, res);
+        res.json({
+            jsonObj
         });
+
     });
 
+    /** CREATE XML FILE
+     * 
+     */
+    app.get('/createXML/:PolicyNo', async (req, res) => {
+
+        console.log(colors.custom('**Call getPolicy for XML**'));
+
+        let polObj = await getPolicyRep(req, res);
+
+        // res.json({
+        //     polObj
+        // });
+        let jsonObj =[];
+        jsonObj.push({
+            "status": "Transaction Submitted",
+        });
+
+        res.json({
+            jsonObj
+        });
+       
+        var filePath = "/tmp/".concat(req.params.PolicyNo).concat(".xml");
+
+        fs.stat(filePath, function (err, stats) {
+            //console.log(stats);//here we got all information of file in stats variable
+
+            if (err) {
+                return console.error(err);
+            }
+
+            fs.unlink(filePath, function (err) {
+                if (err) return console.log(err);
+                console.log(colors.help('file deleted successfully'));
+            });
+        });
+
+        //console.log(colors.data(polObj[0]));
+
+        let pObj = sanitize(polObj[0]);
+        console.log(colors.data(pObj));
+
+        var myxml = (js2xmlparser.parse("Policy", pObj));
+        fs.appendFile(filePath, myxml, function (err) {
+            if (err) throw err;
+            console.log(colors.silly('Saved!'));
+        });
+
+    });
 
     /** POST -> NEW POLICY
      * 
@@ -2660,6 +2715,81 @@ async function getRole(req, res) {
     });
 }
 
+
+colors.setTheme({
+    silly: 'rainbow',
+    input: 'grey',
+    verbose: 'cyan',
+    prompt: 'grey',
+    info: 'green',
+    data: 'grey',
+    help: 'cyan',
+    warn: 'yellow',
+    debug: 'blue',
+    error: 'red',
+    custom: ['yellow', 'bold']
+});
+
+function sanitize(obj) {
+
+    delete obj['$class'];
+
+    let arr = ["InsuredMailingAddress", "FinancialOverview", "Followers", "BrokerPlacing", "BrokerOverSeas", "TotalSumInsured", "polLayerinfo", "ContractPeriod", "Sublimits", "CarrierInfo"];
+
+    for (let i in arr) {
+        if (obj.hasOwnProperty(arr[i])) {
+            console.log(colors.warn(arr[i] + '->' + Array.isArray(obj[arr[i]])));
+            if (Array.isArray(obj[arr[i]])) {
+                for (let j in obj[arr[i]]) {
+                    delete obj[arr[i]][j]['$class'];
+                }
+            }
+            delete obj[arr[i]]['$class'];
+        }
+    }
+
+    return obj;
+}
+
+async function generateXML() {
+    console.log(colors.custom('***Generate XML***'));
+    let req = {
+        "headers": {
+            "user": "Isabelle",
+            "password": "1234"
+        }
+    };
+
+    console.log(req);
+
+    let res = "";
+    bnUtil.connect(req, res, async (error) => {
+
+        var filePath = "/tmp/sample.xml";
+
+        const polRegistry = await bnUtil.connection.getAssetRegistry('org.lloyds.market.Policy');
+        let polid = "2445";
+        let isExist = await polRegistry.exists(polid);
+        console.log(isExist);
+        if (isExist) {
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            const pol = await polRegistry.get(polid);
+            var serializer = bnDef.getSerializer();
+            let polObj = serializer.toJSON(pol);
+            console.log(colors.data(sanitize(polObj)));
+
+            var myxml = (js2xmlparser.parse("Policy", sanitize(polObj)));
+            fs.appendFile(filePath, myxml, function (err) {
+                if (err) throw err;
+                console.log(colors.silly('Saved!'));
+            });
+
+            bnUtil.disconnect();
+        }
+    });
+}
+
+//generateXML();
 
 //getIsuredAdress();
 async function getUserName(party, password) {

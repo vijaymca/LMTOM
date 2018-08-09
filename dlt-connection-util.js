@@ -56,7 +56,8 @@ module.exports = {
 
     // 2. Disconnects the bn connection
     disconnect: function (callback) {
-        this.connection.disconnect();
+        console.log("******Disconnect*******");
+       return this.connection.disconnect();
     },
 
     // 3. Pings the network
@@ -67,7 +68,7 @@ module.exports = {
             callback({}, error);
         });
     }
-}
+};
 
 function getCardName(user) {
     return user.concat("@lloyds-project-6");
