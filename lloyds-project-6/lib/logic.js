@@ -45,17 +45,17 @@ async function policyNew(xData) { // eslint-disable-line no-unused-vars
 async function updatePolicy(xData) {
       const policyRegistry = await getAssetRegistry(NS_POLICY);
       const policy = await policyRegistry.get(xData.PolicyNo);
-
+ 
       if (xData.Role === "broker") {
             policy.premium = xData.premium;
             policy.followers = xData.followes;
       } else if(xData.Role === "carrier") {
             policy.carrierInfo = xData.carrierInfo;
       }
-
+ 
       await policyRegistry.update(policy);
 }
-
+ 
 /**
  * CreateClaim Transaction
  * @param {org.lloyds.model.CreateClaim} CreateClaim
@@ -69,7 +69,7 @@ function createclaim(claimData) {
 
                   var NS = 'org.lloyds.model.CreateClaim';
 
-                   var claim = factory.newResource('org.lloyds.market', 'Claim', claimData.ClaimNo);
+                  var claim = factory.newResource('org.lloyds.market', 'Claim', claimData.ClaimNo);
 
                   claim.ClaimCreatedBy = claimData.ClaimCreatedBy;
                   claim.ClaimMode = "ConflictofInterest";
@@ -460,7 +460,7 @@ async function claimPremCheck(xData) {
       houseKeeping.CreateDate = new Date(Date.now());
       houseKeeping.TargetDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
       houseKeeping.Status = "Pending";
-     claim.houseKeeping = houseKeeping;
+      claim.houseKeeping = houseKeeping;
 
       await claimRegistry.update(claim);
 }
@@ -489,6 +489,21 @@ async function housekeep(xData) {
       
       claim.ClaimMode = "TAGenerated";
       await claimRegistry.update(claim);
+  
+      var factory = getFactory();
+      var event = factory.newEvent('org.lloyds.model', 'Eventclaimhousekeep');
+      event.ClaimNo = claim.ClaimNo;
+      event.owner = claim.owner.$identifier.toString();
+      event.LeadCarrier = claim.LeadCarrier.$identifier.toString();
+      event.ClaimsBroker = claim.ClaimsBroker.$identifier.toString();
+      event.PolicyOwner = claim.PolicyOwner.$identifier.toString();
+      event.Followers1 = claim.Followers1.$identifier.toString();
+      event.Followers2 = claim.Followers2.$identifier.toString();
+      event.Followers3 = claim.Followers3.$identifier.toString();
+      event.Followers4 = claim.Followers4.$identifier.toString();
+
+      emit(event);
+  
 }
 
 /** AdditionalInfo Transaction

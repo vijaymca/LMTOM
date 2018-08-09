@@ -185,8 +185,8 @@ concept _follower {
   o String index optional
   --> _Party party optional
   o String CompanyName optional
-  o Integer written default = 20
-  o Integer signed default = 20
+  o Integer written optional
+  o Integer signed optional
 }
 
 enum ClaimType {

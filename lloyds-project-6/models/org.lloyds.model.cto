@@ -186,10 +186,39 @@ transaction claimConflict {
   o String comment optional
 }
 
+event EventclaimConflict {
+    o   String    ClaimNo
+    o   String    ClaimMode
+    o   String    owner
+    o   String    LeadCarrier
+    o   String    PlacingBroker
+    o   String    ClaimsBroker
+    o   String    OverseasBroker
+    o   String    PolicyOwner
+    o   String    Followers1
+    o   String    Followers2
+    o   String    Followers3
+    o   String    Followers4
+    o   Segmentation    segmnt    
+  
+
+}
 // To check premium paid
 transaction claimPremCheck {
   o String claimId
   o _Premium premium
+}
+
+event EventclaimPremCheck {
+    o   String    ClaimNo
+    o   String    owner
+    o   String    LeadCarrier
+    o   String    ClaimsBroker
+    o   String    PolicyOwner
+    o   String    Followers1
+    o   String    Followers2
+    o   String    Followers3
+    o   String    Followers4
 }
 
 transaction claimSegment {
@@ -216,6 +245,18 @@ event EventclaimSegment {
 transaction housekeep {
   o String claimId
   o houseKeeping housekeep
+}
+
+event Eventclaimhousekeep {
+    o   String    ClaimNo
+    o   String    owner
+    o   String    LeadCarrier
+    o   String    ClaimsBroker
+    o   String    PolicyOwner
+    o   String    Followers1
+    o   String    Followers2
+    o   String    Followers3
+    o   String    Followers4
 }
 
 

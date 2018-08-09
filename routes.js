@@ -188,7 +188,7 @@ module.exports = (app) => {
                 console.log(error);
 
                 jsonObj.push({
-                    "status": 'exception occured'
+                    "status": 'Exception occured,please check query and try again.'
                 });
                 res.json({
                     jsonObj
@@ -252,7 +252,7 @@ module.exports = (app) => {
                 }).catch((error) => {
                     console.log(error);
                     jsonObj.push({
-                        "status": 'exception occured'
+                        "status": 'Exception occured,please check query and try again.'
                     });
                     res.json({
                         jsonObj
@@ -358,50 +358,42 @@ module.exports = (app) => {
         var claim_obj;
         var policy_obj;
         bnUtil.connect(req, res, () => {
-            let policyRegistry = {};
-            var statement1 = 'SELECT  org.lloyds.market.Claim WHERE (ClaimNo == _$id)';
-            var qry = bnUtil.connection.buildQuery(statement1);
-            //console.log(qry);
-            console.log("*************ClaimInvestigate************");
-            return bnUtil.connection.query(qry, {
-                id: req.params.ClaimNumber
-            }).then((results1) => {
 
-                let bnDef = bnUtil.connection.getBusinessNetwork();
-                console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
-                var statement2 = 'SELECT  org.lloyds.market.Policy WHERE (PolicyNo == _$id)';
-                var qry = bnUtil.connection.buildQuery(statement2)
-                console.log(qry);
-                var obj = results1[0];
-                return bnUtil.connection.query(qry, {
-                    id: obj.PolicyNo.$identifier
-                }).then((results2) => {
-                    console.log('2. Received results2: ', results2[0]);
-                    var policy_obj = results2[0];
-                    console.log(policy_obj.PolicyNo);
+            return bnUtil.connection.getAssetRegistry(NS_CLAIM)
+                .then(function (registry) {
+                    return registry.get(req.params.ClaimNumber);
+                }).then((results1) => {
+                    var obj = results1;
+                    return bnUtil.connection.getAssetRegistry(NS_POLICY)
+                        .then(function (registry) {
+                            return registry.get(obj.PolicyNo.$identifier);
+                        }).then((results2) => {
+                            var policy_obj = results2;
+                            console.log(policy_obj.PolicyNo);
+                            jsonObj.push({
+                                "InsuredCompanyName": policy_obj.InsuredCompanyName,
+                                "ClaimNo": obj.ClaimNo,
+                                "PolicyNo": policy_obj.PolicyNo,
+                                "PolicyEffectiveDate": policy_obj.PolicyEffectiveDate,
+                                "PolicyExpiryDate": policy_obj.PolicyExpiryDate,
+                                "ClaimDateofLoss": obj.ClaimDateofLoss
+                            });
+
+                            console.log("*************************")
+                            res.json({
+                                jsonObj
+                            });
+                        });
+                }).catch((error) => {
+                    console.log(error);
                     jsonObj.push({
-                        "InsuredCompanyName": policy_obj.InsuredCompanyName,
-                        "ClaimNo": obj.ClaimNo,
-                        "PolicyNo": policy_obj.PolicyNo,
-                        "PolicyEffectiveDate": policy_obj.PolicyEffectiveDate,
-                        "PolicyExpiryDate": policy_obj.PolicyExpiryDate,
-                        "ClaimDateofLoss": obj.ClaimDateofLoss
+                        "status": 'Exception occured,please check query and try again.'
                     });
-
-                    console.log("*************************")
+                    bnUtil.disconnect()
                     res.json({
                         jsonObj
                     });
                 });
-            }).catch((error) => {
-                console.log(error);
-                jsonObj.push({
-                    "status": 'exception occured'
-                });
-                res.json({
-                    jsonObj
-                });
-            });
         });
     });
 
@@ -476,7 +468,7 @@ module.exports = (app) => {
                 console.log(error);
 
                 jsonObj.push({
-                    "status": 'exception occured'
+                    "status": 'Exception occured,please check query and try again.'
                 });
                 res.json({
                     jsonObj
@@ -558,7 +550,7 @@ module.exports = (app) => {
                 var jsonObj = [];
 
                 jsonObj.push({
-                    "status": 'exception occured'
+                    "status": 'Exception occured,please check query and try again.'
                 });
                 //res.writeHead(401, 'Access invalid for user', { 'Content-Type': 'text/plain' });
                 res.json({
@@ -667,7 +659,7 @@ module.exports = (app) => {
         // res.json({
         //     polObj
         // });
-        let jsonObj =[];
+        let jsonObj = [];
         jsonObj.push({
             "status": "Transaction Submitted",
         });
@@ -675,7 +667,7 @@ module.exports = (app) => {
         res.json({
             jsonObj
         });
-       
+
         var filePath = "/tmp/".concat(req.params.PolicyNo).concat(".xml");
 
         fs.stat(filePath, function (err, stats) {
@@ -701,7 +693,6 @@ module.exports = (app) => {
             if (err) throw err;
             console.log(colors.silly('Saved!'));
         });
-
     });
 
     /** POST -> NEW POLICY
@@ -953,7 +944,7 @@ module.exports = (app) => {
             }).catch((error) => {
                 console.log(error);
                 jsonObj.push({
-                    "status": 'exception occured'
+                    "status": 'Exception occured,please check query and try again.'
                 });
                 bnUtil.connection.disconnect();
                 res.json({
@@ -1021,7 +1012,7 @@ module.exports = (app) => {
             }).catch((error) => {
                 console.log(error);
                 jsonObj.push({
-                    "status": 'exception occured'
+                    "status": 'Exception occured,please check query and try again.'
                 });
                 bnUtil.disconnect();
                 res.json({
@@ -1141,7 +1132,7 @@ module.exports = (app) => {
             }).catch((error) => {
                 console.log(error);
                 jsonObj.push({
-                    "status": 'exception occured'
+                    "status": 'Exception occured,please check query and try again.'
                 });
                 bnUtil.disconnect();
                 res.json({
@@ -1340,7 +1331,7 @@ module.exports = (app) => {
             }).catch((error) => {
                 console.log(error);
                 jsonObj.push({
-                    "status": 'exception occured'
+                    "status": 'Exception occured,please check query and try again.'
                 });
                 bnUtil.disconnect();
                 res.json({
@@ -1409,7 +1400,7 @@ module.exports = (app) => {
             }).catch((error) => {
                 console.log(error);
                 jsonObj.push({
-                    "status": 'exception occured'
+                    "status": 'Exception occured,please check query and try again.'
                 });
                 bnUtil.disconnect();
                 res.json({
@@ -1470,7 +1461,7 @@ module.exports = (app) => {
                 });
             }).catch((error) => {
                 jsonObj.push({
-                    "status": 'exception occured'
+                    "status": 'Exception occured,please check query and try again.'
                 });
                 console.log(error);
                 bnUtil.connection.disconnect();
@@ -1527,7 +1518,7 @@ module.exports = (app) => {
                 });
             }).catch((error) => {
                 jsonObj.push({
-                    "status": 'exception occured'
+                    "status": 'Exception occured,please check query and try again.'
 
                 });
                 console.log(error);
@@ -1589,7 +1580,7 @@ module.exports = (app) => {
                 });
             }).catch((error) => {
                 jsonObj.push({
-                    "status": 'exception occured'
+                    "status": 'Exception occured,please check query and try again.'
                 });
                 console.log(error);
                 bnUtil.connection.disconnect();
@@ -1646,7 +1637,7 @@ module.exports = (app) => {
                 });
             }).catch((error) => {
                 jsonObj.push({
-                    "status": 'exception occured'
+                    "status": 'Exception occured,please check query and try again.'
 
                 });
                 console.log(error);
@@ -1705,7 +1696,7 @@ module.exports = (app) => {
                 });
             }).catch((error) => {
                 jsonObj.push({
-                    "status": 'exception occured'
+                    "status": 'Exception occured,please check query and try again.'
 
                 });
                 console.log(error);
@@ -1763,7 +1754,7 @@ module.exports = (app) => {
                 });
             }).catch((error) => {
                 jsonObj.push({
-                    "status": 'exception occured'
+                    "status": 'Exception occured,please check query and try again.'
 
                 });
                 console.log(error);
@@ -1780,30 +1771,32 @@ module.exports = (app) => {
         var jsonObj = [];
 
         bnUtil.connect(req, res, () => {
-            var statement2 = 'SELECT org.lloyds.market.Policy';
-            var qry = bnUtil.connection.buildQuery(statement2)
-            console.log(qry);
-            return bnUtil.connection.query(qry).then((results2) => {
-                console.log('2. Received results2: ', results2);
-                for (var i = 0; i < results2.length; i++) {
-                    var obj = results2[i];
-                    console.log("*********");
-                    jsonObj.push({
-                        "PolicyHolder": obj.InsuredCompanyName,
 
-                        "PolicyNo": obj.PolicyNo,
-                        "PolicyEffectiveDate": dateFormat(obj.PolicyEffectiveDate),
-                        "PolicyExpiryDate": dateFormat(obj.PolicyExpiryDate),
-                        "PolicyLOB": obj.PolicyType,
-                        "PolicyStatus": "Active",
+            return bnUtil.connection.getAssetRegistry(NS_POLICY)
+                .then(function (registry) {
+                    return registry.getAll();
+                }).then((results2) => {
+                    console.log('2. Received results2: ', results2);
+                    for (var i = 0; i < results2.length; i++) {
+                        var obj = results2[i];
+                        console.log("*********");
+                        jsonObj.push({
+                            "PolicyHolder": obj.InsuredCompanyName,
+
+                            "PolicyNo": obj.PolicyNo,
+                            "PolicyEffectiveDate": dateFormat(obj.PolicyEffectiveDate),
+                            "PolicyExpiryDate": dateFormat(obj.PolicyExpiryDate),
+                            "PolicyLOB": obj.PolicyType,
+                            "PolicyStatus": "Active",
+                        });
+                    }
+                    console.log("*************************")
+                    bnUtil.disconnect()
+                    res.json({
+                        jsonObj
                     });
-                }
-                console.log("*************************")
-                res.json({
-                    jsonObj
-                });
 
-            });
+                });
         });
     });
 
@@ -1860,151 +1853,151 @@ module.exports = (app) => {
 
         const user = req.headers["user"];
         bnUtil.connect(req, res, () => {
-            //let bnDef = bnUtil.connection.getBusinessNetwork();
-            //console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
-            //var serializer = bnDef.getSerializer();
-            var statement1 = 'SELECT org.lloyds.market.Claim';
-            var qry = bnUtil.connection.buildQuery(statement1)
-            //console.log(qry);
             console.log("*************************")
-            return bnUtil.connection.query(qry).then((results1) => {
-                var statement2 = 'SELECT org.lloyds.market.Policy';
-                var qry = bnUtil.connection.buildQuery(statement2)
-                console.log(qry);
-                return bnUtil.connection.query(qry).then((results2) => {
+            return bnUtil.connection.getAssetRegistry(NS_CLAIM)
+                .then(function (registry) {
 
-                    for (var i = 0; i < results1.length; i++) {
-                        let details = [];
-                        var obj = results1[i];
-                        console.log("*********");
-                        const owner = obj.owner.$identifier.toString()
-                        let iSowner = false;
+                    return registry.getAll();
+                }).then((results1) => {
+                    return bnUtil.connection.getAssetRegistry(NS_POLICY)
+                        .then(function (registry) {
 
-                        if (owner == user) {
-                            iSowner = true;
+                            return registry.getAll();
+                        }).then((results2) => {
 
-                        }
+                            for (var i = 0; i < results1.length; i++) {
+                                let details = [];
+                                var obj = results1[i];
+                                console.log("*********");
+                                const owner = obj.owner.$identifier.toString()
+                                let iSowner = false;
 
-                        let CSType = "SCAP";
+                                if (owner == user) {
+                                    iSowner = true;
 
-                        if (obj.ClaimEstimateLoss != undefined && parseInt(obj.ClaimEstimateLoss) > 250000) {
-                            CSType = "Non SCAP";
-                        }
+                                }
+
+                                let CSType = "SCAP";
+
+                                if (obj.ClaimEstimateLoss != undefined && parseInt(obj.ClaimEstimateLoss) > 250000) {
+                                    CSType = "Non SCAP";
+                                }
 
 
-                        var policyResult = (results2.filter(item => item.PolicyNo === obj.PolicyNo.$identifier.toString()));
-                        var policy_obj = policyResult[0]
+                                var policyResult = (results2.filter(item => item.PolicyNo === obj.PolicyNo.$identifier.toString()));
+                                var policy_obj = policyResult[0]
 
-                        console.log(obj.ClaimCreateDate);
-                        console.log(policy_obj.PolicyNo);
+                                console.log(obj.ClaimCreateDate);
+                                console.log(policy_obj.PolicyNo);
 
-                        if (obj.ClaimMode != null) { //ConflictofInterest
-                            let Status;
-                            if (obj.ClaimMode == "ConflictofInterest") {
-                                Status = "Pending";
-                            } else {
-                                Status = "Completed";
+                                if (obj.ClaimMode != null) { //ConflictofInterest
+                                    let Status;
+                                    if (obj.ClaimMode == "ConflictofInterest") {
+                                        Status = "Pending";
+                                    } else {
+                                        Status = "Completed";
+                                    }
+
+                                    details.push({
+                                        "Name": "Conflict Of Interest",
+                                        "ClaimNo": obj.ClaimNo,
+                                        "PolicyNo": policy_obj.PolicyNo,
+                                        "CreateDate": dateFormat(obj.ClaimCreateDate),
+                                        "Urgency": ((Math.abs(obj.ClaimTargetDate) - new Date()) / 36e5).toFixed(),
+                                        "TargetDate": dateFormat(obj.ClaimTargetDate),
+                                        "Status": Status,
+
+                                    });
+                                }
+
+                                if (obj.segmnt != null) { //segmnt
+                                    details.push({
+                                        "Name": "Claim Evaluation",
+                                        "ClaimNo": obj.ClaimNo,
+                                        "PolicyNo": policy_obj.PolicyNo,
+                                        "CreateDate": dateFormat(obj.segmnt.CreateDate),
+                                        "Urgency": ((Math.abs(obj.segmnt.TargetDate) - new Date()) / 36e5).toFixed(),
+                                        "TargetDate": dateFormat(obj.segmnt.TargetDate),
+                                        "Status": "Completed",
+
+                                    });
+                                }
+
+                                if (obj.ClaimSettlementAmount != null) {
+                                    details.push({
+                                        "Name": "Claim Settlement",
+                                        "ClaimNo": obj.ClaimNo,
+                                        "PolicyNo": policy_obj.PolicyNo,
+                                        "CreateDate": dateFormat(obj.ClaimSettlementAmount.CreateDate),
+                                        "Urgency": ((Math.abs(obj.ClaimSettlementAmount.TargetDate) - new Date()) / 36e5).toFixed(),
+                                        "TargetDate": dateFormat(obj.ClaimSettlementAmount.TargetDate),
+                                        "Status": obj.ClaimSettlementAmount.Status
+                                    });
+
+                                }
+
+                                if (obj.checkPremium != null) { // to do 
+                                    details.push({
+                                        "Name": "Premium Check",
+                                        "ClaimNo": obj.ClaimNo,
+                                        "PolicyNo": policy_obj.PolicyNo,
+                                        "CreateDate": dateFormat(obj.checkPremium.CreateDate),
+                                        "Urgency": ((Math.abs(obj.checkPremium.TargetDate) - new Date()) / 36e5).toFixed(),
+                                        "TargetDate": dateFormat(obj.checkPremium.TargetDate),
+                                        "Status": obj.checkPremium.Status,
+
+                                    });
+                                }
+
+
+
+
+                                if (obj.houseKeeping != null) {
+                                    details.push({
+                                        "Name": "House Keeping",
+                                        "ClaimNo": obj.ClaimNo,
+                                        "PolicyNo": policy_obj.PolicyNo,
+                                        "CreateDate": dateFormat(obj.houseKeeping.CreateDate),
+                                        "Urgency": ((Math.abs(obj.houseKeeping.TargetDate) - new Date()) / 36e5).toFixed(),
+                                        "TargetDate": dateFormat(obj.houseKeeping.TargetDate),
+                                        "Status": obj.houseKeeping.Status
+
+                                    });
+                                }
+                                jsonObj.push({
+
+                                    "owner": owner,
+                                    "iSowner": iSowner,
+                                    "LOB": policy_obj.PolicyType, //obj.PolicyType, ClaimsBroker
+                                    "ClaimEstimateLoss": obj.ClaimEstimateLoss,
+                                    "ClaimsBroker": obj.ClaimsBroker.$identifier.toString(),
+                                    "CSType": CSType,
+                                    "InsuredCompanyName": policy_obj.InsuredCompanyName,
+                                    "ClaimNo": obj.ClaimNo,
+                                    "PolicyNo": policy_obj.PolicyNo,
+                                    "ClaimCreateDate": dateFormat(obj.ClaimCreateDate),
+                                    "ClaimUrgency": ((Math.abs(obj.ClaimTargetDate) - new Date()) / 36e5).toFixed(),
+                                    "ClaimTargetDate": dateFormat(obj.ClaimTargetDate),
+                                    "ClaimMode": obj.ClaimMode,
+                                    "details": details,
+
+                                });
                             }
-
-                            details.push({
-                                "Name": "Conflict Of Interest",
-                                "ClaimNo": obj.ClaimNo,
-                                "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": dateFormat(obj.ClaimCreateDate),
-                                "Urgency": ((Math.abs(obj.ClaimTargetDate) - new Date()) / 36e5).toFixed(),
-                                "TargetDate": dateFormat(obj.ClaimTargetDate),
-                                "Status": Status,
-
+                            console.log("*************************")
+                            bnUtil.disconnect()
+                            res.json({
+                                jsonObj
                             });
-                        }
-
-                        if (obj.segmnt != null) { //segmnt
-                            details.push({
-                                "Name": "Claim Evaluation",
-                                "ClaimNo": obj.ClaimNo,
-                                "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": dateFormat(obj.segmnt.CreateDate),
-                                "Urgency": ((Math.abs(obj.segmnt.TargetDate) - new Date()) / 36e5).toFixed(),
-                                "TargetDate": dateFormat(obj.segmnt.TargetDate),
-                                "Status": "Completed",
-
-                            });
-                        }
-
-                        if (obj.ClaimSettlementAmount != null) {
-                            details.push({
-                                "Name": "Claim Settlement",
-                                "ClaimNo": obj.ClaimNo,
-                                "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": dateFormat(obj.ClaimSettlementAmount.CreateDate),
-                                "Urgency": ((Math.abs(obj.ClaimSettlementAmount.TargetDate) - new Date()) / 36e5).toFixed(),
-                                "TargetDate": dateFormat(obj.ClaimSettlementAmount.TargetDate),
-                                "Status": obj.ClaimSettlementAmount.Status
-                            });
-
-                        }
-
-                        if (obj.checkPremium != null) { // to do 
-                            details.push({
-                                "Name": "premium Check",
-                                "ClaimNo": obj.ClaimNo,
-                                "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": dateFormat(obj.checkPremium.CreateDate),
-                                "Urgency": ((Math.abs(obj.checkPremium.TargetDate) - new Date()) / 36e5).toFixed(),
-                                "TargetDate": dateFormat(obj.checkPremium.TargetDate),
-                                "Status": obj.checkPremium.Status,
-
-                            });
-                        }
-
-
-
-
-                        if (obj.houseKeeping != null) {
-                            details.push({
-                                "Name": "House Keeping",
-                                "ClaimNo": obj.ClaimNo,
-                                "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": dateFormat(obj.houseKeeping.CreateDate),
-                                "Urgency": ((Math.abs(obj.houseKeeping.TargetDate) - new Date()) / 36e5).toFixed(),
-                                "TargetDate": dateFormat(obj.houseKeeping.TargetDate),
-                                "Status": obj.houseKeeping.Status
-
-                            });
-                        }
-                        jsonObj.push({
-
-                            "owner": owner,
-                            "iSowner": iSowner,
-                            "LOB": policy_obj.PolicyType, //obj.PolicyType, ClaimsBroker
-                            "ClaimEstimateLoss": obj.ClaimEstimateLoss,
-                            "ClaimsBroker": obj.ClaimsBroker.$identifier.toString(),
-                            "CSType": CSType,
-                            "InsuredCompanyName": policy_obj.InsuredCompanyName,
-                            "ClaimNo": obj.ClaimNo,
-                            "PolicyNo": policy_obj.PolicyNo,
-                            "ClaimCreateDate": dateFormat(obj.ClaimCreateDate),
-                            "ClaimUrgency": ((Math.abs(obj.ClaimTargetDate) - new Date()) / 36e5).toFixed(),
-                            "ClaimTargetDate": dateFormat(obj.ClaimTargetDate),
-                            "ClaimMode": obj.ClaimMode,
-                            "details": details,
-
                         });
-                    }
-                    console.log("*************************")
+                }).catch((error) => {
+                    console.log(error);
+                    jsonObj.push({
+                        "status": 'Exception occured,please check query and try again.'
+                    });
                     res.json({
                         jsonObj
                     });
                 });
-            }).catch((error) => {
-                console.log(error);
-                jsonObj.push({
-                    "status": 'exception occured'
-                });
-                res.json({
-                    jsonObj
-                });
-            });
         });
     });
 
@@ -2015,96 +2008,97 @@ module.exports = (app) => {
 
         const user = req.headers["user"];
         bnUtil.connect(req, res, () => {
-            //let bnDef = bnUtil.connection.getBusinessNetwork();
-            //console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
-            var statement1 = 'SELECT org.lloyds.market.Claim';
-            var qry = bnUtil.connection.buildQuery(statement1)
+
             console.log("*************************")
-            return bnUtil.connection.query(qry).then((results1) => {
-                var statement2 = 'SELECT org.lloyds.market.Policy';
-                var qry = bnUtil.connection.buildQuery(statement2)
-                console.log(qry);
-                return bnUtil.connection.query(qry).then((results2) => {
+            return bnUtil.connection.getAssetRegistry(NS_CLAIM)
+                .then(function (registry) {
+                    return registry.getAll();
+                }).then((results1) => {
+                    return bnUtil.connection.getAssetRegistry(NS_POLICY)
+                        .then(function (registry) {
+                            return registry.getAll();
+                        }).then((results2) => {
 
-                    for (var i = 0; i < results1.length; i++) {
-                        let details = [];
-                        var obj = results1[i];
-                        console.log("*********");
-                        const owner = obj.owner.$identifier.toString()
-                        let iSowner = false;
+                            for (var i = 0; i < results1.length; i++) {
+                                let details = [];
+                                var obj = results1[i];
+                                console.log("*********");
+                                const owner = obj.owner.$identifier.toString()
+                                let iSowner = false;
 
-                        if (owner == user) {
-                            iSowner = true;
+                                if (owner == user) {
+                                    iSowner = true;
 
-                        }
+                                }
 
-                        let CSType = "SCAP";
-                        if (obj.ClaimEstimateLoss != undefined && parseInt(obj.ClaimEstimateLoss) > 250000) {
-                            CSType = "Non SCAP";
-                        }
+                                let CSType = "SCAP";
+                                if (obj.ClaimEstimateLoss != undefined && parseInt(obj.ClaimEstimateLoss) > 250000) {
+                                    CSType = "Non SCAP";
+                                }
 
-                        var policyResult = (results2.filter(item => item.PolicyNo === obj.PolicyNo.$identifier.toString()));
-                        var policy_obj = policyResult[0]
+                                var policyResult = (results2.filter(item => item.PolicyNo === obj.PolicyNo.$identifier.toString()));
+                                var policy_obj = policyResult[0]
 
-                        console.log(obj.ClaimCreateDate);
-                        console.log(policy_obj.PolicyNo);
+                                console.log(obj.ClaimCreateDate);
+                                console.log(policy_obj.PolicyNo);
 
-                        if (obj.segmnt != null) { // to do 
-                            details.push({
-                                "Name": "Claim Evaluation",
-                                "ClaimNo": obj.ClaimNo,
-                                "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": dateFormat(obj.segmnt.CreateDate),
-                                "Urgency": ((Math.abs(obj.segmnt.TargetDate) - new Date()) / 36e5).toFixed(),
-                                "TargetDate": dateFormat(obj.segmnt.TargetDate),
-                                "Status": "Completed",
+                                if (obj.segmnt != null) { // to do 
+                                    details.push({
+                                        "Name": "Claim Evaluation",
+                                        "ClaimNo": obj.ClaimNo,
+                                        "PolicyNo": policy_obj.PolicyNo,
+                                        "CreateDate": dateFormat(obj.segmnt.CreateDate),
+                                        "Urgency": ((Math.abs(obj.segmnt.TargetDate) - new Date()) / 36e5).toFixed(),
+                                        "TargetDate": dateFormat(obj.segmnt.TargetDate),
+                                        "Status": "Completed",
 
+                                    });
+                                }
+
+                                if (obj.ClaimSettlementAmount != null) {
+                                    details.push({
+                                        "Name": "Claim Settlement",
+                                        "ClaimNo": obj.ClaimNo,
+                                        "PolicyNo": policy_obj.PolicyNo,
+                                        "CreateDate": dateFormat(obj.ClaimSettlementAmount.CreateDate),
+                                        "Urgency": ((Math.abs(obj.ClaimSettlementAmount.TargetDate) - new Date()) / 36e5).toFixed(),
+                                        "TargetDate": dateFormat(obj.ClaimSettlementAmount.TargetDate),
+                                        "Status": obj.ClaimSettlementAmount.Status
+                                    });
+                                }
+
+                                jsonObj.push({
+                                    "owner": owner,
+                                    "iSowner": iSowner,
+                                    "LOB": policy_obj.PolicyType, //obj.PolicyType, ClaimsBroker
+                                    "ClaimEstimateLoss": obj.ClaimEstimateLoss,
+                                    "ClaimsBroker": obj.ClaimsBroker.$identifier.toString(),
+                                    "CSType": CSType,
+                                    "InsuredCompanyName": policy_obj.InsuredCompanyName,
+                                    "ClaimNo": obj.ClaimNo,
+                                    "PolicyNo": policy_obj.PolicyNo,
+                                    "ClaimCreateDate": dateFormat(obj.ClaimCreateDate),
+                                    "ClaimUrgency": ((Math.abs(obj.ClaimTargetDate) - new Date()) / 36e5).toFixed(),
+                                    "ClaimTargetDate": dateFormat(obj.ClaimTargetDate),
+                                    "ClaimMode": obj.ClaimMode,
+                                    "details": details,
+                                });
+                            }
+                            console.log("*************************")
+                            bnUtil.disconnect();
+                            res.json({
+                                jsonObj
                             });
-                        }
-
-                        if (obj.ClaimSettlementAmount != null) {
-                            details.push({
-                                "Name": "Claim Settlement",
-                                "ClaimNo": obj.ClaimNo,
-                                "PolicyNo": policy_obj.PolicyNo,
-                                "CreateDate": dateFormat(obj.ClaimSettlementAmount.CreateDate),
-                                "Urgency": ((Math.abs(obj.ClaimSettlementAmount.TargetDate) - new Date()) / 36e5).toFixed(),
-                                "TargetDate": dateFormat(obj.ClaimSettlementAmount.TargetDate),
-                                "Status": obj.ClaimSettlementAmount.Status
-                            });
-                        }
-
-                        jsonObj.push({
-                            "owner": owner,
-                            "iSowner": iSowner,
-                            "LOB": policy_obj.PolicyType, //obj.PolicyType, ClaimsBroker
-                            "ClaimEstimateLoss": obj.ClaimEstimateLoss,
-                            "ClaimsBroker": obj.ClaimsBroker.$identifier.toString(),
-                            "CSType": CSType,
-                            "InsuredCompanyName": policy_obj.InsuredCompanyName,
-                            "ClaimNo": obj.ClaimNo,
-                            "PolicyNo": policy_obj.PolicyNo,
-                            "ClaimCreateDate": dateFormat(obj.ClaimCreateDate),
-                            "ClaimUrgency": ((Math.abs(obj.ClaimTargetDate) - new Date()) / 36e5).toFixed(),
-                            "ClaimTargetDate": dateFormat(obj.ClaimTargetDate),
-                            "ClaimMode": obj.ClaimMode,
-                            "details": details,
                         });
-                    }
-                    console.log("*************************")
+                }).catch((error) => {
+                    console.log(error);
+                    jsonObj.push({
+                        "status": 'Exception occured,please check query and try again.'
+                    });
                     res.json({
                         jsonObj
                     });
                 });
-            }).catch((error) => {
-                console.log(error);
-                jsonObj.push({
-                    "status": 'exception occured'
-                });
-                res.json({
-                    jsonObj
-                });
-            });
         });
     });
 
@@ -2507,7 +2501,7 @@ module.exports = (app) => {
                 });
             }).catch((error) => {
                 jsonObj.push({
-                    "status": 'exception occured'
+                    "status": 'Exception occured,please check query and try again.'
                 });
                 console.log(error);
                 bnUtil.connection.disconnect();
@@ -2563,7 +2557,7 @@ module.exports = (app) => {
                 });
             }).catch((error) => {
                 jsonObj.push({
-                    "status": 'exception occured'
+                    "status": 'Exception occured,please check query and try again.'
 
                 });
                 console.log(error);
@@ -2788,9 +2782,6 @@ async function generateXML() {
         }
     });
 }
-
-//generateXML();
-
 //getIsuredAdress();
 async function getUserName(party, password) {
     return new Promise((resolve, reject) => {
