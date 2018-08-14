@@ -1,5 +1,11 @@
 /*jshint esversion: 6 */
 
+const EventEmitter = require('events');
+class MyEmitter extends EventEmitter {}
+const myEmitter = new MyEmitter();
+// increase the limit
+myEmitter.setMaxListeners(100);
+
 module.exports = {
     // Properties used for creating instance of the BN connection
     cardStore: require('composer-common').FileSystemCardStore,
@@ -17,9 +23,7 @@ module.exports = {
         // Create instance of file system card store
         //const cardStore = new this.cardStore();
         //this.connection = new this.BusinessNetworkConnection({ cardStore: cardStore });
-        var cardType = {
-            type: 'composer-wallet-filesystem'
-        };
+        var cardType = { type: 'composer-wallet-filesystem' }
         this.connection = new this.BusinessNetworkConnection(cardType);
         const user = req.headers["user"];
 
@@ -42,7 +46,7 @@ module.exports = {
                 var jsonObj = [];
 
                 jsonObj.push({
-                    "status": 'user card not found'
+                    "status": 'Network issue, please try again.'
                 });
                 res.json({
                     jsonObj
@@ -56,8 +60,9 @@ module.exports = {
 
     // 2. Disconnects the bn connection
     disconnect: function (callback) {
-        console.log("******Disconnect*******");
-       return this.connection.disconnect();
+      console.log("******Disconnect*******");
+  
+      return this.connection.disconnect();
     },
 
     // 3. Pings the network
@@ -69,6 +74,7 @@ module.exports = {
         });
     }
 };
+
 
 function getCardName(user) {
     return user.concat("@lloyds-project-6");

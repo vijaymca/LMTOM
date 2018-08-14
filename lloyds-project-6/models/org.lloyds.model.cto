@@ -3,19 +3,7 @@
  */
 
 namespace org.lloyds.model
-import org.lloyds.market.PolicyType
-import org.lloyds.market.Policy
-import org.lloyds.market._Party
-import org.lloyds.market.Claim
-import org.lloyds.market._ClaimSettlementAmount
-import org.lloyds.market.ClaimType
-import org.lloyds.market._Premium
-import org.lloyds.market.Segmentation
-import org.lloyds.market.houseKeeping
-import org.lloyds.market._ClaimExpertOpinion
-import org.lloyds.market._ClaimQuery
-import org.lloyds.market._follower
-import org.lloyds.market.carrierInfo
+import org.lloyds.market.*
   
 transaction CreateClaim {
     o   String    ClaimNo
@@ -170,12 +158,13 @@ event EventUpdateClaimMode  {
 }   
 transaction policyNew {
   o String PolicyNo
-  o String InsuredCompanyName
-  o PolicyType PolicyType
-  o String PolicyDetails1
-  o DateTime PolicyEffectiveDate
-  o DateTime PolicyExpiryDate
-  --> _Party LeadCarrier
+  o String InsuredCompanyName optional
+  o PolicyType PolicyType optional
+  o String PolicyDetails1 optional
+  o String PolicyEffectiveDate optional
+  o String PolicyExpiryDate optional
+  o String PolicyStatus optional
+  --> _Party LeadCarrier optional
 }
 
 transaction claimConflict {
@@ -219,7 +208,7 @@ event EventclaimPremCheck {
     o   String    Followers2
     o   String    Followers3
     o   String    Followers4
-}
+  }
 
 transaction claimSegment {
    o String claimId
@@ -278,5 +267,11 @@ o String PolicyNo
 o _Premium[] premium optional
 o _follower[] followes optional
 o carrierInfo[] carrierInfo optional
-o String Role
+o _insuredAmount insuranceDetails optional
+o String Role optional
+}
+
+transaction taQuery {
+  o String PolicyNo
+  o TAquery[] taQuery optional 
 }

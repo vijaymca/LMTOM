@@ -13,8 +13,7 @@ asset Policy identified by PolicyNo {
   o String InsuredCompanyName optional
   o PolicyType PolicyType
   o String PolicyDetails1
-  o DateTime PolicyEffectiveDate
-  o DateTime PolicyExpiryDate
+  o _ContractPeriod ContractPeriod optional
   o String PolicyStatus optional
   o String UUId optional
   o String ServiceProviderReference optional
@@ -43,25 +42,36 @@ asset Policy identified by PolicyNo {
   --> _Party Followers3 optional
   --> _Party Followers4 optional
 
-  o _ContractPeriod ContractPeriod optional
   o _Contract Contract optional
-   o _sublimits sublimits optional
+  o _sublimits sublimits optional
   o _insuredAmount insuranceAmount optional
   o _Premium[] premium optional
   o _follower[] followers optional
   o carrierInfo[] carrierInfo optional
+  o TAquery[] queries optional
 }
 
 concept carrierInfo
  {
 o String LineNo optional
 o String PostalCode optional
-o Double bindingVal default = 383985000.0
-o Double constMach default= 120000.0
-o Double BI_monthip default=12000000.0
+o Double bindingVal optional
+o Double constMach optional
+o Double pdTotal optional
+o Double BI_monthip optional
+o Double totVal optional
 o Integer sectionA default = 1
-o Double premium default = 31236.0
-o Integer cntry_tax default=12
+o Double premium optional
+o Integer cntry_tax optional
+o Double taxTotal optional
+}
+
+concept TAquery {
+o Integer index  
+o String query optional
+o String response optional
+o String asked optional
+o String respond optional
 }
 
 enum PolicyType {
@@ -82,8 +92,21 @@ concept _Contract {
 }
 
 concept _insuredAmount {
-  o Double property_damage default=520200000.0
-  o Double busi_interupt default=13200000.0
+  o Double property_damage optional
+  o Double busi_interupt optional
+  o Double Total optional
+
+  o String layer optional
+  o String coverage optional
+  o String currency optional
+  o Integer brokerage optional
+  o Double limitFrom optional
+  o Double limitTo optional
+  o Double deductable optional
+  o String riskCode optional
+  o Double premiumTot optional
+  o Double premiumInUSD optional
+  o Integer order optional
 }
 
 concept _sublimits {
@@ -143,12 +166,14 @@ concept _ContractDeductible {
 
 concept _Premium {
 	  o String PremiumType  optional
-    o Double PremiumAmount default=135000.0
+    o Double PremiumAmount
     o String PaymentDate  optional
     o String TermsOfTradePeriod optional
     o String PaymentsDescription optional
-    o Double placeBrokerComm default=0.09 optional
-   o Double overseasBroComm default=0.11 optional
+    o Double placeBrokerPer default=0.09 optional
+    o Double placeBrokerComm optional
+    o Double overseasBrokerPer default=0.11 optional
+    o Double overseasBroComm optional    
     o Boolean premiumBeenPaiByPolHolder default=false optional
     o Boolean reinstatementApplicable default=false optional
     o Boolean reinstatementPaidByPolHolder default=false optional
@@ -156,6 +181,7 @@ concept _Premium {
     o DateTime TargetDate optional
     o String Status optional
 }
+
 
 concept _Brokerage {
 	  o String Description  optional
@@ -184,9 +210,10 @@ participant _Party identified by OwnerId {
 concept _follower {
   o String index optional
   --> _Party party optional
-  o String CompanyName optional
+   o String CompanyName optional
   o Integer written optional
   o Integer signed optional
+  o Double premium optional 
 }
 
 enum ClaimType {
@@ -203,7 +230,7 @@ enum ClaimType {
   o ClaimSettlement
   o PremiumCheck
   o HousekeepingCheck
-  o TAGenerated
+   o TAGenerated
 }
 
 concept Segmentation {
