@@ -102,23 +102,23 @@ jsonObj.push(
 )
 
 
-function rename (obj) {
-    for(var prop in obj) {
+// function rename (obj) {
+//     for(var prop in obj) {
   
-      if (Array.isArray(obj[prop])) {
-          obj[prop] = obj[prop].map(rename);
-      }
+//       if (Array.isArray(obj[prop])) {
+//           obj[prop] = obj[prop].map(rename);
+//       }
   
-      if (prop === 'Departments') {
-        obj.children = obj[prop];
-        delete obj[prop];
-      }
-    }
+//       if (prop === 'Departments') {
+//         obj.children = obj[prop];
+//         delete obj[prop];
+//       }
+//     }
   
-      return obj;
-  };
+//       return obj;
+//   };
   
-//console.log(jsonObj)
+console.log(jsonObj)
 
 
-console.log(js2xmlparser.parse("policy", jsonObj));
+// console.log(js2xmlparser.parse("policy", jsonObj));

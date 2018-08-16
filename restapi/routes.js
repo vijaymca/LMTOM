@@ -1095,7 +1095,9 @@ module.exports = (app) => {
                               console.log('Received Registry: ', policyReg.id);
                               return policyReg.get(claim.PolicyNo.$identifier);
                         }).then((policy) => {
-                              console.log("Pol:" + policy.LeadCarrier);
+
+                              console.log("claim.owner:" + claim.owner.$identifier.toString());
+                              console.log("claim.LeadCarrier:" + claim.LeadCarrier.$identifier.toString());
 
                               console.log("Policy num: " + JSON.stringify(claim.PolicyNo.$identifier));
 
@@ -1103,11 +1105,39 @@ module.exports = (app) => {
                                     transaction.ClaimMode = "ClaimEvaluation";
                                     transaction.owner = claim.owner;
                                     transaction.comment = req.body.data.comment;
-                              } else {
+                              } 
+                              
+                              else if (claim.owner.$identifier.toString() === claim.LeadCarrier.$identifier.toString()){
                                     transaction.owner = claim.Followers1;
                                     transaction.ClaimMode = claim.ClaimMode;
                                     transaction.comment = req.body.data.comment;
                               }
+
+                              else if (claim.owner.$identifier.toString() === claim.Followers1.$identifier.toString()){
+                                    transaction.owner = claim.Followers2;
+                                    transaction.ClaimMode = claim.ClaimMode;
+                                    transaction.comment = req.body.data.comment;
+                              }
+
+                              else if (claim.owner.$identifier.toString() === claim.Followers2.$identifier.toString()){
+                                    transaction.owner = claim.Followers3;
+                                    transaction.ClaimMode = claim.ClaimMode;
+                                    transaction.comment = req.body.data.comment;
+                              }
+
+                              else if (claim.owner.$identifier.toString() === claim.Followers3.$identifier.toString()){
+                                    transaction.owner = claim.Followers4;
+                                    transaction.ClaimMode = claim.ClaimMode;
+                                    transaction.comment = req.body.data.comment;
+                              }
+
+                              else {
+                                    transaction.owner = claim.LeadCarrier;
+                                    transaction.ClaimMode = claim.ClaimMode;
+                                    transaction.comment = req.body.data.comment;
+                              }
+
+                              
 
                               return transaction;
                         }).then((transaction) => {

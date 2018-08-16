@@ -4,7 +4,7 @@
 "use strict";
 
 const bnc = require('composer-client').BusinessNetworkConnection;
-const cardName = 'admin@lloyds-project-11';
+const cardName = 'admin@lloyds-project-2';
 const connection = new bnc();
 const fs = require('fs');
 var js2xmlparser = require("js2xmlparser");
@@ -560,6 +560,56 @@ module.exports = (app) => {
             }
       });
 
+      
+    app.get('/getQueries/:PolicyNo', async (req, res) => {
+
+      let jsonObj = [];
+      bnUtil.connect(req, res, async (error) => {
+
+          const bnDef = bnUtil.connection.getBusinessNetwork();
+
+          var serializer = bnDef.getSerializer();
+
+          let policyRegistry = {};
+
+          policyRegistry = await bnUtil.connection.getAssetRegistry(NS_POLICY);
+          console.log('1. Received Registry: ', policyRegistry.id);
+          const exists = await policyRegistry.exists(req.params.PolicyNo);
+
+
+          if (exists) {
+              //return policyRegistry.get(req.params.PolicyNo);
+              let policy = await policyRegistry.get(req.params.PolicyNo);
+              console.log(serializer.toJSON(policy));
+              const obj = serializer.toJSON(policy);
+              let obj2 = obj.queries;
+
+              for (let i in obj2) {
+                  jsonObj.push({
+                      "query": obj.queries[i].query,
+                      "response": obj.queries[i].response,
+                      "asked": obj.queries[i].asked,
+                      "respond": obj.queries[i].respond
+                  });
+              }
+
+              res.json({
+                  jsonObj
+              });
+          }
+      }).catch((error) => {
+          console.log(error);
+          jsonObj.push({
+              "status": 'exception occured'
+          });
+          bnUtil.connection.disconnect();
+          res.json({
+              jsonObj
+          });
+      });
+  });
+
+
       function getPolicyRep(req, res) {
             return new Promise((resolve, reject) => {
                 let jsonObj = [];
@@ -649,6 +699,91 @@ module.exports = (app) => {
             });
       });
 
+
+    /** PUT: QUERIES
+     * 
+     */
+
+    app.put('/query/update/:PolicyNo', async (req, res) => {
+
+      var jsonObj = [];
+      const qryUpdate = "taQuery";
+      bnUtil.connect(req, res, async (error) => {
+
+          if (error) {
+              console.log(error);
+              process.exit(1);
+          }
+
+          let bnDef = bnUtil.connection.getBusinessNetwork();
+          let factory = bnDef.getFactory();
+
+          // 2. Get the Business Network Definition
+
+          console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
+          console.log(req.params.PolicyNo);
+          let PolicyId = req.params.PolicyNo;
+
+          // 4. Create an instance of transaction
+          let options = {
+              generate: false,
+              includeOptionalFields: false
+          };
+          var serializer = bnDef.getSerializer();
+
+          var policyTraxn = factory.newTransaction(NS_model, qryUpdate, PolicyId, options);
+
+          const policyRegistry = await bnUtil.connection.getAssetRegistry('org.lloyds.market.Policy');
+
+          const policy = await policyRegistry.get(PolicyId);
+
+          console.log(colors.prompt(serializer.toJSON(policy)));
+
+          // 5. Set up the properties of the transaction object
+          policyTraxn.PolicyNo = PolicyId;
+
+          var queries = policy.TAquery;
+          policyTraxn.taQuery = [];
+          for (let i in req.body.data.queries) {
+              console.log("i=" + i);
+              var queryConcept = policy.queries[i];
+              if (typeof policy.queries[i] === 'undefined') {
+                  queryConcept = factory.newConcept(NS, 'TAquery');
+              }
+              queryConcept.index = parseInt(i);
+              queryConcept.query = req.body.data.queries[i].query;
+              queryConcept.response = req.body.data.queries[i].response;
+              queryConcept.asked = req.body.data.queries[i].asked;
+              queryConcept.respond = req.body.data.queries[i].respond;
+
+              console.log(colors.prompt(serializer.toJSON(queryConcept)));
+              policyTraxn.taQuery.push(queryConcept);
+          }
+
+          // 6. Submit the transaction
+          return bnUtil.connection.submitTransaction(policyTraxn).then(() => {
+              console.log("6. Transaction Submitted/Processed Successfully!!");
+              jsonObj.push({
+                  "status": "Transaction Submitted",
+              });
+              bnUtil.connection.disconnect();
+              res.json({
+                  jsonObj
+              });
+          }).catch((error) => {
+              console.log(error);
+              jsonObj.push({
+                  "error": error.toString()
+              });
+              bnUtil.connection.disconnect();
+              res.json({
+                  jsonObj
+              });
+          });
+
+      });
+  });
+
       /** CREATE XML FILE
        * 
        */
@@ -698,72 +833,76 @@ module.exports = (app) => {
       });
 
       /** POST -> NEW POLICY
-       * 
-       */
-      app.post('/Policies/new', (req, res) => {
-            var jsonObj = [];
+     * 
+     */
+    app.post('/Policies/new', (req, res) => {
+        var jsonObj = [];
 
-            const policyNew = "policyNew";
-            bnUtil.connect(req, res, (error) => {
+        const policyNew = "policyNew";
+        bnUtil.connect(req, res, (error) => {
 
-                  // Check for error
-                  if (error) {
-                        console.log(error);
-                        process.exit(1);
-                  }
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
 
-                  // 2. Get the Business Network Definition
-                  let bnDef = bnUtil.connection.getBusinessNetwork();
-                  console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
 
-                  console.log(req.body.data.PolicyNo);
+            console.log(req.body.data.PolicyNo);
 
-                  // 3. Get the factory
-                  let factory = bnDef.getFactory();
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
 
-                  // 4. Create an instance of transaction
-                  let options = {
-                        generate: false,
-                        includeOptionalFields: false
-                  };
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            };
 
-                  let PolicyId = req.body.data.PolicyNo;
-                  let policyResource = factory.newTransaction(NS_model, policyNew, PolicyId, options);
+            let PolicyId = req.body.data.PolicyNo;
+            let policyResource = factory.newTransaction(NS_model, policyNew, PolicyId, options);
 
-                  // 5. Set up the properties of the transaction object
-                  policyResource.PolicyNo = PolicyId;
-                  policyResource.InsuredCompanyName = req.body.data.InsuredCompanyName;
-                  policyResource.PolicyType = req.body.data.PolicyType;
-                  policyResource.PolicyDetails1 = req.body.data.PolicyDetails1;
-                  policyResource.PolicyEffectiveDate = new Date(req.body.data.PolicyEffectiveDate);
-                  policyResource.PolicyExpiryDate = new Date(req.body.data.PolicyExpiryDate);
+            // 5. Set up the properties of the transaction object
+            policyResource.PolicyNo = PolicyId;
+            policyResource.InsuredCompanyName = req.body.data.InsuredCompanyName;
+            policyResource.PolicyType = req.body.data.PolicyType;
+            policyResource.PolicyDetails1 = req.body.data.PolicyDetails1;
 
-                  let relationship = factory.newRelationship(NS, PRTCP_PARTY, req.body.data.LeadCarrier);
-                  policyResource.LeadCarrier = relationship;
+            const contractPeriod = factory.newConcept(NS, '_ContractPeriod');
+            contractPeriod.StartDateTime = new Date(req.body.data.PolicyEffectiveDate);
+            contractPeriod.EndDateTime = new Date(req.body.data.PolicyExpiryDate);
 
-                  // 6. Submit the transaction
-                  return bnUtil.connection.submitTransaction(policyResource).then(() => {
-                        console.log("6. Transaction Submitted/Processed Successfully!!");
-                        bnUtil.connection.disconnect();
-                        jsonObj.push({
-                              "status": "Transaction Submitted",
-                        });
+            policyResource.ContractPeriod = contractPeriod;
 
-                        res.json({
-                              jsonObj
-                        });
-                  }).catch((error) => {
-                        console.log(error);
-                        jsonObj.push({
-                              "error": error.toString()
-                        });
-                        bnUtil.connection.disconnect();
-                        res.json({
-                              jsonObj
-                        });
-                  });
+            let relationship = factory.newRelationship(NS, PRTCP_PARTY, req.body.data.LeadCarrier);
+            policyResource.LeadCarrier = relationship;
+
+            // 6. Submit the transaction
+            return bnUtil.connection.submitTransaction(policyResource).then(() => {
+                console.log("6. Transaction Submitted/Processed Successfully!!");
+                bnUtil.connection.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
+
+                res.json({
+                    jsonObj
+                });
+            }).catch((error) => {
+                console.log(error);
+                jsonObj.push({
+                    "error": error.toString()
+                });
+                bnUtil.connection.disconnect();
+                res.json({
+                    jsonObj
+                });
             });
-      });
+        });
+    });
 
       /** PUT -> UPDATE POLICY
        * 
@@ -956,7 +1095,9 @@ module.exports = (app) => {
                               console.log('Received Registry: ', policyReg.id);
                               return policyReg.get(claim.PolicyNo.$identifier);
                         }).then((policy) => {
-                              console.log("Pol:" + policy.LeadCarrier);
+
+                              console.log("claim.owner:" + claim.owner.$identifier.toString());
+                              console.log("claim.LeadCarrier:" + claim.LeadCarrier.$identifier.toString());
 
                               console.log("Policy num: " + JSON.stringify(claim.PolicyNo.$identifier));
 
@@ -969,6 +1110,7 @@ module.exports = (app) => {
                                     transaction.ClaimMode = claim.ClaimMode;
                                     transaction.comment = req.body.data.comment;
                               }
+                              
 
                               return transaction;
                         }).then((transaction) => {
@@ -1849,7 +1991,7 @@ module.exports = (app) => {
 
             var jsonObj = [];
             console.log("*********  MyCases - searching for : " + req.params.search);
-            const needle  = req.params.search;            
+            const needle = req.params.search;            
 
             bnUtil.connect(req, res, () => {
 
@@ -3041,7 +3183,7 @@ function padValue(value) {
 
 function getCardName(user) {
 
-      return user.concat("-card@lloyds-project-11")
+      return user.concat("-card@lloyds-project-2")
 }
 
 
