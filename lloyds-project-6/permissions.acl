@@ -103,19 +103,93 @@ rule Followers4 {
   action: ALLOW
 }
 
-rule CreateClaim {
-  description: "Make the penguins themselves visible"
-  participant: "org.lloyds.market._Party"
+rule PolicyLeadCarrier {
+  description: "Allow LeadCarrier"
+  participant(t): "org.lloyds.market._Party"
   operation: ALL
-  resource: "org.lloyds.model.CreateClaim"
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.LeadCarrier.getIdentifier() == t.getIdentifier()  )
   action: ALLOW
 }
 
-rule PolicyView {
+rule PolicyPlacingBroker {
+  description: "Allow PlacingBroker"
+  participant(t): "org.lloyds.market._Party"
+  operation: READ
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.PlacingBroker.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+rule PolicyClaimsBroker {
+  description: "Allow ClaimsBroker"
+  participant(t): "org.lloyds.market._Party"
+  operation: READ
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.ClaimsBroker.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+rule PolicyOverseasBroker {
+  description: "Allow OverseasBroker"
+  participant(t): "org.lloyds.market._Party"
+  operation: READ
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.OverseasBroker.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+rule PolicyPolicyOwner {
+  description: "Allow PolicyOwner"
+  participant(t): "org.lloyds.market._Party"
+  operation: ALL
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.PolicyOwner.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+rule PolicyFollowers1 {
+  description: "Allow Followers1"
+  participant(t): "org.lloyds.market._Party"
+  operation: READ
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.Followers1.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+
+rule PolicyFollowers2 {
+  description: "Allow Followers2"
+  participant(t): "org.lloyds.market._Party"
+  operation: READ
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.Followers2.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+rule PolicyFollowers3 {
+  description: "Allow Followers3"
+  participant(t): "org.lloyds.market._Party"
+  operation: READ
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.Followers3.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+rule PolicyFollowers4 {
+  description: "Allow Followers4"
+  participant(t): "org.lloyds.market._Party"
+  operation: READ
+  resource(v): "org.lloyds.market.Policy"
+  condition: (v.Followers4.getIdentifier() == t.getIdentifier()  )
+  action: ALLOW
+}
+
+rule UpdateClaim {
   description: "Make the penguins themselves visible"
   participant: "org.lloyds.market._Party"
   operation: ALL
-  resource: "org.lloyds.market.Policy"
+  resource: "org.lloyds.model.*"
   action: ALLOW
 }
 

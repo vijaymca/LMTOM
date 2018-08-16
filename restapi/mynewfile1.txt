@@ -1,0 +1,25 @@
+<?xml version='1.0'?>
+<policy>
+    <ClaimNo>CP00006</ClaimNo>
+    <ClaimCreatedBy>DavidCoker</ClaimCreatedBy>
+    <ClaimMode>ClaimEvaluation</ClaimMode>
+    <ClaimDetails1>https://s3-eu-west-1.amazonaws.com/lloyds-project/Claims/CP00006.pdf</ClaimDetails1>
+    <ClaimDetails2>https://s3-eu-west-1.amazonaws.com/lloyds-project/Claims/CP00006.pdf</ClaimDetails2>
+    <ClaimPremiumStatus>Paid</ClaimPremiumStatus>
+    <ClaimActionRequired>Yes</ClaimActionRequired>
+    <ClaimCreateDate>2018-08-06T09:03:42.115Z</ClaimCreateDate>
+    <ClaimDateofLoss>2018-01-17T09:03:42.115Z</ClaimDateofLoss>
+    <ClaimTargetDate>2018-08-08T22:03:42.115Z</ClaimTargetDate>
+    <PolicyNo>resource:org.lloyds.market.Policy#UMR%20B0001PR0020184</PolicyNo>
+    <owner>resource:org.lloyds.market._Party#Isabelle</owner>
+    <ClaimEstimateLoss>150000</ClaimEstimateLoss>
+    <comments>Sample Comment</comments>
+    <PlacingBroker>resource:org.lloyds.market._Party#DavidC</PlacingBroker>
+    <ClaimsBroker>resource:org.lloyds.market._Party#GaingKim</ClaimsBroker>
+    <OverseasBroker>resource:org.lloyds.market._Party#ECP</OverseasBroker>
+    <PolicyOwner>resource:org.lloyds.market._Party#JohnGrey</PolicyOwner>
+    <Followers1>resource:org.lloyds.market._Party#SymphonInsurance</Followers1>
+    <Followers2>resource:org.lloyds.market._Party#BleachersRe</Followers2>
+    <Followers3>resource:org.lloyds.market._Party#DanielBryan</Followers3>
+    <Followers4>resource:org.lloyds.market._Party#CapeSolUnderwriting</Followers4>
+</policy>

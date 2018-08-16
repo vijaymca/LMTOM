@@ -1,54 +1,35 @@
-
 module.exports = {
     // Properties used for creating instance of the BN connection
     cardStore: require('composer-common').FileSystemCardStore,
     BusinessNetworkConnection: require('composer-client').BusinessNetworkConnection,
     // Used for connect()
-    //cardName: "admin@lloyds-project-11",
+    //cardName: "admin@lloyds-project-6",
 
     // Holds the Business Network Connection
     connection: {},
 
     // 1. This is the function that is called by the app
-    connect: function (req, res, callback) {
-        console.log("*** dlt-connection-util ***");
+    connect: function (user, callback) {
 
         // Create instance of file system card store
         //const cardStore = new this.cardStore();
         //this.connection = new this.BusinessNetworkConnection({ cardStore: cardStore });
         var cardType = { type: 'composer-wallet-filesystem' }
         this.connection = new this.BusinessNetworkConnection(cardType);
-        const user = req.headers["user"];
+        const cardName_new = getCardName(user);
+       // console.log("user name is : ",user);
+        console.log("Card name is : ", cardName_new);
+        
 
-        if (user === undefined) {
-            //res.writeHead(401, 'Access invalid for user', { 'Content-Type': 'text/plain' });
-            var jsonObj = [];
-
-            jsonObj.push({
-                "status": 'user header is undefined'
-            });
-            res.json({
-                jsonObj
-            });
-        } else {
-            const cardName_new = getCardName(user);
-            console.log("*** dlt-connection-util card name ***", cardName_new);
+            // Invoke connect
             return this.connection.connect(cardName_new).then(function () {
                 callback();
             }).catch((error) => {
-                var jsonObj = [];
-
-                jsonObj.push({
-                    "status": 'user card not found'
-                });
-                res.json({
-                    jsonObj
-                });
                 callback(error);
                 console.log(error);
                 connection.disconnect();
             });
-        }
+    
     },
 
     // 2. Disconnects the bn connection
@@ -68,7 +49,18 @@ module.exports = {
 
 
 function getCardName(user) {
-
-    return user.concat("-card@lloyds-project-11")
+    switch (user) {
+        case "ABCUW":
+            return 'ABCUW@lloyds-project-3'
+            break;
+        case "Isabelle":
+            return 'Isabelle@lloyds-project-3'
+            break;            
+        case "GaingKim":
+            return 'GaingKim@lloyds-project-3'
+            break;
+        default:
+            return 'admin@lloyds-project-3'
+    }
 }
 

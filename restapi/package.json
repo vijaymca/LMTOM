@@ -21,6 +21,8 @@
     "dateformat": "^3.0.3",
     "eslint": "latest",
     "express": "^4.16.3",
+    "js2xmlparser": "^3.0.0",
+    "jsontoxml": "^1.0.0",
     "mkdirp": "latest",
     "mocha": "latest",
     "mysql": "^2.15.0",

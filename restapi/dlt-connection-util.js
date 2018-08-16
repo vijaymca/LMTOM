@@ -1,40 +1,68 @@
+const EventEmitter = require('events');
+
+class MyEmitter extends EventEmitter {}
+
+const myEmitter = new MyEmitter();
+// increase the limit
+myEmitter.setMaxListeners(100);
+
 module.exports = {
     // Properties used for creating instance of the BN connection
     cardStore: require('composer-common').FileSystemCardStore,
     BusinessNetworkConnection: require('composer-client').BusinessNetworkConnection,
     // Used for connect()
-    //cardName: "admin@lloyds-project-6",
+    //cardName: "admin@lloyds-project-11",
 
     // Holds the Business Network Connection
     connection: {},
 
     // 1. This is the function that is called by the app
-    connect: function (user, callback) {
+    connect: function (req, res, callback) {
+        console.log("*** dlt-connection-util ***");
 
         // Create instance of file system card store
         //const cardStore = new this.cardStore();
         //this.connection = new this.BusinessNetworkConnection({ cardStore: cardStore });
         var cardType = { type: 'composer-wallet-filesystem' }
         this.connection = new this.BusinessNetworkConnection(cardType);
-        const cardName_new = getCardName(user);
-       // console.log("user name is : ",user);
-        console.log("Card name is : ", cardName_new);
-        
+        const user = req.headers["user"];
 
-            // Invoke connect
+        if (user === undefined) {
+            //res.writeHead(401, 'Access invalid for user', { 'Content-Type': 'text/plain' });
+            var jsonObj = [];
+
+            jsonObj.push({
+                "status": 'user header is undefined'
+            });
+            res.json({
+                jsonObj
+            });
+        } else {
+            const cardName_new = getCardName(user);
+            console.log("*** dlt-connection-util card name ***", cardName_new);
             return this.connection.connect(cardName_new).then(function () {
                 callback();
             }).catch((error) => {
+                var jsonObj = [];
+
+                jsonObj.push({
+                    "status": 'user card not found'
+                });
+                res.json({
+                    jsonObj
+                });
                 callback(error);
                 console.log(error);
                 connection.disconnect();
             });
-    
+        }
     },
 
     // 2. Disconnects the bn connection
     disconnect: function (callback) {
         this.connection.disconnect();
+        console.log("*** dlt-connection-util disconencting ***");
+
     },
 
     // 3. Pings the network
@@ -49,18 +77,7 @@ module.exports = {
 
 
 function getCardName(user) {
-    switch (user) {
-        case "ABCUW":
-            return 'ABCUW@lloyds-project-3'
-            break;
-        case "Isabelle":
-            return 'Isabelle@lloyds-project-3'
-            break;            
-        case "GaingKim":
-            return 'GaingKim@lloyds-project-3'
-            break;
-        default:
-            return 'admin@lloyds-project-3'
-    }
+
+    return user.concat("@lloyds-project-4")
 }
 

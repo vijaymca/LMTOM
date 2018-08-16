@@ -3,42 +3,8 @@
  */
 
 namespace org.lloyds.model
-import org.lloyds.market.PolicyType
-import org.lloyds.market.Policy
-import org.lloyds.market._Party
-import org.lloyds.market.Claim
-import org.lloyds.market._ClaimSettlementAmount
-import org.lloyds.market.ClaimType
-import org.lloyds.market._Premium
-import org.lloyds.market.Segmentation
-import org.lloyds.market.houseKeeping
-import org.lloyds.market._ClaimExpertOpinion
-import org.lloyds.market._ClaimQuery
+import org.lloyds.market.*
   
-transaction policyNew {
-  o String PolicyNo
-  o String InsuredCompanyName
-  o PolicyType PolicyType
-  o String PolicyDetails1
-  o DateTime PolicyEffectiveDate
-  o DateTime PolicyExpiryDate
-  --> _Party LeadCarrier
-}
-
-transaction claimConflict {
-  o ClaimType ClaimMode
-  o String claimId
-  --> _Party owner
-  --> _Party Followers1 optional
-  o String comment 
-}
-
-// To check premium paid
-transaction claimPremCheck {
-  o String claimId
-  o _Premium premium
-}
-
 transaction CreateClaim {
     o   String    ClaimNo
     o   String    ClaimCreatedBy
@@ -50,7 +16,7 @@ transaction CreateClaim {
     o   DateTime  ClaimCreateDate
     o   DateTime  ClaimDateofLoss
     o   DateTime  ClaimTargetDate
-    o   Integer   ClaimEstimateLoss
+    o   String   ClaimEstimateLoss
     o   String    PolicyNo
     o   String    owner default="admin"
     o   String    LeadCarrier default="admin"
@@ -79,10 +45,6 @@ event CreateClaimCreated {
     o   String    Followers4
 }
 
-transaction claimSegment {
-   o String claimId
-  o Segmentation segmnt
-}
 
 // To check ClaimSettlementAmount
 transaction TransactionClaimSettlementAmount {
@@ -129,7 +91,6 @@ transaction TransactionClaimExpertOpinionStatus {
     o String Status
 }
 
-
 event ClaimExpertOpinionUpdated {
     o   String    ClaimNo
     o   DateTime  ClaimDateofLoss
@@ -144,7 +105,6 @@ event ClaimExpertOpinionUpdated {
     o   String    Followers4
     o  _ClaimExpertOpinion ClaimExpertOpinion
 }
-
 
 // To check ClaimQuery
 transaction TransactionClaimQuery {
@@ -175,8 +135,6 @@ event ClaimQueryUpdated {
     o  _ClaimQuery ClaimQuery
 }
 
-
-
 // To check ClaimMode 
 transaction TransactionUpdateClaimMode {
     o String claimId
@@ -198,11 +156,96 @@ event EventUpdateClaimMode  {
     o   String    Followers4
     o   String    ClaimMode
 }   
+transaction policyNew {
+  o String PolicyNo
+  o String InsuredCompanyName optional
+  o PolicyType PolicyType optional
+  o String PolicyDetails1 optional
+  o String PolicyEffectiveDate optional
+  o String PolicyExpiryDate optional
+  o String PolicyStatus optional
+  --> _Party LeadCarrier optional
+}
 
+transaction claimConflict {
+  o ClaimType ClaimMode optional
+  o String claimId
+  --> _Party owner
+  --> _Party Followers1 optional
+  o String comment optional
+}
 
+event EventclaimConflict {
+    o   String    ClaimNo
+    o   String    ClaimMode
+    o   String    owner
+    o   String    LeadCarrier
+    o   String    PlacingBroker
+    o   String    ClaimsBroker
+    o   String    OverseasBroker
+    o   String    PolicyOwner
+    o   String    Followers1
+    o   String    Followers2
+    o   String    Followers3
+    o   String    Followers4
+    o   Segmentation    segmnt    
+  
+
+}
+// To check premium paid
+transaction claimPremCheck {
+  o String claimId
+  o _Premium premium
+}
+
+event EventclaimPremCheck {
+    o   String    ClaimNo
+    o   String    owner
+    o   String    LeadCarrier
+    o   String    ClaimsBroker
+    o   String    PolicyOwner
+    o   String    Followers1
+    o   String    Followers2
+    o   String    Followers3
+    o   String    Followers4
+  }
+
+transaction claimSegment {
+   o String claimId
+  o Segmentation segmnt
+}
+
+// ClaimMode  Event
+event EventclaimSegment {
+    o   String    ClaimNo
+    o   DateTime  ClaimDateofLoss
+    o   String    LeadCarrier
+    o   String    PlacingBroker
+    o   String    ClaimsBroker
+    o   String    OverseasBroker
+    o   String    PolicyOwner
+    o   String    Followers1
+    o   String    Followers2
+    o   String    Followers3
+    o   String    Followers4
+    o   Segmentation    segmnt
+}   
+  
 transaction housekeep {
   o String claimId
   o houseKeeping housekeep
+}
+
+event Eventclaimhousekeep {
+    o   String    ClaimNo
+    o   String    owner
+    o   String    LeadCarrier
+    o   String    ClaimsBroker
+    o   String    PolicyOwner
+    o   String    Followers1
+    o   String    Followers2
+    o   String    Followers3
+    o   String    Followers4
 }
 
 
@@ -214,27 +257,20 @@ transaction claimAddtionalInfo {
   o DateTime receivedOn
   --> Claim claim
 }
-
-  // To check ClaimSettlementAmount
-transaction ClaimSettlementAmount {
-  o String claimId
-  o String ClaimSettlementAmount
-  o DateTime ClaimSettlementAmountDate
-  o Boolean ClaimSettlementStatus
-}
   
 event eventclaimAddtionalInfo {
   o claimAddtionalInfo claimAddtionalInfo
 }
 
 transaction updatePolicy {
-o  String policyNo
-o _Premium premium optional
-o Integer brokerper default = 20 optional
-o Integer order default = 100 optional
-o Double buildingVal optional
-o Double Cont_stock_mach optional
-o Double BI_18mont optional
-o Integer SectionA optional
-o Integer contry_tax default = 12
+o String PolicyNo
+o _Premium[] premium optional
+o _follower[] followes optional
+o carrierInfo[] carrierInfo optional
+o _insuredAmount insuranceDetails optional
+o String Role optional
+}
+transaction taQuery {
+  o String PolicyNo
+  o TAquery[] taQuery optional 
 }

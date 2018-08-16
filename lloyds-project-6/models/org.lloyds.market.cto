@@ -9,70 +9,104 @@ import org.lloyds.model.claimAddtionalInfo
 
 // ASSETS Policy Summary
 asset Policy identified by PolicyNo {
-    o String PolicyNo
-    o String InsuredCompanyName
-    o PolicyType PolicyType
-    o String PolicyDetails1
-    o DateTime PolicyEffectiveDate
-    o DateTime PolicyExpiryDate
-    o String PolicyStatus optional
-    o String UUId optional
-    o String ServiceProviderReference optional
-    o DateTime CreationDate optional
-    o DateTime SentDate optional
-    o DateTime ContractVersionDate optional
+  o String PolicyNo
+  o String InsuredCompanyName optional
+  o PolicyType PolicyType
+  o String PolicyDetails1
+  o _ContractPeriod ContractPeriod optional
+  o String PolicyStatus optional
+  o String UUId optional
+  o String ServiceProviderReference optional
+  o DateTime CreationDate optional
+  o DateTime SentDate optional
+  o DateTime ContractVersionDate optional
 
-    o String PlacingStage optional
-    o String PlacingTransactionFunction optional
-    o String PlacingEntry optional
-    o String TransactionReasonDescription optional
-    o String InsuredDescription optional
+  o String PlacingStage optional
+  o String PlacingTransactionFunction optional
+  o String PlacingEntry optional
+  o String TransactionReasonDescription optional
+  o String InsuredDescription optional
 
-    --> _Party Insurer optional
-    --> _Party Broker optional
-    --> _Party ServiceProvider optional
-    --> _Party Insured optional
-    --> _Party ProducingBroker optional
+  --> _Party Insurer optional
+  --> _Party Broker optional
+  --> _Party ServiceProvider optional
+  --> _Party Insured optional
+  --> _Party ProducingBroker optional
+  
+  --> _Party LeadCarrier optional
+  --> _Party PlacingBroker optional
+  --> _Party ClaimsBroker optional
+  --> _Party OverseasBroker optional
+  --> _Party Followers1 optional
+  --> _Party Followers2 optional
+  --> _Party Followers3 optional
+  --> _Party Followers4 optional
 
-    --> _Party LeadCarrier 
-    --> _Party PlacingBroker optional
-    --> _Party ClaimsBroker optional
-    --> _Party OverseasBroker optional
-    --> _Party Followers1 optional
-    --> _Party Followers2 optional
-    --> _Party Followers3 optional
-    --> _Party Followers4 optional
-
-  o _ContractPeriod ContractPeriod
   o _Contract Contract optional
-  o _ContractSection ContractSection optional
-  o _sublimits sublimits optional
-  o _insuredAmount insuranceAmount
-  o _Premium premium optional
+   o _sublimits sublimits optional
+  o _insuredAmount insuranceAmount optional
+  o _Premium[] premium optional
   o _follower[] followers optional
-  }
+  o carrierInfo[] carrierInfo optional
+  o TAquery[] queries optional
+}
 
-enum PolicyType{
-    o CommercialProp
+concept carrierInfo
+ {
+o String LineNo optional
+o String PostalCode optional
+o Double bindingVal optional
+o Double constMach optional
+o Double pdTotal optional
+o Double BI_monthip optional
+o Double totVal optional
+o Integer sectionA default = 1
+o Double premium optional
+o Integer cntry_tax optional
+o Double taxTotal optional
+}
+
+concept TAquery {
+o Integer index  
+o String query optional
+o String response optional
+o String asked optional
+o String respond optional
+}
+
+enum PolicyType {
+  o CommercialProp
   o Terrorism
 }
 
 concept _Address{
-    o String NumberAndStreet  optional
-    o String CityName optional
-    o String PostalCode optional
-    o String Country optional
+	o String NumberAndStreet  optional
+	o String CityName optional
+	o String PostalCode optional
+	o String Country optional
 }
 
 concept _Contract {
-    o String ContractType  optional
-    o String BrokerReference optional
+	o String ContractType  optional
+	o String BrokerReference optional
 }
 
 concept _insuredAmount {
-  o Double property_damage
-  o Double busi_interupt
-  o Double total_insured_amt
+  o Double property_damage optional
+  o Double busi_interupt optional
+  o Double Total optional
+
+  o String layer optional
+  o String coverage optional
+  o String currency optional
+  o Integer brokerage optional
+  o Double limitFrom optional
+  o Double limitTo optional
+  o Double deductable optional
+  o String riskCode optional
+  o Double premiumTot optional
+  o Double premiumInUSD optional
+  o Integer order optional
 }
 
 concept _sublimits {
@@ -86,49 +120,12 @@ concept _sublimits {
   o Double professional_fees default=2000000.0
 }
 
-concept _ContractSection {
-    o String HighLevelReference  optional
-    o String InsuredRiskOrInterestDescription  optional
-    o _ContractPeriod ContractPeriod
-    o _ContractSectionClass ContractSectionClass
-    o _Location RiskLocation
-    o String LocationJurisdictionLocation  optional
-    o String USARiskClassification optional
-    o String FSAClientClassification optional
-    o String ConditionsDescription optional
-    o String CedentSharePercentage optional
-    o String BrokerSharePercentage optional
-    o String OrderPercentage optional
-    o String LinePercentageBasis optional
-    o _ContractCoverage ContractCoverage optional
-    o _ContractDeductible ContractDeductible optional
-    o _Premium Premium optional
-    o _Brokerage Brokerage optional
-    o _OtherDeductions OtherDeductions optional
-    o String FeePayableByClientIndicator
-    o String ClauseType
-    o String Description
-    o String NoticeOfCancellation
-    o String ContractChangesAgreementBasis
-    o String DocumentProductionDetailsDescription
-    o String ClaimsAgreementBasisDescription
-    o String ClaimsDelegatedAuthorityDescription
-    o String ClaimsAdministrationDescription
-    o String ExpertFeesCollectionMethodDescription
-    o String RecordingTransmittingStoringInformationProvisionsDescription
-    o String BureauxArrangementsDescription
-    o String SigningProvisionsDescription
-    o _TaxProvisions TaxProvisions
-    o String SettlementDue
-    o _ContractMarket ContractMarket
-}
-
 concept _ContractMarket {
-    o String Type optional
+	o String Type optional
 }
 
 concept _TaxProvisions {
-    --> _Party Insurer optional
+	  --> _Party Insurer optional
     o String ParticipantFunction optional
     o String InsurerSharePercentage optional
     o String EndorsementParticipantFunction optional
@@ -141,52 +138,59 @@ concept _TaxProvisions {
 }
 
 concept _ContractPeriod {
-    o DateTime StartDateTime optional
-    o DateTime EndDateTime optional
+	o DateTime StartDateTime optional
+	o DateTime EndDateTime optional
 }
 
 concept _ContractSectionClass {
-    o String ClassOfBusinessDescription  optional
+	o String ClassOfBusinessDescription  optional
 }
 
 concept _Location {
-    o String Country  optional
+	  o String Country  optional
     o String Description  optional
     o String Subentity  optional
 }
 
 concept _ContractCoverage {
-    o String CoverageAmount  optional
+	  o String CoverageAmount  optional
     o String CoverageBasis  optional
     o String CoverageBasisDescription  optional
 }
 
 concept _ContractDeductible {
-    o String DeductibleAmount  optional
+	  o String DeductibleAmount  optional
     o String DeductibleBasis  optional
     o String DeductibleBasisDescription  optional
 }
 
 concept _Premium {
-    o String PremiumType  optional
-    o String PremiumAmount  optional
+	  o String PremiumType  optional
+    o Double PremiumAmount
     o String PaymentDate  optional
-    o String TermsOfTradePeriod  optional
-    o String PaymentsDescription  optional
-
+    o String TermsOfTradePeriod optional
+    o String PaymentsDescription optional
+    o Double placeBrokerPer default=0.09 optional
+    o Double placeBrokerComm optional
+    o Double overseasBrokerPer default=0.11 optional
+    o Double overseasBroComm optional    
     o Boolean premiumBeenPaiByPolHolder default=false optional
     o Boolean reinstatementApplicable default=false optional
     o Boolean reinstatementPaidByPolHolder default=false optional
+    o DateTime CreateDate optional
+    o DateTime TargetDate optional
+    o String Status optional
 }
 
+
 concept _Brokerage {
-    o String Description  optional
+	  o String Description  optional
     o String BrokeragePercentage  optional
     o String BrokerageBasis  optional
 }
 
 concept _OtherDeductions {
-    o String Description  optional
+	  o String Description  optional
     o String OtherDeductionsPercentage  optional
     o String OtherDeductionsBasis  optional
 }
@@ -196,88 +200,95 @@ participant _Party identified by OwnerId {
     o String UserName
     o String Password
     o String Email
-    o String AgencyId optional
+	  o String AgencyId optional
     o String Role optional
     o String CompanyName optional
-    o String Name optional
-    o _Address Address optional
+	  o String Name optional
+    o _Address Address optional    
 }
 
 concept _follower {
-  o String index
-  --> _Party party
-  o Integer written
-  o Integer signed
+  o String index optional
+  --> _Party party optional
+   o String CompanyName optional
+  o Integer written optional
+  o Integer signed optional
+  o Double premium optional 
 }
 
 enum ClaimType {
-  o Conflict Of Interest
+  o Open
   o Pending
   o Approved
   o Reject
   o Closed
   o PH_Approved
   o Acknowledge
+  o NewClaimConflictofInterest
+  o ConflictofInterest
+  o ClaimEvaluation
+  o ClaimSettlement
+  o PremiumCheck
+  o HousekeepingCheck
+   o TAGenerated
 }
 
 concept Segmentation {
-    --> _Party name
-    o String role
-    o String office
-    o DateTime segDate
-    o DateTime CreateDate optional
-    o DateTime TargetDate optional
-    o String Status optional
+  --> _Party name
+  o String role
+  o String office
+  o DateTime segDate
+  o DateTime CreateDate optional
+  o DateTime TargetDate optional
 }
 
 concept houseKeeping {
-    o Boolean premiumBeenPaidByPolHolder default=false
-    o Boolean reinstatementPremiumPaid default=false
-    o Boolean anyFraud default=false
-    o DateTime CreateDate optional
-    o DateTime TargetDate optional
-    o String Status optional
+  o Boolean premiumBeenPaidByPolHolder default=false optional
+  o Boolean reinstatementPremiumPaid default=false optional
+  o Boolean anyFraud default=false optional
+  o DateTime CreateDate optional
+  o DateTime TargetDate optional
+  o String Status optional
 }
 
 
-// ASSETS
+  // ASSETS
 asset Claim identified by ClaimNo {
-    o String ClaimNo
-    o String ClaimCreatedBy
-    o ClaimType ClaimMode
-    o String ClaimDetails1
-    o String ClaimDetails2
-    o String ClaimPremiumStatus
-    o String ClaimActionRequired
-    o DateTime ClaimCreateDate
-    o DateTime ClaimDateofLoss
-    o DateTime ClaimTargetDate
-    --> Policy PolicyNo
-    --> _Party owner
-    o DateTime ClaimUpdateDate optional
-    o String ClaimNotes optional
-    o Integer ClaimEstimateLoss optional
+  o String ClaimNo
+  o String ClaimCreatedBy
+  o ClaimType ClaimMode
+  o String ClaimDetails1
+  o String ClaimDetails2
+  o String ClaimPremiumStatus
+  o String ClaimActionRequired
+  o DateTime ClaimCreateDate
+  o DateTime ClaimDateofLoss
+  o DateTime ClaimTargetDate
+  --> Policy PolicyNo
+  --> _Party owner
+  o DateTime ClaimUpdateDate optional
+  o String ClaimNotes optional
 
-    o _ClaimSettlementAmount ClaimSettlementAmount optional
-    o _ClaimAdditionalInformation ClaimAdditionalInformation optional
-    o _ClaimExpertOpinion ClaimExpertOpinion optional
-    o _ClaimQuery ClaimQuery optional
-
-    o Segmentation segmnt optional
-    o houseKeeping houseKeeping optional
-     o claimAddtionalInfo[] additionalInfo optional
-    o _Premium checkPremium optional
-    o String[] comments optional
-
-    --> _Party LeadCarrier optional
-    --> _Party PlacingBroker optional
-    --> _Party ClaimsBroker optional
-    --> _Party OverseasBroker optional
-    --> _Party PolicyOwner optional
-    --> _Party Followers1 optional
-    --> _Party Followers2 optional
-    --> _Party Followers3 optional
-    --> _Party Followers4 optional
+  o _ClaimSettlementAmount ClaimSettlementAmount optional
+ 
+  o _ClaimExpertOpinion ClaimExpertOpinion optional
+  o _ClaimQuery ClaimQuery optional
+    
+  o Segmentation segmnt optional
+  o houseKeeping houseKeeping optional
+  o claimAddtionalInfo[] additionalInfo optional
+  o _Premium checkPremium optional
+  o String[] comments optional
+ o String   ClaimEstimateLoss optional
+  --> _Party LeadCarrier optional
+  --> _Party PlacingBroker optional
+  --> _Party ClaimsBroker optional
+  --> _Party OverseasBroker optional
+  --> _Party PolicyOwner optional
+  --> _Party Followers1 optional
+  --> _Party Followers2 optional
+  --> _Party Followers3 optional
+  --> _Party Followers4 optional
 }
 
 concept _ClaimSettlementAmount {
@@ -287,16 +298,16 @@ concept _ClaimSettlementAmount {
     o String Status optional
 
 }
-
+    
 concept _ClaimExpertOpinion {
     o String ClaimExpertOpinion
     o DateTime CreateDate optional
     o DateTime TargetDate optional
     o String Status optional
 }
-
+  
 concept _ClaimQuery {
-    o String ClaimQuery
+  o String ClaimQuery
     o DateTime CreateDate optional
     o DateTime TargetDate optional
     o String Status optional
