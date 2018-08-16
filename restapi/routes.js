@@ -4,20 +4,17 @@
 "use strict";
 
 const bnc = require('composer-client').BusinessNetworkConnection;
-const cardName = 'admin@lloyds-project-11';
+const cardName = 'admin@lloyds-project-2';
 const connection = new bnc();
 const fs = require('fs');
+var js2xmlparser = require("js2xmlparser");
+var colors = require('colors/safe');
 
 const EventEmitter = require('events');
-
-class MyEmitter extends EventEmitter { }
-
+class MyEmitter extends EventEmitter {}
 const myEmitter = new MyEmitter();
 // increase the limit
 myEmitter.setMaxListeners(100);
-
-
-
 
 const bnUtil = require('./dlt-connection-util');
 
@@ -165,7 +162,7 @@ module.exports = (app) => {
                                           "InsuredCompanyName": policy_obj.InsuredCompanyName,
                                           "PolicyNo": policy_obj.PolicyNo,
                                           "Day": obj.ClaimCreateDate.toString(),
-                                          "MovementDate": policy_obj.PolicyEffectiveDate
+                                          "MovementDate": policy_obj.ContractPeriod.StartDateTime
                                     });
                               }
 
@@ -191,7 +188,7 @@ module.exports = (app) => {
                         console.log(error);
 
                         jsonObj.push({
-                              "status": 'exception occured'
+                              "status": 'Exception occured,please check query and try again.'
                         });
                         res.json({
                               jsonObj
@@ -255,7 +252,7 @@ module.exports = (app) => {
                         }).catch((error) => {
                               console.log(error);
                               jsonObj.push({
-                                    "status": 'exception occured'
+                                    "status": 'Exception occured,please check query and try again.'
                               });
                               res.json({
                                     jsonObj
@@ -317,8 +314,8 @@ module.exports = (app) => {
                                           "PolicyNo": policy_obj.PolicyNo,
                                           "InsuredCompanyName": policy_obj.InsuredCompanyName,
                                           "PolicyType": policy_obj.PolicyType,
-                                          "PolicyEffectiveDate": policy_obj.PolicyEffectiveDate,
-                                          "PolicyExpiryDate": policy_obj.PolicyExpiryDate,
+                                          "PolicyEffectiveDate": policy_obj.ContractPeriod.StartDateTime,
+                                          "PolicyExpiryDate": policy_obj.ContractPeriod.EndDateTime,
                                           "ClaimPremiumStatus": obj.ClaimPremiumStatus,
                                           "PolicyStatus": policy_obj.PolicyStatus,
                                           "ClaimActionRequired": obj.ClaimActionRequired,
@@ -366,7 +363,7 @@ module.exports = (app) => {
                         .then(function (registry) {
                               return registry.get(req.params.ClaimNumber);
                         }).then((results1) => {
-                              var obj = results1
+                              var obj = results1;
                               return bnUtil.connection.getAssetRegistry(NS_POLICY)
                                     .then(function (registry) {
                                           return registry.get(obj.PolicyNo.$identifier);
@@ -377,8 +374,8 @@ module.exports = (app) => {
                                                 "InsuredCompanyName": policy_obj.InsuredCompanyName,
                                                 "ClaimNo": obj.ClaimNo,
                                                 "PolicyNo": policy_obj.PolicyNo,
-                                                "PolicyEffectiveDate": policy_obj.PolicyEffectiveDate,
-                                                "PolicyExpiryDate": policy_obj.PolicyExpiryDate,
+                                                "PolicyEffectiveDate": policy_obj.ContractPeriod.StartDateTime,
+                                                "PolicyExpiryDate": policy_obj.ContractPeriod.EndDateTime,
                                                 "ClaimDateofLoss": obj.ClaimDateofLoss
                                           });
 
@@ -390,7 +387,7 @@ module.exports = (app) => {
                         }).catch((error) => {
                               console.log(error);
                               jsonObj.push({
-                                    "status": 'exception occured'
+                                    "status": 'Exception occured,please check query and try again.'
                               });
                               bnUtil.disconnect()
                               res.json({
@@ -450,8 +447,8 @@ module.exports = (app) => {
                                           "InsuredCompanyName": policy_obj.InsuredCompanyName,
 
                                           "PolicyType": policy_obj.PolicyType,
-                                          "PolicyEffectiveDate": policy_obj.PolicyEffectiveDate,
-                                          "PolicyExpiryDate": policy_obj.PolicyExpiryDate,
+                                          "PolicyEffectiveDate": policy_obj.ContractPeriod.StartDateTime,
+                                          "PolicyExpiryDate": policy_obj.ContractPeriod.EndDateTime,
 
                                           "ClaimPremiumStatus": obj.ClaimPremiumStatus,
                                           "ClaimActionRequired": obj.ClaimActionRequired,
@@ -471,7 +468,7 @@ module.exports = (app) => {
                         console.log(error);
 
                         jsonObj.push({
-                              "status": 'exception occured'
+                              "status": 'Exception occured,please check query and try again.'
                         });
                         res.json({
                               jsonObj
@@ -533,8 +530,8 @@ module.exports = (app) => {
                                     "InsuredCompanyName": policy_obj.InsuredCompanyName,
 
                                     "PolicyType": policy_obj.PolicyType,
-                                    "PolicyEffectiveDate": policy_obj.PolicyEffectiveDate,
-                                    "PolicyExpiryDate": policy_obj.PolicyExpiryDate,
+                                    "PolicyEffectiveDate": policy_obj.ContractPeriod.StartDateTime,
+                                    "PolicyExpiryDate": policy_obj.ContractPeriod.EndDateTime,
 
                                     "ClaimPremiumStatus": claim_obj.ClaimPremiumStatus,
                                     "ClaimActionRequired": claim_obj.ClaimActionRequired,
@@ -553,7 +550,7 @@ module.exports = (app) => {
                         var jsonObj = [];
 
                         jsonObj.push({
-                              "status": 'exception occured'
+                              "status": 'Exception occured,please check query and try again.'
                         });
                         //res.writeHead(401, 'Access invalid for user', { 'Content-Type': 'text/plain' });
                         res.json({
@@ -563,151 +560,349 @@ module.exports = (app) => {
             }
       });
 
+      
+    app.get('/getQueries/:PolicyNo', async (req, res) => {
+
+      let jsonObj = [];
+      bnUtil.connect(req, res, async (error) => {
+
+          const bnDef = bnUtil.connection.getBusinessNetwork();
+
+          var serializer = bnDef.getSerializer();
+
+          let policyRegistry = {};
+
+          policyRegistry = await bnUtil.connection.getAssetRegistry(NS_POLICY);
+          console.log('1. Received Registry: ', policyRegistry.id);
+          const exists = await policyRegistry.exists(req.params.PolicyNo);
+
+
+          if (exists) {
+              //return policyRegistry.get(req.params.PolicyNo);
+              let policy = await policyRegistry.get(req.params.PolicyNo);
+              console.log(serializer.toJSON(policy));
+              const obj = serializer.toJSON(policy);
+              let obj2 = obj.queries;
+
+              for (let i in obj2) {
+                  jsonObj.push({
+                      "query": obj.queries[i].query,
+                      "response": obj.queries[i].response,
+                      "asked": obj.queries[i].asked,
+                      "respond": obj.queries[i].respond
+                  });
+              }
+
+              res.json({
+                  jsonObj
+              });
+          }
+      }).catch((error) => {
+          console.log(error);
+          jsonObj.push({
+              "status": 'exception occured'
+          });
+          bnUtil.connection.disconnect();
+          res.json({
+              jsonObj
+          });
+      });
+  });
+
+
+      function getPolicyRep(req, res) {
+            return new Promise((resolve, reject) => {
+                let jsonObj = [];
+                bnUtil.connect(req, res, (error) => {
+                    const bnDef = bnUtil.connection.getBusinessNetwork();
+                    var serializer = bnDef.getSerializer();
+                    let policyRegistry = {};
+                    return bnUtil.connection.getAssetRegistry(NS_POLICY).then(async (registry) => {
+                        console.log('1. Received Registry: ', registry.id);
+                        policyRegistry = registry;
+    
+                        const exists = await policyRegistry.exists(req.params.PolicyNo);
+    
+                        if (exists) {
+                            return policyRegistry.get(req.params.PolicyNo);
+                        }
+    
+                    }).then(async (policy) => {
+    
+                        const obj = serializer.toJSON(policy);
+    
+                        // console.log(`INSURED:${JSON.stringify(obj.premium)}`);
+    
+                        let polLayerinfo = {
+                            "layer": obj.insuranceAmount.layer,
+                            "currency": obj.insuranceAmount.currency,
+                            "limit": {
+                                "for": obj.insuranceAmount.limitFrom,
+                                "per": obj.insuranceAmount.limitTo
+                            },
+                            "deductable": obj.insuranceAmount.deductable,
+                            "PD": obj.insuranceAmount.property_damage,
+                            "BI": obj.insuranceAmount.busi_interupt,
+                            "coverage": obj.insuranceAmount.coverage,
+                            "brokarage": obj.insuranceAmount.brokerage,
+                            "premium": obj.insuranceAmount.premiumTot,
+                            "riskCode": obj.insuranceAmount.riskCode,
+                            "order": obj.insuranceAmount.order
+                        };
+    
+                        const insuredAddress = await getPartyAdress(req, res, policy.Insured.getIdentifier());
+                        const BrokerPlacingAddress = await getPartyAdress(req, res, policy.PlacingBroker.getIdentifier());
+                        const BrokerOverSeasAddress = await getPartyAdress(req, res, policy.OverseasBroker.getIdentifier());
+    
+                        jsonObj.push({
+                            "PolicyNo": policy.PolicyNo,
+                            "PolicyType": obj.PolicyType,
+                            "InsuredCompanyName": obj.InsuredCompanyName,
+                            "InsuredMailingAddress": insuredAddress,
+                            "BrokerPlacing": BrokerPlacingAddress,
+                            "BrokerOverSeas": BrokerOverSeasAddress,
+                            "TotalSumInsured": obj.insuranceAmount,
+                            "FinancialOverview": obj.premium,
+                            "polLayerinfo": polLayerinfo,
+                            "ContractPeriod": obj.ContractPeriod,
+                            "Followers": obj.followers,
+                            "Sublimits": obj.sublimits,
+                            "CarrierInfo": obj.carrierInfo
+                        });
+    
+                        // res.json({
+                        //     jsonObj
+                        // });
+                        resolve(jsonObj);
+                    }).catch((error) => {
+                        console.log(error);
+                        jsonObj.push({
+                            "status": 'exception occured'
+                        });
+                        bnUtil.connection.disconnect();
+                        res.json({
+                            jsonObj
+                        });
+                    });
+                });
+            });
+        }
 
       /** GET POLICY INFORMATION
        * 
        */
-      app.get('/getPolicy/:PolicyNo', (req, res) => {
-            let jsonObj = [];
-
-            bnUtil.connect(req, res, (error) => {
-                  const bnDef = bnUtil.connection.getBusinessNetwork();
-                  var serializer = bnDef.getSerializer();
-                  let policyRegistry = {};
-                  return bnUtil.connection.getAssetRegistry(NS_POLICY).then(async (registry) => {
-                        console.log('1. Received Registry: ', registry.id);
-                        policyRegistry = registry;
-
-                        const exists = await policyRegistry.exists(req.params.PolicyNo);
-
-                        if (exists) {
-                              return policyRegistry.get(req.params.PolicyNo);
-                        }
-
-                  }).then(async (policy) => {
-
-                        const obj = serializer.toJSON(policy);
-
-                        // console.log(`INSURED:${JSON.stringify(obj.premium)}`);
-
-                        let polLayerinfo = {
-                              "layer": "Primary",
-                              "limit": {
-                                    "for": "40000000",
-                                    "per": "50000"
-                              },
-                              "deductable": "50000",
-                              "PD": obj.insuranceAmount.property_damage,
-                              "BI": obj.insuranceAmount.busi_interupt,
-                              "coverage": "Property(PD&BI)",
-                              "brokarage": "20",
-                              "premium": "135000"
-                        };
-
-                        const insuredAddress = await getPartyAdress(req, res, policy.Insured.getIdentifier());
-                        const BrokerPlacingAddress = await getPartyAdress(req, res, policy.PlacingBroker.getIdentifier());
-                        const BrokerOverSeasAddress = await getPartyAdress(req, res, policy.OverseasBroker.getIdentifier());
-
-                        jsonObj.push({
-                              "PolicyNo": policy.PolicyNo,
-                              "InsuredCompanyName": policy.InsuredCompanyName,
-                              "InsuredMailingAddress": insuredAddress,
-                              "BrokerPlacing": BrokerPlacingAddress,
-                              "BrokerOverSeas": BrokerOverSeasAddress,
-                              "TotalSumInsured": obj.insuranceAmount,
-                              "FinancialOverview": obj.premium,
-                              "polLayerinfo": polLayerinfo,
-                              "ContractPeriod": obj.ContractPeriod,
-                              "Followers": obj.followers,
-                              "Sublimits": obj.sublimits,
-                              "CarrierInfo": obj.carrierInfo
-                        });
-
-                        res.json({
-                              jsonObj
-                        });
-
-                  }).catch((error) => {
-                        console.log(error);
-                        jsonObj.push({
-                              "status": 'exception occured'
-                        });
-                        bnUtil.connection.disconnect();
-                        res.json({
-                              jsonObj
-                        });
-                  });
+      app.get('/getPolicy/:PolicyNo', async (req, res) => {
+            console.log(colors.custom('**Call getPolicy**'));
+            let jsonObj = await getPolicyRep(req, res);
+            res.json({
+                  jsonObj
             });
       });
 
 
-      /** POST -> NEW POLICY
+    /** PUT: QUERIES
+     * 
+     */
+
+    app.put('/query/update/:PolicyNo', async (req, res) => {
+
+      var jsonObj = [];
+      const qryUpdate = "taQuery";
+      bnUtil.connect(req, res, async (error) => {
+
+          if (error) {
+              console.log(error);
+              process.exit(1);
+          }
+
+          let bnDef = bnUtil.connection.getBusinessNetwork();
+          let factory = bnDef.getFactory();
+
+          // 2. Get the Business Network Definition
+
+          console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
+          console.log(req.params.PolicyNo);
+          let PolicyId = req.params.PolicyNo;
+
+          // 4. Create an instance of transaction
+          let options = {
+              generate: false,
+              includeOptionalFields: false
+          };
+          var serializer = bnDef.getSerializer();
+
+          var policyTraxn = factory.newTransaction(NS_model, qryUpdate, PolicyId, options);
+
+          const policyRegistry = await bnUtil.connection.getAssetRegistry('org.lloyds.market.Policy');
+
+          const policy = await policyRegistry.get(PolicyId);
+
+          console.log(colors.prompt(serializer.toJSON(policy)));
+
+          // 5. Set up the properties of the transaction object
+          policyTraxn.PolicyNo = PolicyId;
+
+          var queries = policy.TAquery;
+          policyTraxn.taQuery = [];
+          for (let i in req.body.data.queries) {
+              console.log("i=" + i);
+              var queryConcept = policy.queries[i];
+              if (typeof policy.queries[i] === 'undefined') {
+                  queryConcept = factory.newConcept(NS, 'TAquery');
+              }
+              queryConcept.index = parseInt(i);
+              queryConcept.query = req.body.data.queries[i].query;
+              queryConcept.response = req.body.data.queries[i].response;
+              queryConcept.asked = req.body.data.queries[i].asked;
+              queryConcept.respond = req.body.data.queries[i].respond;
+
+              console.log(colors.prompt(serializer.toJSON(queryConcept)));
+              policyTraxn.taQuery.push(queryConcept);
+          }
+
+          // 6. Submit the transaction
+          return bnUtil.connection.submitTransaction(policyTraxn).then(() => {
+              console.log("6. Transaction Submitted/Processed Successfully!!");
+              jsonObj.push({
+                  "status": "Transaction Submitted",
+              });
+              bnUtil.connection.disconnect();
+              res.json({
+                  jsonObj
+              });
+          }).catch((error) => {
+              console.log(error);
+              jsonObj.push({
+                  "error": error.toString()
+              });
+              bnUtil.connection.disconnect();
+              res.json({
+                  jsonObj
+              });
+          });
+
+      });
+  });
+
+      /** CREATE XML FILE
        * 
        */
-      app.post('/Policies/new', (req, res) => {
-            var jsonObj = [];
+      app.get('/createXML/:PolicyNo', async (req, res) => {
 
-            const policyNew = "policyNew";
-            bnUtil.connect(req, res, (error) => {
+            console.log(colors.custom('**Call getPolicy for XML**'));
 
-                  // Check for error
-                  if (error) {
-                        console.log(error);
-                        process.exit(1);
+            let polObj = await getPolicyRep(req, res);
+
+            // res.json({
+            //     polObj
+            // });
+            let jsonObj = [];
+            jsonObj.push({
+                  "status": "Transaction Submitted",
+            });
+
+            res.json({
+                  jsonObj
+            });
+
+            var filePath = "/tmp/".concat(req.params.PolicyNo).concat(".xml");
+
+            fs.stat(filePath, function (err, stats) {
+                  //console.log(stats);//here we got all information of file in stats variable
+
+                  if (err) {
+                        return console.error(err);
                   }
 
-                  // 2. Get the Business Network Definition
-                  let bnDef = bnUtil.connection.getBusinessNetwork();
-                  console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
-
-                  console.log(req.body.data.PolicyNo);
-
-                  // 3. Get the factory
-                  let factory = bnDef.getFactory();
-
-                  // 4. Create an instance of transaction
-                  let options = {
-                        generate: false,
-                        includeOptionalFields: false
-                  };
-
-                  let PolicyId = req.body.data.PolicyNo;
-                  let policyResource = factory.newTransaction(NS_model, policyNew, PolicyId, options);
-
-                  // 5. Set up the properties of the transaction object
-                  policyResource.PolicyNo = PolicyId;
-                  policyResource.InsuredCompanyName = req.body.data.InsuredCompanyName;
-                  policyResource.PolicyType = req.body.data.PolicyType;
-                  policyResource.PolicyDetails1 = req.body.data.PolicyDetails1;
-                  policyResource.PolicyEffectiveDate = new Date(req.body.data.PolicyEffectiveDate);
-                  policyResource.PolicyExpiryDate = new Date(req.body.data.PolicyExpiryDate);
-
-                  let relationship = factory.newRelationship(NS, PRTCP_PARTY, req.body.data.LeadCarrier);
-                  policyResource.LeadCarrier = relationship;
-
-                  // 6. Submit the transaction
-                  return bnUtil.connection.submitTransaction(policyResource).then(() => {
-                        console.log("6. Transaction Submitted/Processed Successfully!!");
-                        bnUtil.connection.disconnect();
-                        jsonObj.push({
-                              "status": "Transaction Submitted",
-                        });
-
-                        res.json({
-                              jsonObj
-                        });
-                  }).catch((error) => {
-                        console.log(error);
-                        jsonObj.push({
-                              "error": error.toString()
-                        });
-                        bnUtil.connection.disconnect();
-                        res.json({
-                              jsonObj
-                        });
+                  fs.unlink(filePath, function (err) {
+                        if (err) return console.log(err);
+                        console.log(colors.help('file deleted successfully'));
                   });
             });
+
+            //console.log(colors.data(polObj[0]));
+
+            let pObj = sanitize(polObj[0]);
+            console.log(colors.data(pObj));
+
+            var myxml = (js2xmlparser.parse("Policy", pObj));
+            fs.appendFile(filePath, myxml, function (err) {
+                  if (err) throw err;
+                  console.log(colors.silly('Saved!'));
+            });
       });
+
+      /** POST -> NEW POLICY
+     * 
+     */
+    app.post('/Policies/new', (req, res) => {
+        var jsonObj = [];
+
+        const policyNew = "policyNew";
+        bnUtil.connect(req, res, (error) => {
+
+            // Check for error
+            if (error) {
+                console.log(error);
+                process.exit(1);
+            }
+
+            // 2. Get the Business Network Definition
+            let bnDef = bnUtil.connection.getBusinessNetwork();
+            console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
+
+            console.log(req.body.data.PolicyNo);
+
+            // 3. Get the factory
+            let factory = bnDef.getFactory();
+
+            // 4. Create an instance of transaction
+            let options = {
+                generate: false,
+                includeOptionalFields: false
+            };
+
+            let PolicyId = req.body.data.PolicyNo;
+            let policyResource = factory.newTransaction(NS_model, policyNew, PolicyId, options);
+
+            // 5. Set up the properties of the transaction object
+            policyResource.PolicyNo = PolicyId;
+            policyResource.InsuredCompanyName = req.body.data.InsuredCompanyName;
+            policyResource.PolicyType = req.body.data.PolicyType;
+            policyResource.PolicyDetails1 = req.body.data.PolicyDetails1;
+
+            const contractPeriod = factory.newConcept(NS, '_ContractPeriod');
+            contractPeriod.StartDateTime = new Date(req.body.data.PolicyEffectiveDate);
+            contractPeriod.EndDateTime = new Date(req.body.data.PolicyExpiryDate);
+
+            policyResource.ContractPeriod = contractPeriod;
+
+            let relationship = factory.newRelationship(NS, PRTCP_PARTY, req.body.data.LeadCarrier);
+            policyResource.LeadCarrier = relationship;
+
+            // 6. Submit the transaction
+            return bnUtil.connection.submitTransaction(policyResource).then(() => {
+                console.log("6. Transaction Submitted/Processed Successfully!!");
+                bnUtil.connection.disconnect();
+                jsonObj.push({
+                    "status": "Transaction Submitted",
+                });
+
+                res.json({
+                    jsonObj
+                });
+            }).catch((error) => {
+                console.log(error);
+                jsonObj.push({
+                    "error": error.toString()
+                });
+                bnUtil.connection.disconnect();
+                res.json({
+                    jsonObj
+                });
+            });
+        });
+    });
 
       /** PUT -> UPDATE POLICY
        * 
@@ -716,101 +911,143 @@ module.exports = (app) => {
             var jsonObj = [];
             const trPolicy = "updatePolicy";
             bnUtil.connect(req, res, async (error) => {
-
-                  if (error) {
-                        console.log(error);
-                        process.exit(1);
-                  }
-
-                  // 2. Get the Business Network Definition
-                  let bnDef = bnUtil.connection.getBusinessNetwork();
-                  console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
-
-                  console.log(req.params.PolicyNo);
-
-
-                  const currentUserRole = await getRole(req, res);
-
-                  // 3. Get the factory
-                  let factory = bnDef.getFactory();
-
-                  // 4. Create an instance of transaction
-                  let options = {
-                        generate: false,
-                        includeOptionalFields: false
-                  };
-
-                  let PolicyId = req.params.PolicyNo;
-                  var policyTraxn = factory.newTransaction(NS_model, trPolicy, PolicyId, options);
-
-                  // 5. Set up the properties of the transaction object
-                  policyTraxn.PolicyNo = PolicyId;
-
-                  if (currentUserRole === "Placing Broker" || currentUserRole === "Claims Broker") {
-                        console.log(req.body.data.premium);
-
-                        policyTraxn.Role = "broker";
-                        policyTraxn.premium = [];
-                        for (let i in req.body.data.premium) {
-                              var premConcept = factory.newConcept(NS, '_Premium');
-                              premConcept.PremiumAmount = req.body.data.premium[i].premiumAmount;
-                              premConcept.placeBrokerComm = req.body.data.premium[i].placeBrokerComm;
-                              premConcept.overseasBroComm = req.body.data.premium[i].overseasBroComm;
-                              policyTraxn.premium.push(premConcept);
-                        }
-
-                        policyTraxn.followes = [];
-                        console.log(req.body.data.followes);
-                        for (let i in req.body.data.followes) {
-                              var followConcept = factory.newConcept(NS, '_follower');
-                              followConcept.index = i;
-                              followConcept.written = req.body.data.followes[i].written;
-                              followConcept.signed = req.body.data.followes[i].signed;
-                              policyTraxn.followes.push(followConcept);
-                        }
-                  } else if (currentUserRole != "Policy Holder") {
-                        console.log(req.body.data.carrierInfo);
-                        policyTraxn.Role = "carrier";
-                        policyTraxn.carrierInfo = [];
-                        for (let i in req.body.data.carrierInfo) {
-                              var carrierConcept = factory.newConcept(NS, 'carrierInfo');
-                              carrierConcept.LineNo = req.body.data.carrierInfo[i].LineNo;
-                              carrierConcept.PostalCode = req.body.data.carrierInfo[i].PostalCode;
-                              carrierConcept.bindingVal = req.body.data.carrierInfo[i].bindingVal;
-                              carrierConcept.constMach = req.body.data.carrierInfo[i].constMach;
-                              carrierConcept.BI_monthip = req.body.data.carrierInfo[i].BI_monthip;
-                              carrierConcept.sectionA = req.body.data.carrierInfo[i].sectionA;
-                              carrierConcept.premium = req.body.data.carrierInfo[i].premium;
-                              carrierConcept.cntry_tax = req.body.data.carrierInfo[i].cntry_tax;
-                              policyTraxn.carrierInfo.push(carrierConcept);
-                        }
-                  }
-
-                  // 6. Submit the transaction
-                  return bnUtil.connection.submitTransaction(policyTraxn).then(() => {
-                        console.log("6. Transaction Submitted/Processed Successfully!!");
-                        jsonObj.push({
-                              "status": "Transaction Submitted",
-                        });
-                        bnUtil.connection.disconnect();
-
-                        res.json({
-                              jsonObj
-                        });
-
-                  }).catch((error) => {
-                        console.log(error);
-
-                        jsonObj.push({
-                              "error": error.toString()
-                        });
-                        bnUtil.connection.disconnect();
-                        res.json({
-                              jsonObj
-                        });
-                  });
+    
+                if (error) {
+                    console.log(error);
+                    process.exit(1);
+                }
+    
+                // 2. Get the Business Network Definition
+                let bnDef = bnUtil.connection.getBusinessNetwork();
+                console.log(`2. Received Definition from Runtime: ${bnDef.getName()} -v ${bnDef.getVersion()}`);
+    
+                console.log(req.params.PolicyNo);
+    
+                const currentUserRole = await getRole(req, res);
+    
+                // 3. Get the factory
+                let factory = bnDef.getFactory();
+    
+                // 4. Create an instance of transaction
+                let options = {
+                    generate: false,
+                    includeOptionalFields: false
+                };
+    
+                var serializer = bnDef.getSerializer();
+    
+                let PolicyId = req.params.PolicyNo;
+                var policyTraxn = factory.newTransaction(NS_model, trPolicy, PolicyId, options);
+    
+                const policyRegistry = await bnUtil.connection.getAssetRegistry('org.lloyds.market.Policy');
+    
+                const policy = await policyRegistry.get(PolicyId);
+    
+                // 5. Set up the properties of the transaction object
+                policyTraxn.PolicyNo = PolicyId;
+    
+                if (currentUserRole === "Placing Broker" || currentUserRole === "Claims Broker") {
+                    console.log(req.body.data.premium);
+    
+                    policyTraxn.Role = "broker";
+                    policyTraxn.premium = [];
+                    for (let i in req.body.data.premium) {
+                        var premConcept = policy.premium[i];
+                        premConcept.PremiumAmount = req.body.data.premium[i].premiumAmount;
+                        premConcept.placeBrokerPer = req.body.data.premium[i].placeBrokerPer;
+                        let placbroComm = req.body.data.premium[i].placeBrokerPer * req.body.data.premium[i].premiumAmount;
+                        premConcept.placeBrokerComm = placbroComm;
+                        premConcept.overseasBrokerPer = req.body.data.premium[i].overseasBrokerPer;
+                        let oversComm = req.body.data.premium[i].overseasBrokerPer * req.body.data.premium[i].premiumAmount;
+                        premConcept.overseasBroComm = oversComm;
+                        console.log(colors.prompt(serializer.toJSON(premConcept)));
+                        policyTraxn.premium.push(premConcept);
+                    }
+    
+                    policyTraxn.followes = [];
+                    console.log(req.body.data.followes);
+                    for (let i in req.body.data.followes) {
+                        var followConcept = policy.followers[i];
+                        followConcept.index = i;
+                        followConcept.CompanyName = req.body.data.followes[i].CompanyName;
+                        followConcept.written = req.body.data.followes[i].written;
+                        followConcept.signed = req.body.data.followes[i].signed;
+                        followConcept.premium = req.body.data.followes[i].signed * req.body.data.details.premiumTot;
+                        policyTraxn.followes.push(followConcept);
+                    }
+    
+                    var insDetlsConcept = policy.insuranceAmount;
+                    insDetlsConcept.order = req.body.data.details.order;
+                    insDetlsConcept.premiumTot = req.body.data.details.premiumTot;
+                    insDetlsConcept.premiumInUSD = req.body.data.details.premiumTot * 1.28;
+                    policyTraxn.insuranceDetails = insDetlsConcept;
+    
+                } else if (currentUserRole != "Policy Holder") {
+                    var pd = 0;
+                    var bi = 0;
+                    var total = pd + bi;
+    
+                    console.log(req.body.data.carrierInfo);
+                    policyTraxn.Role = "carrier";
+                    policyTraxn.carrierInfo = [];
+                    for (let i in req.body.data.carrierInfo) {
+                        var carrierConcept = policy.carrierInfo[i];
+                        carrierConcept.LineNo = req.body.data.carrierInfo[i].LineNo;
+                        carrierConcept.PostalCode = req.body.data.carrierInfo[i].PostalCode;
+                        carrierConcept.bindingVal = req.body.data.carrierInfo[i].bindingVal;
+                        carrierConcept.constMach = req.body.data.carrierInfo[i].constMach;
+    
+                        let pdTotal = req.body.data.carrierInfo[i].bindingVal + req.body.data.carrierInfo[i].constMach;
+                        carrierConcept.pdTotal = pdTotal;
+                        pd = pd + pdTotal;
+    
+    
+                        carrierConcept.BI_monthip = req.body.data.carrierInfo[i].BI_monthip;
+                        bi = bi + req.body.data.carrierInfo[i].BI_monthip;
+    
+                        let totalVal = pdTotal + req.body.data.carrierInfo[i].BI_monthip;
+                        carrierConcept.totVal = totalVal;
+                        total = total + totalVal;
+    
+                        carrierConcept.sectionA = req.body.data.carrierInfo[i].sectionA;
+                        let prem = totalVal * 0.0253093363;
+                        carrierConcept.premium = prem;
+                        carrierConcept.cntry_tax = req.body.data.carrierInfo[i].cntry_tax;
+                        carrierConcept.taxTotal = prem * (req.body.data.carrierInfo[i].cntry_tax / 100);
+                        console.log(colors.prompt(serializer.toJSON(carrierConcept)));
+                        policyTraxn.carrierInfo.push(carrierConcept);
+                    }
+    
+                    var insDetlsConcept = policy.insuranceAmount;
+                    insDetlsConcept.property_damage = pd;
+                    insDetlsConcept.busi_interupt = bi;
+                    insDetlsConcept.Total = total;
+                    console.log(colors.prompt(serializer.toJSON(insDetlsConcept)));
+                    policyTraxn.insuranceDetails = insDetlsConcept;
+                }
+    
+                // 6. Submit the transaction
+                return bnUtil.connection.submitTransaction(policyTraxn).then(() => {
+                    console.log("6. Transaction Submitted/Processed Successfully!!");
+                    jsonObj.push({
+                        "status": "Transaction Submitted",
+                    });
+                    bnUtil.connection.disconnect();
+                    res.json({
+                        jsonObj
+                    });
+                }).catch((error) => {
+                    console.log(error);
+                    jsonObj.push({
+                        "error": error.toString()
+                    });
+                    bnUtil.connection.disconnect();
+                    res.json({
+                        jsonObj
+                    });
+                });
             });
-      });
+        });
 
       /** PUT -> CLAIM CONFLICT
        * 
@@ -890,7 +1127,7 @@ module.exports = (app) => {
                   }).catch((error) => {
                         console.log(error);
                         jsonObj.push({
-                              "status": 'exception occured'
+                              "status": 'Exception occured,please check query and try again.'
                         });
                         bnUtil.connection.disconnect();
                         res.json({
@@ -958,7 +1195,7 @@ module.exports = (app) => {
                   }).catch((error) => {
                         console.log(error);
                         jsonObj.push({
-                              "status": 'exception occured'
+                              "status": 'Exception occured,please check query and try again.'
                         });
                         bnUtil.disconnect();
                         res.json({
@@ -1078,7 +1315,7 @@ module.exports = (app) => {
                   }).catch((error) => {
                         console.log(error);
                         jsonObj.push({
-                              "status": 'exception occured'
+                              "status": 'Exception occured,please check query and try again.'
                         });
                         bnUtil.disconnect();
                         res.json({
@@ -1277,7 +1514,7 @@ module.exports = (app) => {
                   }).catch((error) => {
                         console.log(error);
                         jsonObj.push({
-                              "status": 'exception occured'
+                              "status": 'Exception occured,please check query and try again.'
                         });
                         bnUtil.disconnect();
                         res.json({
@@ -1346,7 +1583,7 @@ module.exports = (app) => {
                   }).catch((error) => {
                         console.log(error);
                         jsonObj.push({
-                              "status": 'exception occured'
+                              "status": 'Exception occured,please check query and try again.'
                         });
                         bnUtil.disconnect();
                         res.json({
@@ -1407,7 +1644,7 @@ module.exports = (app) => {
                         });
                   }).catch((error) => {
                         jsonObj.push({
-                              "status": 'exception occured'
+                              "status": 'Exception occured,please check query and try again.'
                         });
                         console.log(error);
                         bnUtil.connection.disconnect();
@@ -1464,7 +1701,7 @@ module.exports = (app) => {
                         });
                   }).catch((error) => {
                         jsonObj.push({
-                              "status": 'exception occured'
+                              "status": 'Exception occured,please check query and try again.'
 
                         });
                         console.log(error);
@@ -1526,7 +1763,7 @@ module.exports = (app) => {
                         });
                   }).catch((error) => {
                         jsonObj.push({
-                              "status": 'exception occured'
+                              "status": 'Exception occured,please check query and try again.'
                         });
                         console.log(error);
                         bnUtil.connection.disconnect();
@@ -1583,7 +1820,7 @@ module.exports = (app) => {
                         });
                   }).catch((error) => {
                         jsonObj.push({
-                              "status": 'exception occured'
+                              "status": 'Exception occured,please check query and try again.'
 
                         });
                         console.log(error);
@@ -1642,7 +1879,7 @@ module.exports = (app) => {
                         });
                   }).catch((error) => {
                         jsonObj.push({
-                              "status": 'exception occured'
+                              "status": 'Exception occured,please check query and try again.'
 
                         });
                         console.log(error);
@@ -1700,7 +1937,7 @@ module.exports = (app) => {
                         });
                   }).catch((error) => {
                         jsonObj.push({
-                              "status": 'exception occured'
+                              "status": 'Exception occured,please check query and try again.'
 
                         });
                         console.log(error);
@@ -1728,10 +1965,11 @@ module.exports = (app) => {
                                     console.log("*********");
                                     jsonObj.push({
                                           "PolicyHolder": obj.InsuredCompanyName,
+                                          "Insurer": obj.Insurer.$identifier.toString(),
 
                                           "PolicyNo": obj.PolicyNo,
-                                          "PolicyEffectiveDate": dateFormat(obj.PolicyEffectiveDate),
-                                          "PolicyExpiryDate": dateFormat(obj.PolicyExpiryDate),
+                                          "PolicyEffectiveDate": dateFormat(obj.ContractPeriod.StartDateTime),
+                                          "PolicyExpiryDate": dateFormat(obj.ContractPeriod.EndDateTime),
                                           "PolicyLOB": obj.PolicyType,
                                           "PolicyStatus": "Active",
                                     });
@@ -1742,14 +1980,51 @@ module.exports = (app) => {
                                     jsonObj
                               });
 
+                        });
+            });
+      });
+
+      app.get('/MyPolicy/:search', (req, res) => {
+
+            var jsonObj = [];
+            console.log("*********  MyCases - searching for : " + req.params.search);
+            const needle = req.params.search;            
+
+            bnUtil.connect(req, res, () => {
+
+                  return bnUtil.connection.getAssetRegistry(NS_POLICY)
+                        .then(function (registry) {
+                              return registry.getAll();
+                        }).then((results2) => {
+                              console.log('2. Received results2: ', results2);
+                              for (var i = 0; i < results2.length; i++) {
+                                    var obj = results2[i];
+                                    console.log("*********");
+                                    jsonObj.push({
+                                          "PolicyHolder": obj.InsuredCompanyName,
+                                          "Insurer": obj.Insurer.$identifier.toString(),
+
+                                          "PolicyNo": obj.PolicyNo,
+                                          "PolicyEffectiveDate": dateFormat(obj.ContractPeriod.StartDateTime),
+                                          "PolicyExpiryDate": dateFormat(obj.ContractPeriod.EndDateTime),
+                                          "PolicyLOB": obj.PolicyType,
+                                          "PolicyStatus": "Active",
+                                    });
+                              }
+                              console.log("*************************")
+                              bnUtil.disconnect()
+                              jsonObj = searchValues(jsonObj, needle)
+                              res.json({
+                                    jsonObj
+                              });
 
                         });
-
             });
       });
 
       app.get('/tamycases', (req, res) => {
             var jsonObj = [];
+            
             bnUtil.connect(req, res, () => {
                   var statement2 = 'SELECT org.lloyds.market.Policy';
                   var qry = bnUtil.connection.buildQuery(statement2)
@@ -1769,9 +2044,9 @@ module.exports = (app) => {
                                     details.push({
                                           "Name": "Review Information",
                                           "PolicyNo": obj.PolicyNo,
-                                          "CreateDate": dateFormat(obj.PolicyEffectiveDate),
-                                          "Urgency": ((Math.abs(obj.PolicyExpiryDate) - new Date()) / 36e5).toFixed(),
-                                          "TargetDate": dateFormat(obj.PolicyExpiryDate),
+                                          "CreateDate": dateFormat(obj.ContractPeriod.StartDateTime),
+                                          "Urgency": ((Math.abs(obj.ContractPeriod.EndDateTime) - new Date()) / 36e5).toFixed(),
+                                          "TargetDate": dateFormat(obj.ContractPeriod.EndDateTime),
                                           "Status": Status
                                     });
                               }
@@ -1780,9 +2055,10 @@ module.exports = (app) => {
                               jsonObj.push({
                                     "Insured": obj.InsuredCompanyName,
                                     "PolicyNo": obj.PolicyNo,
-                                    "CreateDate": dateFormat(obj.PolicyEffectiveDate),
-                                    "Urgency": ((Math.abs(obj.PolicyExpiryDate) - new Date()) / 36e5).toFixed(),
-                                    "TargetDate": dateFormat(obj.PolicyExpiryDate),
+                                    "Insurer": obj.Insurer.$identifier.toString(),
+                                    "CreateDate": dateFormat(obj.ContractPeriod.StartDateTime),
+                                    "Urgency": ((Math.abs(obj.ContractPeriod.EndDateTime) - new Date()) / 36e5).toFixed(),
+                                    "TargetDate": dateFormat(obj.ContractPeriod.EndDateTime),
                                     "Status": "ReviewInformation",
                                     "details": details
                               });
@@ -1794,6 +2070,58 @@ module.exports = (app) => {
                   });
             });
       });
+
+      app.get('/tamycases/:search', (req, res) => {
+            var jsonObj = [];
+            console.log("*********  MyCases - searching for : " + req.params.search);
+            const needle  = req.params.search;            
+            
+            bnUtil.connect(req, res, () => {
+                  var statement2 = 'SELECT org.lloyds.market.Policy';
+                  var qry = bnUtil.connection.buildQuery(statement2)
+                  console.log(qry);
+                  return bnUtil.connection.query(qry).then((results2) => {
+                        console.log('2. Received results2: ', results2);
+                        for (var i = 0; i < results2.length; i++) {
+                              var details = [];
+                              var obj = results2[i];
+                              if (obj.PolicyStatus != null) {
+                                    let Status;
+                                    if (obj.PolicyStatus == "ReviewInformation") {
+                                          Status = "Pending";
+                                    } else {
+                                          Status = "Completed";
+                                    }
+                                    details.push({
+                                          "Name": "Review Information",
+                                          "PolicyNo": obj.PolicyNo,
+                                          "CreateDate": dateFormat(obj.ContractPeriod.StartDateTime),
+                                          "Urgency": ((Math.abs(obj.ContractPeriod.EndDateTime) - new Date()) / 36e5).toFixed(),
+                                          "TargetDate": dateFormat(obj.ContractPeriod.EndDateTime),
+                                          "Status": Status
+                                    });
+                              }
+                              var obj = results2[i];
+                              console.log("*********");
+                              jsonObj.push({
+                                    "Insured": obj.InsuredCompanyName,
+                                    "PolicyNo": obj.PolicyNo,
+                                    "Insurer": obj.Insurer.$identifier.toString(),
+                                    "CreateDate": dateFormat(obj.ContractPeriod.StartDateTime),
+                                    "Urgency": ((Math.abs(obj.ContractPeriod.EndDateTime) - new Date()) / 36e5).toFixed(),
+                                    "TargetDate": dateFormat(obj.ContractPeriod.EndDateTime),
+                                    "Status": "ReviewInformation",
+                                    "details": details
+                              });
+                        }
+                        console.log("*************************")
+                        jsonObj = searchValues(jsonObj, needle)
+                        res.json({
+                              jsonObj
+                        });
+                  });
+            });
+      });      
 
       app.get('/MyCases', (req, res) => {
 
@@ -1819,6 +2147,7 @@ module.exports = (app) => {
                                                 console.log("*********");
                                                 const owner = obj.owner.$identifier.toString()
                                                 let iSowner = false;
+                                                let amount = obj.ClaimEstimateLoss;
 
                                                 if (owner == user) {
                                                       iSowner = true;
@@ -1835,9 +2164,8 @@ module.exports = (app) => {
                                                 var policyResult = (results2.filter(item => item.PolicyNo === obj.PolicyNo.$identifier.toString()));
                                                 var policy_obj = policyResult[0]
 
-                                                console.log(obj.ClaimCreateDate);
-                                                console.log(policy_obj.PolicyNo);
-
+                                                console.log(obj.ClaimNo);
+                                              
                                                 if (obj.ClaimMode != null) { //ConflictofInterest
                                                       let Status;
                                                       if (obj.ClaimMode == "ConflictofInterest") {
@@ -1872,6 +2200,7 @@ module.exports = (app) => {
                                                 }
 
                                                 if (obj.ClaimSettlementAmount != null) {
+                                                      amount = obj.ClaimSettlementAmount.Amount;
                                                       details.push({
                                                             "Name": "Claim Settlement",
                                                             "ClaimNo": obj.ClaimNo,
@@ -1916,9 +2245,10 @@ module.exports = (app) => {
 
                                                       "owner": owner,
                                                       "iSowner": iSowner,
-                                                      "LOB": policy_obj.PolicyType,//obj.PolicyType, ClaimsBroker
-                                                      "ClaimEstimateLoss": obj.ClaimEstimateLoss,
+                                                      "LOB": policy_obj.PolicyType, //obj.PolicyType, ClaimsBroker
+                                                      "ClaimEstimateLoss": amount,
                                                       "ClaimsBroker": obj.ClaimsBroker.$identifier.toString(),
+                                                      "Insurer": policy_obj.Insurer.$identifier.toString(),
                                                       "CSType": CSType,
                                                       "InsuredCompanyName": policy_obj.InsuredCompanyName,
                                                       "ClaimNo": obj.ClaimNo,
@@ -1940,7 +2270,7 @@ module.exports = (app) => {
                         }).catch((error) => {
                               console.log(error);
                               jsonObj.push({
-                                    "status": 'exception occured'
+                                    "status": 'Exception occured,please check query and try again.'
                               });
                               res.json({
                                     jsonObj
@@ -1949,14 +2279,12 @@ module.exports = (app) => {
             });
       });
 
-
       app.get('/MyCases/:search', (req, res) => {
 
             var jsonObj = [];
 
             console.log("*********  MyCases - searching for : " + req.params.search);
-            const needle  = req.params.search;
-            
+            const needle = req.params.search;
             const user = req.headers["user"];
             bnUtil.connect(req, res, () => {
                   console.log("*************************")
@@ -1977,6 +2305,7 @@ module.exports = (app) => {
                                                 console.log("*********");
                                                 const owner = obj.owner.$identifier.toString()
                                                 let iSowner = false;
+                                                let amount = obj.ClaimEstimateLoss;
 
                                                 if (owner == user) {
                                                       iSowner = true;
@@ -2030,6 +2359,8 @@ module.exports = (app) => {
                                                 }
 
                                                 if (obj.ClaimSettlementAmount != null) {
+                                                      amount = obj.ClaimSettlementAmount.Amount;
+
                                                       details.push({
                                                             "Name": "Claim Settlement",
                                                             "ClaimNo": obj.ClaimNo,
@@ -2075,8 +2406,9 @@ module.exports = (app) => {
                                                       "owner": owner,
                                                       "iSowner": iSowner,
                                                       "LOB": policy_obj.PolicyType,//obj.PolicyType, ClaimsBroker
-                                                      "ClaimEstimateLoss": obj.ClaimEstimateLoss,
+                                                      "ClaimEstimateLoss": amount,
                                                       "ClaimsBroker": obj.ClaimsBroker.$identifier.toString(),
+                                                      "Insurer": policy_obj.Insurer.$identifier.toString(),
                                                       "CSType": CSType,
                                                       "InsuredCompanyName": policy_obj.InsuredCompanyName,
                                                       "ClaimNo": obj.ClaimNo,
@@ -2135,7 +2467,6 @@ module.exports = (app) => {
             };
       }
 
-
       app.get('/MyClaims', (req, res) => {
 
             var jsonObj = [];
@@ -2159,6 +2490,7 @@ module.exports = (app) => {
                                                 console.log("*********");
                                                 const owner = obj.owner.$identifier.toString()
                                                 let iSowner = false;
+                                                let amount = obj.ClaimEstimateLoss;
 
                                                 if (owner == user) {
                                                       iSowner = true;
@@ -2190,6 +2522,7 @@ module.exports = (app) => {
                                                 }
 
                                                 if (obj.ClaimSettlementAmount != null) {
+                                                      amount = obj.ClaimSettlementAmount.Amount;
                                                       details.push({
                                                             "Name": "Claim Settlement",
                                                             "ClaimNo": obj.ClaimNo,
@@ -2204,9 +2537,10 @@ module.exports = (app) => {
                                                 jsonObj.push({
                                                       "owner": owner,
                                                       "iSowner": iSowner,
-                                                      "LOB": policy_obj.PolicyType,//obj.PolicyType, ClaimsBroker
-                                                      "ClaimEstimateLoss": obj.ClaimEstimateLoss,
+                                                      "LOB": policy_obj.PolicyType, //obj.PolicyType, ClaimsBroker
+                                                      "ClaimEstimateLoss": amount,
                                                       "ClaimsBroker": obj.ClaimsBroker.$identifier.toString(),
+                                                      "Insurer": policy_obj.Insurer.$identifier.toString(),
                                                       "CSType": CSType,
                                                       "InsuredCompanyName": policy_obj.InsuredCompanyName,
                                                       "ClaimNo": obj.ClaimNo,
@@ -2219,7 +2553,7 @@ module.exports = (app) => {
                                                 });
                                           }
                                           console.log("*************************")
-                                          bnUtil.disconnect()
+                                          bnUtil.disconnect();
                                           res.json({
                                                 jsonObj
                                           });
@@ -2227,7 +2561,7 @@ module.exports = (app) => {
                         }).catch((error) => {
                               console.log(error);
                               jsonObj.push({
-                                    "status": 'exception occured'
+                                    "status": 'Exception occured,please check query and try again.'
                               });
                               res.json({
                                     jsonObj
@@ -2235,6 +2569,113 @@ module.exports = (app) => {
                         });
             });
       });
+
+      app.get('/MyClaims/:search', (req, res) => {
+
+            var jsonObj = [];
+
+            const user = req.headers["user"];
+            console.log("*********  MyCases - searching for : " + req.params.search);
+            const needle  = req.params.search;
+
+            bnUtil.connect(req, res, () => {
+
+                  console.log("*************************")
+                  return bnUtil.connection.getAssetRegistry(NS_CLAIM)
+                        .then(function (registry) {
+                              return registry.getAll();
+                        }).then((results1) => {
+                              return bnUtil.connection.getAssetRegistry(NS_POLICY)
+                                    .then(function (registry) {
+                                          return registry.getAll();
+                                    }).then((results2) => {
+
+                                          for (var i = 0; i < results1.length; i++) {
+                                                let details = [];
+                                                var obj = results1[i];
+                                                console.log("*********");
+                                                const owner = obj.owner.$identifier.toString()
+                                                let iSowner = false;
+                                                let amount = obj.ClaimEstimateLoss;
+
+                                                if (owner == user) {
+                                                      iSowner = true;
+
+                                                }
+
+                                                let CSType = "SCAP";
+                                                if (obj.ClaimEstimateLoss != undefined && parseInt(obj.ClaimEstimateLoss) > 250000) {
+                                                      CSType = "Non SCAP";
+                                                }
+
+                                                var policyResult = (results2.filter(item => item.PolicyNo === obj.PolicyNo.$identifier.toString()));
+                                                var policy_obj = policyResult[0]
+
+                                                console.log(obj.ClaimCreateDate);
+                                                console.log(policy_obj.PolicyNo);
+
+                                                if (obj.segmnt != null) { // to do 
+                                                      details.push({
+                                                            "Name": "Claim Evaluation",
+                                                            "ClaimNo": obj.ClaimNo,
+                                                            "PolicyNo": policy_obj.PolicyNo,
+                                                            "CreateDate": dateFormat(obj.segmnt.CreateDate),
+                                                            "Urgency": ((Math.abs(obj.segmnt.TargetDate) - new Date()) / 36e5).toFixed(),
+                                                            "TargetDate": dateFormat(obj.segmnt.TargetDate),
+                                                            "Status": "Completed",
+
+                                                      });
+                                                }
+
+                                                if (obj.ClaimSettlementAmount != null) {
+                                                      amount = obj.ClaimSettlementAmount.Amount;
+                                                      details.push({
+                                                            "Name": "Claim Settlement",
+                                                            "ClaimNo": obj.ClaimNo,
+                                                            "PolicyNo": policy_obj.PolicyNo,
+                                                            "CreateDate": dateFormat(obj.ClaimSettlementAmount.CreateDate),
+                                                            "Urgency": ((Math.abs(obj.ClaimSettlementAmount.TargetDate) - new Date()) / 36e5).toFixed(),
+                                                            "TargetDate": dateFormat(obj.ClaimSettlementAmount.TargetDate),
+                                                            "Status": obj.ClaimSettlementAmount.Status
+                                                      });
+                                                }
+
+                                                jsonObj.push({
+                                                      "owner": owner,
+                                                      "iSowner": iSowner,
+                                                      "LOB": policy_obj.PolicyType, //obj.PolicyType, ClaimsBroker
+                                                      "ClaimEstimateLoss": amount,
+                                                      "ClaimsBroker": obj.ClaimsBroker.$identifier.toString(),
+                                                      "Insurer": policy_obj.Insurer.$identifier.toString(),
+                                                      "CSType": CSType,
+                                                      "InsuredCompanyName": policy_obj.InsuredCompanyName,
+                                                      "ClaimNo": obj.ClaimNo,
+                                                      "PolicyNo": policy_obj.PolicyNo,
+                                                      "ClaimCreateDate": dateFormat(obj.ClaimCreateDate),
+                                                      "ClaimUrgency": ((Math.abs(obj.ClaimTargetDate) - new Date()) / 36e5).toFixed(),
+                                                      "ClaimTargetDate": dateFormat(obj.ClaimTargetDate),
+                                                      "ClaimMode": obj.ClaimMode,
+                                                      "details": details,
+                                                });
+                                          }
+                                          console.log("*************************")
+                                          bnUtil.disconnect();
+                                          jsonObj = searchValues(jsonObj, needle)
+                                          res.json({
+                                                jsonObj
+                                          });
+                                    });
+                        }).catch((error) => {
+                              console.log(error);
+                              jsonObj.push({
+                                    "status": 'Exception occured,please check query and try again.'
+                              });
+                              res.json({
+                                    jsonObj
+                              });
+                        });
+            });
+      });      
 
       app.get('/ClaimPDF/:ClaimNumber', (req, res) => {
             var jsonObj = [];
@@ -2635,7 +3076,7 @@ module.exports = (app) => {
                         });
                   }).catch((error) => {
                         jsonObj.push({
-                              "status": 'exception occured'
+                              "status": 'Exception occured,please check query and try again.'
                         });
                         console.log(error);
                         bnUtil.connection.disconnect();
@@ -2691,7 +3132,7 @@ module.exports = (app) => {
                         });
                   }).catch((error) => {
                         jsonObj.push({
-                              "status": 'exception occured'
+                              "status": 'Exception occured,please check query and try again.'
 
                         });
                         console.log(error);
@@ -2739,7 +3180,7 @@ function padValue(value) {
 
 function getCardName(user) {
 
-      return user.concat("-card@lloyds-project-11")
+      return user.concat("-card@lloyds-project-2")
 }
 
 
@@ -2805,7 +3246,7 @@ function getPartyAdress(req, res, party) {
                         bnUtil.disconnect();
                         resolve(address);
                   } else {
-                        reject(Error(`Invalid user: ${party}`)).then(() => { }, (error) => {
+                        reject(Error(`Invalid user: ${party}`)).then(() => {}, (error) => {
                               consol.log(error);
                         });
                   }
@@ -2844,6 +3285,78 @@ async function getRole(req, res) {
 }
 
 
+colors.setTheme({
+      silly: 'rainbow',
+      input: 'grey',
+      verbose: 'cyan',
+      prompt: 'grey',
+      info: 'green',
+      data: 'grey',
+      help: 'cyan',
+      warn: 'yellow',
+      debug: 'blue',
+      error: 'red',
+      custom: ['yellow', 'bold']
+});
+
+function sanitize(obj) {
+
+      delete obj['$class'];
+
+      let arr = ["InsuredMailingAddress", "FinancialOverview", "Followers", "BrokerPlacing", "BrokerOverSeas", "TotalSumInsured", "polLayerinfo", "ContractPeriod", "Sublimits", "CarrierInfo"];
+
+      for (let i in arr) {
+            if (obj.hasOwnProperty(arr[i])) {
+                  console.log(colors.warn(arr[i] + '->' + Array.isArray(obj[arr[i]])));
+                  if (Array.isArray(obj[arr[i]])) {
+                        for (let j in obj[arr[i]]) {
+                              delete obj[arr[i]][j]['$class'];
+                        }
+                  }
+                  delete obj[arr[i]]['$class'];
+            }
+      }
+
+      return obj;
+}
+
+async function generateXML() {
+      console.log(colors.custom('***Generate XML***'));
+      let req = {
+            "headers": {
+                  "user": "Isabelle",
+                  "password": "1234"
+            }
+      };
+
+      console.log(req);
+
+      let res = "";
+      bnUtil.connect(req, res, async (error) => {
+
+            var filePath = "/tmp/sample.xml";
+
+            const polRegistry = await bnUtil.connection.getAssetRegistry('org.lloyds.market.Policy');
+            let polid = "2445";
+            let isExist = await polRegistry.exists(polid);
+            console.log(isExist);
+            if (isExist) {
+                  let bnDef = bnUtil.connection.getBusinessNetwork();
+                  const pol = await polRegistry.get(polid);
+                  var serializer = bnDef.getSerializer();
+                  let polObj = serializer.toJSON(pol);
+                  console.log(colors.data(sanitize(polObj)));
+
+                  var myxml = (js2xmlparser.parse("Policy", sanitize(polObj)));
+                  fs.appendFile(filePath, myxml, function (err) {
+                        if (err) throw err;
+                        console.log(colors.silly('Saved!'));
+                  });
+
+                  bnUtil.disconnect();
+            }
+      });
+}
 //getIsuredAdress();
 async function getUserName(party, password) {
       return new Promise((resolve, reject) => {
