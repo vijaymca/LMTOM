@@ -43,7 +43,7 @@ asset Policy identified by PolicyNo {
   --> _Party Followers4 optional
 
   o _Contract Contract optional
-  o _sublimits sublimits optional
+   o _sublimits sublimits optional
   o _insuredAmount insuranceAmount optional
   o _Premium[] premium optional
   o _follower[] followers optional
@@ -166,7 +166,7 @@ concept _ContractDeductible {
 
 concept _Premium {
 	  o String PremiumType  optional
-    o Double PremiumAmount
+    o Double PremiumAmount optional
     o String PaymentDate  optional
     o String TermsOfTradePeriod optional
     o String PaymentsDescription optional

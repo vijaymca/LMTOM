@@ -11,7 +11,6 @@ module.exports = {
     cardStore: require('composer-common').FileSystemCardStore,
     BusinessNetworkConnection: require('composer-client').BusinessNetworkConnection,
     // Used for connect()
-    //cardName: "admin@lloyds-project-11",
 
     // Holds the Business Network Connection
     connection: {},
@@ -43,6 +42,18 @@ module.exports = {
             return this.connection.connect(cardName_new).then(function () {
                 callback();
             }).catch((error) => {
+                console.log(error);
+                const cardName_new = getCardName(user);
+                console.log("*** dlt-connection-util*** retry 1", cardName_new);
+                return this.connection.connect(cardName_new).then(function () {
+                    callback();
+                }).catch((error) => {
+                    console.log(error);
+                    const cardName_new = getCardName(user);
+                    console.log("*** dlt-connection-util card***  retry 2", cardName_new);
+                    return this.connection.connect(cardName_new).then(function () {
+                        callback();
+                    }).catch((error) => {
                 var jsonObj = [];
 
                 jsonObj.push({
@@ -55,14 +66,16 @@ module.exports = {
                 console.log(error);
                 connection.disconnect();
             });
+        });
+    });
         }
     },
 
     // 2. Disconnects the bn connection
     disconnect: function (callback) {
       console.log("******Disconnect*******");
-  
-      return this.connection.disconnect();
+
+        return this.connection.disconnect();
     },
 
     // 3. Pings the network
@@ -77,5 +90,7 @@ module.exports = {
 
 
 function getCardName(user) {
+
     return user.concat("@lloyds-project-6");
 }
+

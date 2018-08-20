@@ -156,15 +156,32 @@ event EventUpdateClaimMode  {
     o   String    Followers4
     o   String    ClaimMode
 }   
+
+event EventpolicyNew {
+            o String PolicyNo
+            o String InsuredCompanyName
+            o String PolicyType
+            o String LeadCarrier
+}
+
 transaction policyNew {
   o String PolicyNo
   o String InsuredCompanyName optional
   o PolicyType PolicyType optional
   o String PolicyDetails1 optional
-  o String PolicyEffectiveDate optional
-  o String PolicyExpiryDate optional
   o String PolicyStatus optional
+  o _ContractPeriod contractPeriod optional
   --> _Party LeadCarrier optional
+  --> _Party insured optional
+  --> _Party PlacingBroker optional
+  --> _Party OverseasBroker optional
+  --> _Party Insurer optional
+  o _insuredAmount insuredAmount optional
+
+  --> _Party Followers1 optional
+  --> _Party Followers2 optional
+  --> _Party Followers3 optional
+  --> _Party Followers4 optional
 }
 
 transaction claimConflict {

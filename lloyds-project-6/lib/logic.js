@@ -23,16 +23,32 @@ async function policyNew(xData) { // eslint-disable-line no-unused-vars
       policy.InsuredCompanyName = xData.InsuredCompanyName;
       policy.PolicyType = xData.PolicyType;
       policy.PolicyDetails1 = xData.PolicyDetails1;
+      policy.PolicyStatus = xData.PolicyStatus;
+      
+      policy.Insurer = xData.Insurer;
       policy.LeadCarrier = xData.LeadCarrier;
+      policy.Insured = xData.insured;
+      policy.PlacingBroker = xData.PlacingBroker;
+      policy.OverseasBroker = xData.OverseasBroker;
+      policy.insuranceAmount = xData.insuredAmount;
+      policy.ContractPeriod = xData.contractPeriod;
 
-      policy.ContractPeriod.StartDateTime = xData.timestamp;
-      const effectiveDate = xData.timestamp;
-      effectiveDate.setDate(effectiveDate.getDate() + 200);
-      policy.ContractPeriod.EndDateTime = effectiveDate;
+      policy.Followers1 = xData.Followers1;
+      policy.Followers2 = xData.Followers2;
+      policy.Followers3 = xData.Followers3;
+      policy.PlacingBroker = xData.Followers4;
 
       // add Policy to registry
       const policyRegistry = await getAssetRegistry(NS_POLICY);
       await policyRegistry.addAll([policy]);
+
+     
+      var event = factory.newEvent('org.lloyds.model', 'EventpolicyNew');
+      event.PolicyNo = xData.PolicyNo;
+      event.InsuredCompanyName = xData.InsuredCompanyName;
+      event.PolicyType = xData.PolicyType;
+      event.LeadCarrier = xData.LeadCarrier.$identifier.toString();
+      emit(event);
 }
 
 /**
@@ -51,26 +67,26 @@ async function taQuery(xData) {
 
 
 /**
- * Initialize some test assets and participants useful for running a demo.
- * @param {org.lloyds.model.updatePolicy} updatePolicy 
- * @transaction
- */
+* Initialize some test assets and participants useful for running a demo.
+* @param {org.lloyds.model.updatePolicy} updatePolicy 
+* @transaction
+*/
 
 async function updatePolicy(xData) {
-      const policyRegistry = await getAssetRegistry(NS_POLICY);
-      const policy = await policyRegistry.get(xData.PolicyNo);
+    const policyRegistry = await getAssetRegistry(NS_POLICY);
+    const policy = await policyRegistry.get(xData.PolicyNo);
 
-      if (xData.Role === "broker") {
-            policy.premium = xData.premium;
-            policy.followers = xData.followes;
-            policy.insuranceAmount = xData.insuranceDetails;
-      } else if (xData.Role === "carrier") {
-            policy.carrierInfo = xData.carrierInfo;
-            policy.insuranceAmount = xData.insuranceDetails;
-      }
-      await policyRegistry.update(policy);
+    if (xData.Role === "broker") {
+          policy.premium = xData.premium;
+          policy.followers = xData.followes;
+          policy.insuranceAmount = xData.insuranceDetails;
+    } else if (xData.Role === "carrier") {
+          policy.carrierInfo = xData.carrierInfo;
+          policy.insuranceAmount = xData.insuranceDetails;
+    }
+    await policyRegistry.update(policy);
 }
-
+ 
 /**
  * CreateClaim Transaction
  * @param {org.lloyds.model.CreateClaim} CreateClaim
@@ -217,7 +233,7 @@ async function TransactionClaimSettlementAmount(xData) {
       const claim = await claimRegistry.get(xData.claimId);
       claim.ClaimSettlementAmount = SettlementAmount;
 
-
+      
       await claimRegistry.update(claim);
 
       // 3 Emit the event ClaimSettlementAmountUpdated
@@ -251,7 +267,7 @@ async function TransactionClaimSettlementAmountStatus(xData) {
       const claimRegistry = await getAssetRegistry('org.lloyds.market.Claim');
       const claim = await claimRegistry.get(xData.claimId);
       claim.ClaimSettlementAmount.Status = xData.Status;
-
+      
       claim.ClaimMode = "PremiumCheck";
       let premium = await factory.newConcept('org.lloyds.market', '_Premium');
       premium.premiumBeenPaiByPolHolder = false;
@@ -454,7 +470,28 @@ async function claimConflict(xData) {
 
       claim.comments.push(xData.comment);
       await claimRegistry.update(claim);
+      const factory = getFactory();
+
+      var event = factory.newEvent('org.lloyds.model', 'EventclaimConflict');
+      event.ClaimNo = claim.ClaimNo;
+      event.ClaimMode = claim.ClaimMode;
+
+
+      event.owner = claim.owner.$identifier.toString();
+      event.LeadCarrier = claim.LeadCarrier.$identifier.toString();
+      event.PlacingBroker = claim.PlacingBroker.$identifier.toString();
+      event.ClaimsBroker = claim.ClaimsBroker.$identifier.toString();
+
+
+      event.Followers1 = claim.Followers1.$identifier.toString();
+      event.Followers2 = claim.Followers2.$identifier.toString();
+      event.Followers3 = claim.Followers3.$identifier.toString();
+      event.Followers4 = claim.Followers4.$identifier.toString();
+
+      emit(event);
+
 }
+
 
 /** claimPremCheck Transaction
  * @param {org.lloyds.model.claimPremCheck} claimPremCheck
@@ -464,9 +501,9 @@ async function claimPremCheck(xData) {
       const claimRegistry = await getAssetRegistry(NS_CLAIM);
       const claim = await claimRegistry.get(xData.claimId);
       var factory = getFactory();
-
+      
       claim.checkPremium = xData.premium;
-
+      
       claim.ClaimMode = "HousekeepingCheck";
       let houseKeeping = await factory.newConcept('org.lloyds.market', 'houseKeeping');
       houseKeeping.premiumBeenPaidByPolHolder = false;
@@ -488,7 +525,7 @@ async function claimSegment(xData) {
       const claimRegistry = await getAssetRegistry(NS_CLAIM);
       const claim = await claimRegistry.get(xData.claimId);
       claim.segmnt = xData.segmnt;
-
+      
       claim.ClaimMode = "ClaimSettlement";
       await claimRegistry.update(claim);
 }
@@ -501,10 +538,10 @@ async function housekeep(xData) {
       const claimRegistry = await getAssetRegistry(NS_CLAIM);
       const claim = await claimRegistry.get(xData.claimId);
       claim.houseKeeping = xData.housekeep;
-
+      
       claim.ClaimMode = "TAGenerated";
       await claimRegistry.update(claim);
-
+  
       var factory = getFactory();
       var event = factory.newEvent('org.lloyds.model', 'Eventclaimhousekeep');
       event.ClaimNo = claim.ClaimNo;
@@ -518,7 +555,7 @@ async function housekeep(xData) {
       event.Followers4 = claim.Followers4.$identifier.toString();
 
       emit(event);
-
+  
 }
 
 /** AdditionalInfo Transaction
