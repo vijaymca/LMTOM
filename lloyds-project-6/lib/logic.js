@@ -33,6 +33,7 @@ async function policyNew(xData) { // eslint-disable-line no-unused-vars
       policy.insuranceAmount = xData.insuredAmount;
       policy.ContractPeriod = xData.contractPeriod;
 
+      
       policy.Followers1 = xData.Followers1;
       policy.Followers2 = xData.Followers2;
       policy.Followers3 = xData.Followers3;
@@ -41,8 +42,7 @@ async function policyNew(xData) { // eslint-disable-line no-unused-vars
       // add Policy to registry
       const policyRegistry = await getAssetRegistry(NS_POLICY);
       await policyRegistry.addAll([policy]);
-
-     
+ 
       var event = factory.newEvent('org.lloyds.model', 'EventpolicyNew');
       event.PolicyNo = xData.PolicyNo;
       event.InsuredCompanyName = xData.InsuredCompanyName;
@@ -84,6 +84,7 @@ async function updatePolicy(xData) {
           policy.carrierInfo = xData.carrierInfo;
           policy.insuranceAmount = xData.insuranceDetails;
     }
+  policy.PolicyStatus = xData.PolicyStatus;
     await policyRegistry.update(policy);
 }
  

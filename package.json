@@ -26,6 +26,7 @@
     "money": "^0.2.0",
     "mysql": "^2.15.0",
     "node-rest-client": "^3.1.0",
+    "nodemailer": "^4.6.8",
     "nyc": "latest"
   },
   "author": "",

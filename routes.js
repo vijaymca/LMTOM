@@ -12,7 +12,7 @@ var colors = require('colors/safe');
 var nodemailer = require('nodemailer');
 
 const EventEmitter = require('events');
-class MyEmitter extends EventEmitter {}
+class MyEmitter extends EventEmitter { }
 const myEmitter = new MyEmitter();
 // increase the limit
 myEmitter.setMaxListeners(100);
@@ -782,9 +782,7 @@ module.exports = (app) => {
 
             let polObj = await getPolicyRep(req, res);
 
-            // res.json({
-            //     polObj
-            // });
+
             let jsonObj = [];
             let partyArray = [];
 
@@ -872,7 +870,7 @@ module.exports = (app) => {
                   policyResource.InsuredCompanyName = req.body.data.InsuredCompanyName;
                   policyResource.PolicyType = req.body.data.PolicyType;
                   policyResource.PolicyDetails1 = req.body.data.PolicyDetails1;
-                  policyResource.PolicyStatus = req.body.data.PolicyStatus;
+                  policyResource.PolicyStatus = "UpdateTA";
 
                   const contractPeriod = factory.newConcept(NS, '_ContractPeriod');
                   contractPeriod.StartDateTime = new Date(req.body.data.PolicyEffectiveDate);
@@ -997,7 +995,7 @@ module.exports = (app) => {
             jsonObj.push({
                   polObj
             });
-
+            updatePolicyStatus(req.params.PolicyNo, "FAGenerated");
             res.json({
                   jsonObj
             });
@@ -1056,7 +1054,12 @@ module.exports = (app) => {
                                                       delete pObj[arr[i]][j]['$class'];
                                                 }
                                           }
-                                          delete pObj[arr[i]]['$class'];
+                                          if (pObj[arr[i]] != undefined) {
+                                                delete pObj[arr[i]]['$class'];
+                                          }
+
+
+
                                     }
                               }
 
@@ -1127,7 +1130,15 @@ module.exports = (app) => {
                         policyTraxn.Role = "broker";
                         policyTraxn.premium = [];
                         for (let i in req.body.data.premium) {
-                              var premConcept = policy.premium[i];
+
+                              var premConcept = {};
+
+                              if (typeof policy.premium === 'undefined' || policy.premium[i] == null || typeof policy.premium[i] === 'undefined') {
+                                    premConcept = factory.newConcept(NS, '_Premium');
+                              } else {
+                                    premConcept = policy.premium[i];
+                              }
+
                               premConcept.PremiumAmount = req.body.data.premium[i].premiumAmount;
                               premConcept.placeBrokerPer = req.body.data.premium[i].placeBrokerPer;
                               let placbroComm = req.body.data.premium[i].placeBrokerPer * req.body.data.premium[i].premiumAmount;
@@ -1137,14 +1148,23 @@ module.exports = (app) => {
                               premConcept.overseasBroComm = oversComm;
                               console.log(colors.prompt(serializer.toJSON(premConcept)));
                               policyTraxn.premium.push(premConcept);
+
                         }
 
                         policyTraxn.followes = [];
                         console.log(req.body.data.followes);
                         for (let i in req.body.data.followes) {
-                              var followConcept = policy.followers[i];
+
+                              var followConcept = {};
+
+                              if (typeof policy.followers === 'undefined' || policy.followers[i] == null || typeof policy.followers[i] === 'undefined') {
+                                    followConcept = factory.newConcept(NS, '_follower');
+                              } else {
+                                    followConcept = policy.followers[i];
+                              }
+
                               followConcept.index = i;
-                              
+                              followConcept.CompanyName = req.body.data.followes[i].companyName;
                               followConcept.written = req.body.data.followes[i].written;
                               followConcept.signed = req.body.data.followes[i].signed;
                               followConcept.premium = req.body.data.followes[i].signed * req.body.data.details.premiumTot;
@@ -1157,6 +1177,13 @@ module.exports = (app) => {
                         insDetlsConcept.premiumInUSD = req.body.data.details.premiumTot * 1.28;
                         policyTraxn.insuranceDetails = insDetlsConcept;
 
+                        if (policy.PolicyStatus == 'CReviewTA') {
+                              policyTraxn.PolicyStatus = 'ReviewTA'
+                        }
+                        else {
+                              policyTraxn.PolicyStatus = 'BReviewTA'
+                        }
+
                   } else if (currentUserRole != "Policy Holder") {
                         var pd = 0;
                         var bi = 0;
@@ -1166,7 +1193,15 @@ module.exports = (app) => {
                         policyTraxn.Role = "carrier";
                         policyTraxn.carrierInfo = [];
                         for (let i in req.body.data.carrierInfo) {
-                              var carrierConcept = policy.carrierInfo[i];
+
+                              var carrierConcept = {};
+
+                              if (typeof policy.carrierInfo === 'undefined' || policy.carrierInfo[i] == null || typeof policy.carrierInfo[i] === 'undefined') {
+                                    carrierConcept = factory.newConcept(NS, 'carrierInfo');
+                              } else {
+                                    carrierConcept = policy.carrierInfo[i];
+                              }
+
                               carrierConcept.LineNo = req.body.data.carrierInfo[i].LineNo;
                               carrierConcept.PostalCode = req.body.data.carrierInfo[i].PostalCode;
                               carrierConcept.bindingVal = req.body.data.carrierInfo[i].bindingVal;
@@ -1175,7 +1210,6 @@ module.exports = (app) => {
                               let pdTotal = req.body.data.carrierInfo[i].bindingVal + req.body.data.carrierInfo[i].constMach;
                               carrierConcept.pdTotal = pdTotal;
                               pd = pd + pdTotal;
-
 
                               carrierConcept.BI_monthip = req.body.data.carrierInfo[i].BI_monthip;
                               bi = bi + req.body.data.carrierInfo[i].BI_monthip;
@@ -1199,6 +1233,14 @@ module.exports = (app) => {
                         insDetlsConcept.Total = total;
                         console.log(colors.prompt(serializer.toJSON(insDetlsConcept)));
                         policyTraxn.insuranceDetails = insDetlsConcept;
+
+
+                        if (policy.PolicyStatus == 'BReviewTA') {
+                              policyTraxn.PolicyStatus = 'ReviewTA'
+                        }
+                        else {
+                              policyTraxn.PolicyStatus = 'CReviewTA'
+                        }
                   }
 
                   // 6. Submit the transaction
@@ -1208,6 +1250,8 @@ module.exports = (app) => {
                               "status": "Transaction Submitted",
                         });
                         bnUtil.connection.disconnect();
+
+
                         res.json({
                               jsonObj
                         });
@@ -1607,7 +1651,7 @@ module.exports = (app) => {
                         res.json({
                               jsonObj
                         });
-                        
+
                   });
             });
       });
@@ -1650,7 +1694,7 @@ module.exports = (app) => {
                         res.json({
                               jsonObj
                         });
-                        
+
                   });
             });
       });
@@ -2228,25 +2272,37 @@ module.exports = (app) => {
                   return bnUtil.connection.query(qry).then((results2) => {
                         console.log('2. Received results2: ', results2);
                         for (var i = 0; i < results2.length; i++) {
+                              let PStatus = "";
                               var details = [];
                               var obj = results2[i];
                               if (obj.PolicyStatus != null) {
                                     let Status;
-                                    if (obj.PolicyStatus == "ReviewInformation") {
+                                    
+                                    if (obj.PolicyStatus == "UpdateTA") {
                                           Status = "Pending";
                                     } else {
                                           Status = "Completed";
                                     }
                                     details.push({
-                                          "Name": "Review Information",
+                                          "Name": "Update TA Information",
                                           "PolicyNo": obj.PolicyNo,
                                           "CreateDate": dateFormat(obj.ContractPeriod.StartDateTime),
                                           "Urgency": ((Math.abs(obj.ContractPeriod.EndDateTime) - new Date()) / 36e5).toFixed(),
                                           "TargetDate": dateFormat(obj.ContractPeriod.EndDateTime),
                                           "Status": Status
                                     });
+
+                                    if (obj.PolicyStatus == 'BReviewTA' || obj.PolicyStatus == 'BReviewTA') {
+                                          PStatus = 'UpdateTA'
+                                    }
+                                    else {
+                                          PStatus = obj.PolicyStatus
+                                    }
+
                               }
                               var obj = results2[i];
+                              console.log(obj.PolicyNo);
+
                               console.log("*********");
                               jsonObj.push({
                                     "Insured": obj.InsuredCompanyName,
@@ -2255,7 +2311,7 @@ module.exports = (app) => {
                                     "CreateDate": dateFormat(obj.ContractPeriod.StartDateTime),
                                     "Urgency": ((Math.abs(obj.ContractPeriod.EndDateTime) - new Date()) / 36e5).toFixed(),
                                     "TargetDate": dateFormat(obj.ContractPeriod.EndDateTime),
-                                    "Status": "ReviewInformation",
+                                    "Status": PStatus,
                                     "details": details
                               });
                         }
@@ -3351,6 +3407,40 @@ module.exports = (app) => {
             });
       });
 
+      app.put('/policystatus/:PolicyNo', (req, res) => {
+            var jsonObj = [];
+            console.log("********* Claims");
+            const user = req.headers["user"];
+            const password = req.headers["password"];
+
+            connection.connect(cardName).then(function () {
+                  let policyRegistry = {}
+                  return connection.getAssetRegistry('org.lloyds.market.Policy').then((registry) => {
+                        console.log('1. Received Registry: ', registry.id);
+                        policyRegistry = registry;
+                        return policyRegistry.get(req.params.PolicyNo);
+                  }).then((policy) => {
+                        if (!policy) console.log(req.params.PolicyNo + 'Not found');
+
+                        policy.PolicyStatus = req.body.Status;
+                        return policyRegistry.update(policy).then(() => {
+                              console.log('Updated successfully!!!');
+                              jsonObj.push({
+                                    "status": "Transaction Submitted",
+                              });
+                              res.json({
+                                    jsonObj
+                              });
+                              connection.disconnect();
+                        });
+
+                  }).catch((error) => {
+                        console.log(error);
+                        connection.disconnect();
+                  });
+            });
+      });
+
 };
 
 
@@ -3451,7 +3541,7 @@ function getPartyAdress(req, res, party) {
                         bnUtil.disconnect();
                         resolve(address);
                   } else {
-                        reject(Error(`Invalid user: ${party}`)).then(() => {}, (error) => {
+                        reject(Error(`Invalid user: ${party}`)).then(() => { }, (error) => {
                               consol.log(error);
                         });
                   }
@@ -3485,6 +3575,39 @@ async function getRole(req, res) {
                   } else {
                         bnUtil.disconnect();
                   }
+            });
+      });
+
+
+
+
+}
+
+async function updatePolicyStatus(PolicyNo, Status) {
+
+      console.log("**UPDATING POLICY STATUS: " + Status);
+      var jsonObj = [];
+      let policyRegistry = {}
+      return new Promise((resolve, reject) => {
+            connection.connect(cardName).then(function () {
+
+                  connection.getAssetRegistry('org.lloyds.market.Policy').then((registry) => {
+                        policyRegistry = registry;
+                        return policyRegistry.get(PolicyNo);
+                  })
+                        .then(function (policy) {
+                              if (!policy) console.log(PolicyNo + 'Not found');
+
+                              policy.PolicyStatus = Status;
+                              return policyRegistry.update(policy).then(() => {
+                                    console.log('Updated successfully!!!');
+                                    jsonObj.push({
+                                          "status": "Transaction Submitted",
+                                    });
+                                    resolve(jsonObj);
+                                    connection.disconnect();
+                              });
+                        });
             });
       });
 }

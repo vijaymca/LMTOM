@@ -155,13 +155,13 @@ event EventUpdateClaimMode  {
     o   String    Followers3
     o   String    Followers4
     o   String    ClaimMode
-}   
+}
 
 event EventpolicyNew {
-            o String PolicyNo
-            o String InsuredCompanyName
-            o String PolicyType
-            o String LeadCarrier
+   o String PolicyNo
+   o String InsuredCompanyName
+   o String PolicyType
+   o String LeadCarrier
 }
 
 transaction policyNew {
@@ -170,14 +170,14 @@ transaction policyNew {
   o PolicyType PolicyType optional
   o String PolicyDetails1 optional
   o String PolicyStatus optional
-  o _ContractPeriod contractPeriod optional
+o _ContractPeriod contractPeriod optional
   --> _Party LeadCarrier optional
   --> _Party insured optional
+  --> _Party Insurer optional
   --> _Party PlacingBroker optional
   --> _Party OverseasBroker optional
-  --> _Party Insurer optional
   o _insuredAmount insuredAmount optional
-
+  
   --> _Party Followers1 optional
   --> _Party Followers2 optional
   --> _Party Followers3 optional
@@ -194,21 +194,19 @@ transaction claimConflict {
 
 event EventclaimConflict {
     o   String    ClaimNo
-    o   String    ClaimMode
     o   String    owner
     o   String    LeadCarrier
     o   String    PlacingBroker
     o   String    ClaimsBroker
-    o   String    OverseasBroker
-    o   String    PolicyOwner
+    o   String    ClaimMode
     o   String    Followers1
     o   String    Followers2
     o   String    Followers3
     o   String    Followers4
-    o   Segmentation    segmnt    
-  
 
 }
+  
+  
 // To check premium paid
 transaction claimPremCheck {
   o String claimId
@@ -264,8 +262,6 @@ event Eventclaimhousekeep {
     o   String    Followers3
     o   String    Followers4
 }
-
-
 transaction claimAddtionalInfo {
   o String PartyName
   o String PartyType
@@ -281,6 +277,7 @@ event eventclaimAddtionalInfo {
 
 transaction updatePolicy {
 o String PolicyNo
+o String PolicyStatus optional
 o _Premium[] premium optional
 o _follower[] followes optional
 o carrierInfo[] carrierInfo optional
