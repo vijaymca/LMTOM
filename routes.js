@@ -43,7 +43,7 @@ module.exports = (app) => {
 
       app.get('/login', async (req, res, next) => {
             var jsonObj = [];
-            console.log("1. ********* login")
+            console.log("1. ********* login");
             const user = req.headers["user"];
             const password = req.headers["password"];
             console.log("2. ********* login1", user);
@@ -610,7 +610,47 @@ module.exports = (app) => {
                   });
             });
       });
+      async function generateTAXML(req, res){
+        console.log(colors.custom('**Call getPolicy for XML**'));
+        let polObj = await getPolicyRep(req, res);
+        let jsonObj = [];
+        let partyArray = [];
+        jsonObj.push({
+              "status": "Transaction Submitted",
+        });
+        var filePath = "/tmp/".concat(req.params.PolicyNo).replace(/ /g,'').concat(".xml");
+        fs.unlink(filePath, function (err) {
+            if(err && err.code == 'ENOENT') {
+                // file doens't exist
+                console.log("File doesn't exist, won't remove it.");
+            } else if (err) {
+                // other errors, e.g. maybe we don't have enough permission
+                console.log("Error occurred while trying to remove file");
+            } else {
+                console.log(`removed`);
+            }
+        });
 
+        if (typeof polObj !== 'undefined' && polObj.length > 0) {
+            // the array is defined and has at least one element
+            let pObj = sanitize(polObj[0]);
+            var myxml = (js2xmlparser.parse("Policy", pObj));
+            fs.appendFile(filePath, myxml, function (err) {
+                  if (err) throw err;
+                  console.log(colors.silly('Saved!'));
+                  console.log("File name is  :",filePath);
+            });
+            partyArray = ["technicalaccvrtu@gmail.com", "placingbrokervrtu@gmail.com"];
+            for (var x in partyArray) {
+                  const email = partyArray[x]
+                  console.log("Sending email to :",email);
+                  var text = "Hi, Please find the attached TA xml.";
+                  sendEmailWithAttachment('lmtom.notification@gmail.com', email, 'Policy TA generated', text, "PolicyTA.xml", filePath);
+            }
+        }
+
+
+    }
 
       function getPolicyRep(req, res) {
             return new Promise((resolve, reject) => {
@@ -822,7 +862,7 @@ module.exports = (app) => {
 
 
 
-            partyArray = ["techaccountantvrtu@gmail.com", "placingbrokervrtu@gmail.com"];
+            partyArray = ["technicalaccvrtu@gmail.com", "placingbrokervrtu@gmail.com"];
 
             for (var x in partyArray) {
                   const email = partyArray[x]
@@ -962,17 +1002,16 @@ module.exports = (app) => {
 
             var filePath = "/tmp/".concat(req.params.PolicyNo).concat(".xml");
 
-            fs.stat(filePath, function (err, stats) {
-                  //console.log(stats);//here we got all information of file in stats variable
-
-                  if (err) {
-                        return console.error(err);
-                  }
-
-                  fs.unlink(filePath, function (err) {
-                        if (err) return console.log(err);
-                        console.log(colors.help('file deleted successfully'));
-                  });
+            fs.unlink(filePath, function (err) {
+                if(err && err.code == 'ENOENT') {
+                    // file doens't exist
+                    console.log("File doesn't exist, won't remove it.");
+                } else if (err) {
+                    // other errors, e.g. maybe we don't have enough permission
+                    console.log("Error occurred while trying to remove file");
+                } else {
+                    console.log(`removed`);
+                }
             });
 
             var myxml = (js2xmlparser.parse("Policy", polObj));
@@ -983,7 +1022,7 @@ module.exports = (app) => {
 
 
 
-            partyArray = ["techaccountantvrtu@gmail.com", "placingbrokervrtu@gmail.com"];
+            partyArray = ["technicalaccvrtu@gmail.com", "placingbrokervrtu@gmail.com"];
 
             for (var x in partyArray) {
                   const email = partyArray[x]
@@ -992,10 +1031,45 @@ module.exports = (app) => {
                   sendEmailWithAttachment('lmtom.notification@gmail.com', email, 'Policy FA Generated', text, "PolicyFA.xml", filePath);
             }
 
-            jsonObj.push({
-                  polObj
-            });
-            updatePolicyStatus(req.params.PolicyNo, "FAGenerated");
+            if(polObj.hasOwnProperty('TotalSumInsured') && polObj.TotalSumInsured.hasOwnProperty('TotalSumInsured') ){
+                if (polObj.TotalSumInsured.brokerage.toString() === req.body.data.brokerage.toString()) {
+                    jsonObj.push({
+                          "status": "Receipt matched and FA Generated",
+                    });
+                    for (var x in partyArray) {
+                          const email = partyArray[x]
+  
+                          var text = "Hi, please find the attached FA xml.";
+                          sendEmailWithAttachment('lmtom.notification@gmail.com', email, 'Policy FA Generated', text, "PolicyFA.xml", filePath);
+                    }
+  
+                    updatePolicyStatus(req.params.PolicyNo, "FAGenerated");
+  
+              }
+              else {
+                    jsonObj.push({
+                          "status": "Receipt Mismatch",
+                    });
+              }
+            }
+
+           else {
+                  jsonObj.push({
+                        "status": "FA Generated",
+                  });
+                  for (var x in partyArray) {
+                        const email = partyArray[x]
+
+                        var text = "Hi, please find the attached FA xml.";
+                        sendEmailWithAttachment('lmtom.notification@gmail.com', email, 'Policy FA Generated', text, "PolicyFA.xml", filePath);
+                  }
+
+                  updatePolicyStatus(req.params.PolicyNo, "FAGenerated");
+
+            }
+
+
+
             res.json({
                   jsonObj
             });
@@ -1251,7 +1325,7 @@ module.exports = (app) => {
                         });
                         bnUtil.connection.disconnect();
 
-
+                        generateTAXML(req, res);
                         res.json({
                               jsonObj
                         });
@@ -2277,8 +2351,8 @@ module.exports = (app) => {
                               var obj = results2[i];
                               if (obj.PolicyStatus != null) {
                                     let Status;
-                                    
-                                    if (obj.PolicyStatus == "UpdateTA") {
+
+                                    if (obj.PolicyStatus == "UpdateTA" || obj.PolicyStatus == 'CReviewTA' || obj.PolicyStatus == 'BReviewTA') {
                                           Status = "Pending";
                                     } else {
                                           Status = "Completed";
@@ -2292,7 +2366,7 @@ module.exports = (app) => {
                                           "Status": Status
                                     });
 
-                                    if (obj.PolicyStatus == 'BReviewTA' || obj.PolicyStatus == 'BReviewTA') {
+                                    if (obj.PolicyStatus == 'CReviewTA' || obj.PolicyStatus == 'BReviewTA') {
                                           PStatus = 'UpdateTA'
                                     }
                                     else {
@@ -3723,7 +3797,7 @@ var transporter = nodemailer.createTransport({
 });
 
 function sendEmailWithAttachment(from, email, subject, text, filename, filepath) {
-
+    var fpath = filepath;
       var mailOptions = {
             from: from,
             to: email,
@@ -3742,7 +3816,6 @@ function sendEmailWithAttachment(from, email, subject, text, filename, filepath)
                   console.log('Email sent: ' + info.response);
             }
       });
-
 }
 
 async function getEmail(party) {
